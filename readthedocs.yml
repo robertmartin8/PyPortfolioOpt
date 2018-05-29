@@ -1,0 +1,6 @@
+python:
+  version: 3
+  pip_install: true
+
+# For more fields that can be specified here, see:
+# http://docs.readthedocs.io/en/latest/yaml-config.html
