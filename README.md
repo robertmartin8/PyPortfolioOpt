@@ -1,5 +1,5 @@
 
-<p align="center"><img width=12.5% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v0.png"></p>
+<p align="center"><img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v0.png"></p>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 ![Python](https://img.shields.io/badge/python-v2.7%20%2F%20v3.6-blue.svg)
@@ -8,7 +8,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/anfederico/Clairvoyant.svg)](https://github.com/anfederico/Clairvoyant/issues)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-## Introduction
+## Introduction
 
 PyPortfolioOpt is a simple library that contains widely used portfolio optimisation techniques, with 
 a number of novel/experimental features.
