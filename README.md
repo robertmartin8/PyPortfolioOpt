@@ -1,5 +1,5 @@
 
-<p align="center"><img width=12.5% src="https://github.com/robertmartin8/blob/master/media/logo_v0.png"></p>
+<p align="center"><img width=12.5% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v0.png"></p>
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 ![Python](https://img.shields.io/badge/python-v2.7%20%2F%20v3.6-blue.svg)
