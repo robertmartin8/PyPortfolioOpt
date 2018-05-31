@@ -3,8 +3,6 @@ import scipy.optimize as sco
 from . import objective_functions
 import warnings
 
-# TODO investigate market neutral for efficient risk
-
 
 class EfficientFrontier:
 
@@ -79,7 +77,9 @@ class EfficientFrontier:
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
-    def efficient_risk(self, target_risk, alpha=0, risk_free_rate=0.02):
+    def efficient_risk(
+        self, target_risk, alpha=0, risk_free_rate=0.02, market_neutral=False
+    ):
         """
         Calculates the Sharpe-maximising portfolio for a given target risk
         :param self.expected_returns: array of mean returns for a number of stocks
@@ -91,13 +91,26 @@ class EfficientFrontier:
         self.n_assets = len(self.expected_returns)
         args = (self.expected_returns, self.cov_matrix, alpha, risk_free_rate)
 
-        constraints = self.constraints + [
-            {
-                "type": "ineq",
-                "fun": lambda w: target_risk
-                - objective_functions.volatility(w, self.cov_matrix),
-            }
-        ]
+        target_constraint = {
+            "type": "ineq",
+            "fun": lambda w: target_risk
+            - objective_functions.volatility(w, self.cov_matrix),
+        }
+
+        if market_neutral:
+            if self.bounds[0][0] is not None and self.bounds[0][0] >= 0:
+                warnings.warn(
+                    "Market neutrality requires shorting - bounds have been amended",
+                    RuntimeWarning,
+                )
+                self.bounds = self._make_valid_bounds((-1, 1))
+
+            constraints = [
+                {"type": "eq", "fun": lambda x: np.sum(x)},
+                target_constraint,
+            ]
+        else:
+            constraints = self.constraints + [target_constraint]
 
         result = sco.minimize(
             objective_functions.negative_sharpe,
