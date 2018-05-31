@@ -275,6 +275,40 @@ def test_efficient_risk_L2_reg_many_values():
         initial_number = new_number
 
 
+def test_efficient_risk_market_neutral():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    w = ef.efficient_risk(0.19, market_neutral=True)
+    assert isinstance(w, dict)
+    assert list(w.keys()) == ef.tickers
+    assert list(w.keys()) == list(ef.expected_returns.index)
+    np.testing.assert_almost_equal(ef.weights.sum(), 0)
+    assert (ef.weights < 1).all() and (ef.weights > -1).all()
+    np.testing.assert_almost_equal(
+        ef.portfolio_performance(),
+        (0.2309497469661495, 0.19000021138101422, 1.1021245569881066)
+    )
+    sharpe = ef.portfolio_performance()[2]
+
+    ef_long_only = setup_efficient_frontier()
+    ef_long_only.efficient_return(0.25)
+    long_only_sharpe = ef_long_only.portfolio_performance()[2]
+    assert long_only_sharpe > sharpe
+
+
+def test_efficient_risk_market_neutral_warning():
+    ef = setup_efficient_frontier()
+    with warnings.catch_warnings(record=True) as w:
+        ef.efficient_risk(0.19, market_neutral=True)
+        assert len(w) == 1
+        assert issubclass(w[0].category, RuntimeWarning)
+        assert (
+            str(w[0].message)
+            == "Market neutrality requires shorting - bounds have been amended"
+        )
+
+
 def test_efficient_return():
     ef = setup_efficient_frontier()
     w = ef.efficient_return(0.25)
