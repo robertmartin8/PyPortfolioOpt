@@ -3,6 +3,7 @@ import numpy as np
 from pypfopt import risk_models
 from tests.utilities_for_tests import get_data
 import warnings
+import pytest
 
 
 def test_sample_cov_dummy():
@@ -17,9 +18,9 @@ def test_sample_cov_dummy():
     )
     test_answer = pd.DataFrame(
         [
-            [0.02500, 0.00750, 0.00175],
-            [0.00750, 0.00700, 0.00135],
-            [0.00175, 0.00135, 0.00043],
+            [0.006661687937656102, 0.00264970955585574, 0.0020849735375206195],
+            [0.00264970955585574, 0.0023450491307634215, 0.00096770864287974],
+            [0.0020849735375206195, 0.00096770864287974, 0.0016396416271856837],
         ]
     )
     S = risk_models.sample_cov(data) / 252
@@ -45,8 +46,25 @@ def test_sample_cov_type_warning():
 
         assert len(w) == 1
         assert issubclass(w[0].category, RuntimeWarning)
-        assert str(w[0].message) == "daily_returns is not a dataframe"
+        assert str(w[0].message) == "prices are not in a dataframe"
 
     np.testing.assert_array_almost_equal(
         cov_from_df.values, cov_from_array.values, decimal=6
     )
+
+
+@pytest.mark.xfail()
+def test_constant_correlation_shrinkage_target():
+    df = get_data()
+    lw = risk_models.LedoitWolfShrinkage(df)
+    F = lw.constant_correlation_shrinkage_target()
+    assert F.shape == (20, 20)
+    np.testing.assert_array_almost_equal(df.std().values, F.diagonal())
+    test_array = np.array(
+        [
+            [0.01923241, 0.00756082, 0.00681764],
+            [0.00756082, 0.02869772, 0.00832801],
+            [0.00681764, 0.00832801, 0.02333343],
+        ]
+    )
+    np.testing.assert_array_almost_equal(F[0:3, 0:3], test_array)

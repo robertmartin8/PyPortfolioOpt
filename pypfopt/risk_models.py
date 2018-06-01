@@ -6,7 +6,7 @@ import numpy as np
 import warnings
 
 
-def sample_cov(daily_returns):
+def sample_cov(prices):
     """
     Calculates the sample covariance matrix of daily returns, then annualises.
     :param daily_returns: Daily returns, each row is a date and each column is a ticker
@@ -14,9 +14,11 @@ def sample_cov(daily_returns):
     :returns: annualised sample covariance matrix of daily returns
     :rtype: pd.DataFrame
     """
-    if not isinstance(daily_returns, pd.DataFrame):
-        warnings.warn("daily_returns is not a dataframe", RuntimeWarning)
-        daily_returns = pd.DataFrame(daily_returns)
+    if not isinstance(prices, pd.DataFrame):
+        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        prices = pd.DataFrame(prices)
+    daily_returns = prices.pct_change().dropna(how="all")
+
     return daily_returns.cov() * 252
 
 
@@ -105,7 +107,7 @@ class LedoitWolfShrinkage:
 
 class SingleFactorShrinkage(LedoitWolfShrinkage):
     """
-    See Sharpe, 1963. 
+    See Sharpe, 1963
     """
 
     def single_factor_shrinkage_target(self):

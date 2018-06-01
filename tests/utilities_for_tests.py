@@ -5,7 +5,7 @@ from pypfopt.efficient_frontier import EfficientFrontier
 
 
 def get_data():
-    return pd.read_csv("tests/stock_returns.csv", parse_dates=True, index_col="date")
+    return pd.read_csv("tests/stock_prices.csv", parse_dates=True, index_col="date")
 
 
 def setup_efficient_frontier(data_only=False):

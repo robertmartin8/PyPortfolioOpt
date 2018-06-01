@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from pypfopt import expected_returns
 from tests.utilities_for_tests import get_data
+import warnings
 
 # TODO test mean historical returns frequency
 # TODO test ema
@@ -18,7 +19,7 @@ def test_mean_historical_returns_dummy():
         ]
     )
     mean = expected_returns.mean_historical_return(data, frequency=1)
-    test_answer = pd.Series([4.1, 2.08, 0.604, -11.66])
+    test_answer = pd.Series([0.00865598, 0.025, 0.01286968, -0.03632333])
     pd.testing.assert_series_equal(mean, test_answer)
 
 
@@ -54,6 +55,19 @@ def test_mean_historical_returns():
         ]
     )
     np.testing.assert_array_almost_equal(mean.values, correct_mean)
+
+
+def test_mean_historical_returns_type_warning():
+    df = get_data()
+    mean = expected_returns.mean_historical_return(df)
+
+    with warnings.catch_warnings(record=True) as w:
+        mean_from_array = expected_returns.mean_historical_return(np.array(df))
+        assert len(w) == 1
+        assert issubclass(w[0].category, RuntimeWarning)
+        assert str(w[0].message) == "prices are not in a dataframe"
+
+    np.testing.assert_array_almost_equal(mean.values, mean_from_array.values, decimal=6)
 
 
 def test_mean_historical_returns_frequency():

@@ -10,8 +10,18 @@ def test_data_source():
     df = get_data()
     assert isinstance(df, pd.DataFrame)
     assert df.shape[1] == 20
-    assert len(df) == 7125
+    assert len(df) == 7126
     assert df.index.is_all_dates
+
+
+def test_returns_dataframe():
+    df = get_data()
+    returns_df = df.pct_change().dropna(how='all')
+    assert isinstance(returns_df, pd.DataFrame)
+    assert returns_df.shape[1] == 20
+    assert len(returns_df) == 7125
+    assert returns_df.index.is_all_dates
+    assert not ((returns_df > 1) & returns_df.notnull()).any().any()
 
 
 def test_portfolio_performance():
