@@ -3,7 +3,6 @@ import numpy as np
 from pypfopt import risk_models
 from tests.utilities_for_tests import get_data
 import warnings
-import pytest
 
 
 def test_sample_cov_dummy():
@@ -53,18 +52,86 @@ def test_sample_cov_type_warning():
     )
 
 
-@pytest.mark.xfail()
-def test_constant_correlation_shrinkage_target():
+def test_sample_cov_frequency():
     df = get_data()
-    lw = risk_models.LedoitWolfShrinkage(df)
-    F = lw.constant_correlation_shrinkage_target()
-    assert F.shape == (20, 20)
-    np.testing.assert_array_almost_equal(df.std().values, F.diagonal())
-    test_array = np.array(
-        [
-            [0.01923241, 0.00756082, 0.00681764],
-            [0.00756082, 0.02869772, 0.00832801],
-            [0.00681764, 0.00832801, 0.02333343],
-        ]
-    )
-    np.testing.assert_array_almost_equal(F[0:3, 0:3], test_array)
+    S = risk_models.sample_cov(df)
+    S2 = risk_models.sample_cov(df, frequency=2)
+    pd.testing.assert_frame_equal(S / 126, S2)
+
+
+def test_covariance_shrinkage_init():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df)
+    assert cs.S.shape == (20, 20)
+    assert not (np.isnan(cs.S)).any()
+
+
+def test_shrunk_covariance():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df)
+    shrunk_cov = cs.shrunk_covariance(0.2)
+    assert cs.delta == 0.2
+    assert shrunk_cov.shape == (20, 20)
+    assert list(shrunk_cov.index) == list(df.columns)
+    assert list(shrunk_cov.columns) == list(df.columns)
+    assert not shrunk_cov.isnull().any().any()
+
+
+def test_shrunk_covariance_extreme_delta():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df)
+    # if delta = 0, no shrinkage occurs
+    shrunk_cov = cs.shrunk_covariance(0)
+    np.testing.assert_array_almost_equal(shrunk_cov.values, risk_models.sample_cov(df))
+    # if delta = 1, sample cov does not contribute to shrunk cov
+    shrunk_cov = cs.shrunk_covariance(1)
+    N = df.shape[1]
+    F = np.identity(N) * np.trace(cs.S) / N
+    np.testing.assert_array_almost_equal(shrunk_cov.values, F * 252)
+
+
+def test_shrunk_covariance_frequency():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df, frequency=52)
+    # if delta = 0, no shrinkage occurs
+    shrunk_cov = cs.shrunk_covariance(0)
+
+    S = risk_models.sample_cov(df, frequency=52)
+    np.testing.assert_array_almost_equal(shrunk_cov.values, S)
+
+
+def test_ledoit_wolf():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df)
+    shrunk_cov = cs.ledoit_wolf()
+    assert 0 < cs.delta < 1
+    assert shrunk_cov.shape == (20, 20)
+    assert list(shrunk_cov.index) == list(df.columns)
+    assert list(shrunk_cov.columns) == list(df.columns)
+    assert not shrunk_cov.isnull().any().any()
+
+
+def test_oracle_approximating():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df)
+    shrunk_cov = cs.oracle_approximating()
+    assert 0 < cs.delta < 1
+    assert shrunk_cov.shape == (20, 20)
+    assert list(shrunk_cov.index) == list(df.columns)
+    assert list(shrunk_cov.columns) == list(df.columns)
+    assert not shrunk_cov.isnull().any().any()
+
+
+def test_graph_lasso():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df)
+    shrunk_cov = cs.graph_lasso()
+    assert cs.delta is None
+    assert shrunk_cov.shape == (20, 20)
+    assert list(shrunk_cov.index) == list(df.columns)
+    assert list(shrunk_cov.columns) == list(df.columns)
+    assert not shrunk_cov.isnull().any().any()
+
+    shrunk_cov2 = cs.graph_lasso(alpha=0)
+    num_nonzero2 = np.sum(shrunk_cov2.astype(bool).values)
+    assert num_nonzero2 >= np.sum(shrunk_cov.astype(bool).values)
