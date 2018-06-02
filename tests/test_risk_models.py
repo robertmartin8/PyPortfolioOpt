@@ -1,8 +1,8 @@
+import warnings
 import pandas as pd
 import numpy as np
 from pypfopt import risk_models
 from tests.utilities_for_tests import get_data
-import warnings
 
 
 def test_sample_cov_dummy():

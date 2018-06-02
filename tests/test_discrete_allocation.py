@@ -1,11 +1,11 @@
-from tests.utilities_for_tests import get_data
+import numpy as np
+import pandas as pd
+import pytest
 from pypfopt import discrete_allocation
 from pypfopt.efficient_frontier import EfficientFrontier
-from pypfopt.risk_models import sample_cov
 from pypfopt.expected_returns import mean_historical_return
-import pandas as pd
-import numpy as np
-import pytest
+from pypfopt.risk_models import sample_cov
+from tests.utilities_for_tests import get_data
 
 
 def test_get_latest_prices():

@@ -1,9 +1,9 @@
-from pypfopt import objective_functions
-import pandas as pd
 import numpy as np
-from tests.utilities_for_tests import get_data
+import pandas as pd
 from pypfopt.expected_returns import mean_historical_return
+from pypfopt import objective_functions
 from pypfopt.risk_models import sample_cov
+from tests.utilities_for_tests import get_data
 
 
 def test_negative_mean_return_dummy():

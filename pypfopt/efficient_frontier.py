@@ -1,8 +1,8 @@
+import warnings
 import numpy as np
 import pandas as pd
 import scipy.optimize as sco
 from . import objective_functions
-import warnings
 
 
 class EfficientFrontier:

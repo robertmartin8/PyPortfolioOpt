@@ -1,9 +1,10 @@
+import warnings
+import numpy as np
 import pandas as pd
+import pytest
+
 from pypfopt.efficient_frontier import EfficientFrontier
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
-import pytest
-import numpy as np
-import warnings
 
 
 def test_data_source():
@@ -252,6 +253,15 @@ def test_efficient_risk():
     )
 
 
+def test_efficient_risk_many_values():
+    ef = setup_efficient_frontier()
+    for target_risk in np.arange(0.16, 0.21, 0.01):
+        ef.efficient_risk(target_risk)
+        np.testing.assert_almost_equal(ef.weights.sum(), 1)
+        volatility = ef.portfolio_performance()[1]
+        assert abs(target_risk - volatility) < 0.05
+
+
 def test_efficient_risk_short():
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
@@ -273,15 +283,6 @@ def test_efficient_risk_short():
     long_only_sharpe = ef_long_only.portfolio_performance()[2]
 
     assert sharpe > long_only_sharpe
-
-
-def test_efficient_risk_many_values():
-    ef = setup_efficient_frontier()
-    for target_risk in np.arange(0.16, 0.21, 0.01):
-        ef.efficient_risk(target_risk)
-        np.testing.assert_almost_equal(ef.weights.sum(), 1)
-        volatility = ef.portfolio_performance()[1]
-        assert abs(target_risk - volatility) < 0.05
 
 
 def test_efficient_risk_L2_reg():
