@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import scipy.optimize as sco
 from . import objective_functions
 import warnings
@@ -9,14 +10,19 @@ class EfficientFrontier:
     def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1)):
         """
         :param expected_returns: expected returns for each asset
-        :type expected_returns: pd.Series, list, np vector.
+        :type expected_returns: pd.Series, list, np.ndarray
         :param cov_matrix: covariance of returns for each asset
         :type cov_matrix: pd.DataFrame or np.array
         :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1)
         :param weight_bounds: tuple, optional
         """
         # Inputs
+        if not isinstance(expected_returns, (pd.Series, list, np.ndarray)):
+            raise TypeError("Expected returns is not a series, list or array")
         self.expected_returns = expected_returns
+
+        if not isinstance(cov_matrix, (pd.DataFrame, np.ndarray)):
+            raise TypeError("cov_matrix is not a dataframe or array")
         self.cov_matrix = cov_matrix
         self.n_assets = len(expected_returns)
         self.tickers = list(expected_returns.index)
@@ -30,10 +36,11 @@ class EfficientFrontier:
         self.weights = None
 
     def _make_valid_bounds(self, test_bounds):
+        if len(test_bounds) != 2:
+            raise ValueError("test_bounds must have lower and upper bounds")
         if test_bounds[0] is not None:
             if test_bounds[0] * self.n_assets > 1:
                 raise ValueError("Lower bound is too high")
-
         return (test_bounds,) * self.n_assets
 
     def max_sharpe(self, alpha=0, risk_free_rate=0.02):
@@ -46,6 +53,13 @@ class EfficientFrontier:
         :return: portfolio weights
         :rtype: dictionary: keys are tickers (string), values are weights (float)
         """
+        if not isinstance(alpha, (int, float)):
+            raise ValueError("alpha should be numeric")
+        if alpha < 0:
+            warnings.warn("in most cases, alpha should be positive", UserWarning)
+        if not isinstance(risk_free_rate, (int, float)):
+            raise ValueError("risk_free_rate should be numeric")
+
         self.risk_free_rate = risk_free_rate
         args = (self.expected_returns, self.cov_matrix, alpha, risk_free_rate)
         constraints = self.constraints
@@ -62,8 +76,12 @@ class EfficientFrontier:
         return dict(zip(self.tickers, self.weights))
 
     def min_volatility(self, alpha=0):
-        args = (self.cov_matrix, alpha)
+        if not isinstance(alpha, (int, float)):
+            raise ValueError("alpha should be numeric")
+        if alpha < 0:
+            warnings.warn("in most cases, alpha should be positive", UserWarning)
 
+        args = (self.cov_matrix, alpha)
         constraints = self.constraints
 
         result = sco.minimize(
@@ -88,6 +106,15 @@ class EfficientFrontier:
         :param risk_free_rate: defaults to zero
         :return: the weights of the portfolio that minimise risk for this target return
         """
+        if not isinstance(target_risk, float) or target_risk < 0:
+            raise ValueError("target_risk should be a positive float")
+        if not isinstance(alpha, (int, float)):
+            raise ValueError("alpha should be numeric")
+        if alpha < 0:
+            warnings.warn("in most cases, alpha should be positive", UserWarning)
+        if not isinstance(risk_free_rate, (int, float)):
+            raise ValueError("risk_free_rate should be numeric")
+
         self.n_assets = len(self.expected_returns)
         args = (self.expected_returns, self.cov_matrix, alpha, risk_free_rate)
 
@@ -132,6 +159,12 @@ class EfficientFrontier:
         :param risk_free_rate: defaults to zero
         :return: the weights of the portfolio that minimise risk for this target return
         """
+        if not isinstance(target_return, float) or target_return < 0:
+            raise ValueError("target_risk should be a positive float")
+        if not isinstance(alpha, (int, float)):
+            raise ValueError("alpha should be numeric")
+        if alpha < 0:
+            warnings.warn("in most cases, alpha should be positive", UserWarning)
 
         self.n_assets = len(self.expected_returns)
         args = (self.cov_matrix, alpha)

@@ -16,7 +16,7 @@ def test_data_source():
 
 def test_returns_dataframe():
     df = get_data()
-    returns_df = df.pct_change().dropna(how='all')
+    returns_df = df.pct_change().dropna(how="all")
     assert isinstance(returns_df, pd.DataFrame)
     assert returns_df.shape[1] == 20
     assert len(returns_df) == 7125
@@ -30,6 +30,16 @@ def test_portfolio_performance():
         ef.portfolio_performance()
     ef.max_sharpe()
     assert ef.portfolio_performance()
+
+
+def test_efficient_frontier_init_errors():
+    df = get_data()
+    mean_returns = df.pct_change().dropna(how="all").mean()
+    with pytest.raises(TypeError):
+        EfficientFrontier("test", "string")
+
+    with pytest.raises(TypeError):
+        EfficientFrontier(mean_returns, mean_returns)
 
 
 def test_max_sharpe_long_only():
@@ -147,6 +157,24 @@ def test_max_sharpe_risk_free_rate():
     ef.max_sharpe(risk_free_rate=0)
     _, _, new_sharpe = ef.portfolio_performance()
     assert new_sharpe >= initial_sharpe
+
+
+def test_max_sharpe_input_errors():
+    ef = setup_efficient_frontier()
+    with pytest.raises(ValueError):
+        ef.max_sharpe(alpha="2")
+
+    with warnings.catch_warnings(record=True) as w:
+        ef.max_sharpe(alpha=-1)
+        assert len(w) == 1
+        assert issubclass(w[0].category, UserWarning)
+        assert (
+            str(w[0].message)
+            == "in most cases, alpha should be positive"
+        )
+
+    with pytest.raises(ValueError):
+        ef.max_sharpe(risk_free_rate="0.2")
 
 
 def test_min_volatility():
@@ -451,7 +479,7 @@ def test_custom_bounds():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
 
-def test_custom_bounds_error():
+def test_bounds_errors():
     with pytest.raises(ValueError):
         EfficientFrontier(
             *setup_efficient_frontier(data_only=True), weight_bounds=(0.06, 1)
@@ -459,3 +487,8 @@ def test_custom_bounds_error():
     assert EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(0, 1)
     )
+
+    with pytest.raises(ValueError):
+        EfficientFrontier(
+            *setup_efficient_frontier(data_only=True), weight_bounds=(0.06, 1, 3)
+        )
