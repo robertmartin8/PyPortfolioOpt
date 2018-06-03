@@ -213,7 +213,7 @@ class EfficientFrontier:
             self.weights, self.expected_returns, self.cov_matrix, self.risk_free_rate
         )
         if verbose:
-            print("Expected return:", mu)
-            print("Volatility:", sigma)
-            print("Sharpe:", sharpe)
+            print("Expected annual return: {:.1f}%".format(100 * mu))
+            print("Annual volatility: {:.1f}".format(100 * sigma))
+            print("Sharpe Ratio: {:.2f}".format(sharpe))
         return mu, sigma, sharpe
