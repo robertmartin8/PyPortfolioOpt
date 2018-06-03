@@ -1,0 +1,1 @@
+Search.setIndex({docnames:["PyPortfolioOpt","index"],envversion:53,filenames:["PyPortfolioOpt.rst","index.rst"],objects:{},objnames:{},objtypes:{},terms:{content:1,creat:1,doc:1,document:1,empti:1,folder:1,python:1,quickstart:1,run:1,sampl:1,sphinx:1,start:1,thi:1,using:1},titles:["PyPortfolioOpt","Package template 0.1"],titleterms:{packag:1,pyportfolioopt:0,templat:1}})
