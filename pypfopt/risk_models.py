@@ -24,6 +24,17 @@ def sample_cov(prices, frequency=252):
     return daily_returns.cov() * frequency
 
 
+def min_cov_determinant(prices, frequency=252, random_state=None):
+    if not isinstance(prices, pd.DataFrame):
+        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        prices = pd.DataFrame(prices)
+    assets = prices.columns
+    X = prices.pct_change().dropna(how="all")
+    X = np.nan_to_num(X.values)
+    raw_cov_array = covariance.fast_mcd(X, random_state=random_state)[1]
+    return pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
+
+
 class CovarianceShrinkage:
     """
         The regularised covariance is::
@@ -64,9 +75,4 @@ class CovarianceShrinkage:
     def oracle_approximating(self):
         X = np.nan_to_num(self.X.values)
         shrunk_cov, self.delta = covariance.oas(X)
-        return self.format_and_annualise(shrunk_cov)
-
-    def graph_lasso(self, alpha=0.01):
-        # increasing alpha increases sparsity
-        shrunk_cov, _ = covariance.graph_lasso(self.S, alpha)
         return self.format_and_annualise(shrunk_cov)

@@ -26,7 +26,7 @@ def test_sample_cov_dummy():
     pd.testing.assert_frame_equal(S, test_answer)
 
 
-def test_sample_cov_real():
+def test_sample_cov_real_data():
     df = get_data()
     S = risk_models.sample_cov(df)
     assert S.shape == (20, 20)
@@ -56,6 +56,22 @@ def test_sample_cov_frequency():
     df = get_data()
     S = risk_models.sample_cov(df)
     S2 = risk_models.sample_cov(df, frequency=2)
+    pd.testing.assert_frame_equal(S / 126, S2)
+
+
+def test_min_cov_det():
+    df = get_data()
+    S = risk_models.min_cov_determinant(df)
+    assert S.shape == (20, 20)
+    assert S.index.equals(df.columns)
+    assert S.index.equals(S.columns)
+    assert S.notnull().all().all()
+
+
+def test_min_cov_det_frequency():
+    df = get_data()
+    S = risk_models.min_cov_determinant(df, random_state=8)
+    S2 = risk_models.min_cov_determinant(df, frequency=2, random_state=8)
     pd.testing.assert_frame_equal(S / 126, S2)
 
 
@@ -122,16 +138,16 @@ def test_oracle_approximating():
     assert not shrunk_cov.isnull().any().any()
 
 
-def test_graph_lasso():
-    df = get_data()
-    cs = risk_models.CovarianceShrinkage(df)
-    shrunk_cov = cs.graph_lasso()
-    assert cs.delta is None
-    assert shrunk_cov.shape == (20, 20)
-    assert list(shrunk_cov.index) == list(df.columns)
-    assert list(shrunk_cov.columns) == list(df.columns)
-    assert not shrunk_cov.isnull().any().any()
+# def test_graph_lasso():
+#     df = get_data()
+#     cs = risk_models.CovarianceShrinkage(df)
+#     shrunk_cov = cs.graph_lasso()
+#     assert cs.delta is None
+#     assert shrunk_cov.shape == (20, 20)
+#     assert list(shrunk_cov.index) == list(df.columns)
+#     assert list(shrunk_cov.columns) == list(df.columns)
+#     assert not shrunk_cov.isnull().any().any()
 
-    shrunk_cov2 = cs.graph_lasso(alpha=0)
-    num_nonzero2 = np.sum(shrunk_cov2.astype(bool).values)
-    assert num_nonzero2 >= np.sum(shrunk_cov.astype(bool).values)
+#     shrunk_cov2 = cs.graph_lasso(alpha=0)
+#     num_nonzero2 = np.sum(shrunk_cov2.astype(bool).values)
+#     assert num_nonzero2 >= np.sum(shrunk_cov.astype(bool).values)
