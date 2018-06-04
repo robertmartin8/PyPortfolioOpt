@@ -5,13 +5,13 @@
 <!-- issues, build status -->
 <p align="center">
     <a href="https://www.python.org/">
-        <img src="https://img.shields.io/badge/python-3-#30A8CB.svg?style=flat-square"
+        <img src="https://img.shields.io/badge/python-3-blueB.svg?style=flat-square&colorB=30A8CB"
             alt="python"></a>
     <a href="https://opensource.org/licenses/MIT">
-        <img src="https://img.shields.io/badge/license-MIT-#30A8CB.svg?style=flat-square"
+        <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&colorB=30A8CB"
             alt="MIT license"></a>
     <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
-        <img src="https://img.shields.io/badge/Maintained%3Fyes-#30A8CB.svg?style=flat-square"
+        <img src="https://img.shields.io/badge/Maintained%3F-yes-blue.svg?style=flat-square&colorB=30A8CB"
             alt="MIT license"></a>
 </p>
 
