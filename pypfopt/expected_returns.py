@@ -14,13 +14,13 @@ import pandas as pd
 
 def mean_historical_return(prices, frequency=252):
     """
-    Calculate annualised mean daily historical return from input (daily) asset prices.
+    Calculate annualised mean (daily) historical return from input (daily) asset prices.
 
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
-    :param frequency: number of time periods in a year, defaults to 252
-                      (trading days in a year).
+    :param frequency: number of time periods in a year, defaults to 252 - the number
+                      of trading days in a year.
     :param frequency: int, optional
     :return: annualised mean daily return for each asset
     :rtype: pd.Series
@@ -40,8 +40,9 @@ def ema_historical_return(prices, frequency=252, span=500):
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
-    :param frequency: number of time periods in a year, defaults to 252
-                      (trading days in a year).
+    :param frequency: number of time periods in a year, defaults to 252 - the number
+                      of trading days in a year.
+    :param frequency: int, optional
     :param frequency: int, optional
     :param span: the time-span for the EMA, defaults to 500-day EMA.
     :type span: int, optional
