@@ -8,7 +8,7 @@ Some of the things that I'd love for people to help with:
 
 ## Guidelines
 
-### Seek early feedback
+### Seek early feedback
 
 Before you start coding your contribution, it may be wise to raise an issue on GitHub to discuss whether the contribution is appropriate for the project.
 
@@ -20,7 +20,7 @@ For this project I have used [Black](https://github.com/ambv/black) as the forma
 
 Any contributions **must** be accompanied by unit tests (written with `pytest`). These are incredibly simple to write, just find the relevant test file (or create a new one), and write a bunch of `assert` statements. The test should be applied to the dummy dataset I have provided in `tests/stock_prices.csv`, and should cover core functionality, warnings/errors (check that they are raised as expected), and limiting behaviour or edge cases.
 
-### Documentation
+### Documentation
 
 Inline comments (and docstrings!) are great when needed, but don't go overboard. A lot of the explanation can and should be offloaded to readthedocs. Docstrings should follow [PEP257](https://stackoverflow.com/questions/2557110/what-to-put-in-a-python-module-docstring) semantically and sphinx syntactically.
 
