@@ -298,6 +298,6 @@ class EfficientFrontier:
         )
         if verbose:
             print("Expected annual return: {:.1f}%".format(100 * mu))
-            print("Annual volatility: {:.1f}".format(100 * sigma))
+            print("Annual volatility: {:.1f}%".format(100 * sigma))
             print("Sharpe Ratio: {:.2f}".format(sharpe))
         return mu, sigma, sharpe
