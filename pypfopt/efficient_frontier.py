@@ -91,9 +91,8 @@ class EfficientFrontier:
 
     def max_sharpe(self, alpha=0, risk_free_rate=0.02):
         """
-        Maximise the Sharpe Ratio, which is defined as:
-        .. math::
-            \frac{\mu - R_f}{\sigma}
+        Maximise the Sharpe Ratio.
+
         The result is also referred to as the tangency portfolio, as it is the tangent to the
         efficient frontier curve that intercepts the risk free rate.
 
