@@ -1,6 +1,18 @@
+""" Given historical asset price data, calculate the covariance matrix.
+
+Estimating the covariance matrix is a very deep topic that involves statistics, econometrics, and
+knowledge of numerical methods. Thus this module mostly provides a convenient wrapper around the
+underrated `sklearn.covariance` module.
+
+Currently implemented:
+- sample covariance
+- mininum covariance determinant
+- Shrunk covariance matrices:
+    - manual shrinkage
+    - Ledoit Wolf Shrinkage
+    - Oracle Approximating Shrinkage
 """
-This module implements possible models for risk of a portfolio
-"""
+
 import warnings
 import numpy as np
 import pandas as pd
@@ -9,22 +21,40 @@ from sklearn import covariance
 
 def sample_cov(prices, frequency=252):
     """
-    Calculates the sample covariance matrix of daily returns, then annualises.
-    If data is not daily, change the frequency.
-    :param daily_returns: Daily returns, each row is a date and each column is a ticker
-    :type daily_returns: pd.DataFrame or array-like
-    :returns: annualised sample covariance matrix of daily returns
+    Calculate the annualised sample covariance matrix of (daily) asset returns.
+
+    :param prices: adjusted closing prices of the asset, each row is a date
+                   and each column is a ticker/id.
+    :type prices: pd.DataFrame
+    :param frequency: number of time periods in a year, defaults to 252 - the number
+                      of trading days in a year.
+    :param frequency: int, optional
+    :return: annualised sample covariance matrix
     :rtype: pd.DataFrame
     """
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
     daily_returns = prices.pct_change().dropna(how="all")
-
     return daily_returns.cov() * frequency
 
 
 def min_cov_determinant(prices, frequency=252, random_state=None):
+    """
+    Calculate the minimum covariance determinant, an estimator of the covariance matrix
+    that is more robust to noise.
+
+    :param prices: adjusted closing prices of the asset, each row is a date
+                   and each column is a ticker/id.
+    :type prices: pd.DataFrame
+    :param frequency: number of time periods in a year, defaults to 252 - the number
+                      of trading days in a year.
+    :param frequency: int, optional
+    :param random_state: random seed to make results reproducible, defaults to None
+    :param random_state: int, optional
+    :return: annualised estimate of covariance matrix
+    :rtype: pd.DataFrame
+    """
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
@@ -37,14 +67,27 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
 
 class CovarianceShrinkage:
     """
-        The regularised covariance is::
-        (1 - shrinkage)*cov
-                + shrinkage*mu*np.identity(n_features)
-    :return: [description]
-    :rtype: [type]
+    Shrinkage involves combining the sample covariance matrix and a structured estimator with a
+    shrinkage constant delta :: (1 - delta) * cov + delta * F
+    sklearn.covariance chooses F to be an identity matrix multiplied by average sample variance.
+    The shrinkage constant can be input manually, though there exist methods (notably Ledoit Wolf)
+    to estimate the optimal value.
+
+    Instance variables:
+    - X (returns)
+    - S (sample covariance matrix)
+    - delta (shrinkage constant)
     """
 
     def __init__(self, prices, frequency=252):
+        """
+        :param prices: adjusted closing prices of the asset, each row is a date
+                    and each column is a ticker/id.
+        :type prices: pd.DataFrame
+        :param frequency: number of time periods in a year, defaults to 252 - the number
+                        of trading days in a year.
+        :param frequency: int, optional
+        """
         if not isinstance(prices, pd.DataFrame):
             warnings.warn("prices are not in a dataframe", RuntimeWarning)
             prices = pd.DataFrame(prices)
@@ -54,25 +97,55 @@ class CovarianceShrinkage:
         self.delta = None  # shrinkage constant
 
     def format_and_annualise(self, raw_cov_array):
+        """
+        Annualises the output of shrinkage calculations, and formats into a dataframe
+
+        :param raw_cov_array: raw covariance matrix of daily returns
+        :type raw_cov_array: np.ndarray
+        :return: annualised covariance matrix
+        :rtype: pd.DataFrame
+        """
         assets = self.X.columns
         return (
             pd.DataFrame(raw_cov_array, index=assets, columns=assets) * self.frequency
         )
 
     def shrunk_covariance(self, delta=0.2):
+        """
+        Shrink a sample covariance matrix to the identity matrix (scaled by average sample variance)
+
+        :param delta: shrinkage parameter, defaults to 0.2.
+        :param delta: float, optional
+        :return: shrunk sample covariance matrix
+        :rtype: np.ndarray
+        """
         self.delta = delta
         N = self.S.shape[1]
+        # Shrinkage target
         mu = np.trace(self.S) / N
-        F = np.identity(N) * mu  # shrinkage target
+        F = np.identity(N) * mu
+        # Shrinkage
         shrunk_cov = delta * F + (1 - delta) * self.S
         return self.format_and_annualise(shrunk_cov)
 
     def ledoit_wolf(self):
+        """
+        Calculate the Ledoit Wolf shrinkage estimate.
+
+        :return: shrunk sample covariance matrix
+        :rtype: np.ndarray
+        """
         X = np.nan_to_num(self.X.values)
         shrunk_cov, self.delta = covariance.ledoit_wolf(X)
         return self.format_and_annualise(shrunk_cov)
 
     def oracle_approximating(self):
+        """
+        Calculate the Oracle Approximating Shrinkage estimate
+
+        :return: shrunk sample covariance matrix
+        :rtype: np.ndarray
+        """
         X = np.nan_to_num(self.X.values)
         shrunk_cov, self.delta = covariance.oas(X)
         return self.format_and_annualise(shrunk_cov)
