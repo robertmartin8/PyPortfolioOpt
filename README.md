@@ -5,14 +5,14 @@
 <!-- issues, build status -->
 <p align="center">
     <a href="https://www.python.org/">
-        <img src="https://img.shields.io/badge/python-v3.6-blue.svg"
+        <img src="https://img.shields.io/badge/python-3-#30A8CB.svg?style=flat-square"
             alt="python"></a>
     <a href="https://opensource.org/licenses/MIT">
-        <img src="https://img.shields.io/badge/license-MIT-blue.svg"
+        <img src="https://img.shields.io/badge/license-MIT-#30A8CB.svg?style=flat-square"
             alt="MIT license"></a>
-    <a href="https://twitter.com/intent/follow?screen_name=shields_io">
-        <img src="https://img.shields.io/twitter/follow/shields_io.svg?style=social&logo=twitter"
-            alt="follow on Twitter"></a>
+    <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
+        <img src="https://img.shields.io/badge/Maintained%3Fyes-#30A8CB.svg?style=flat-square"
+            alt="MIT license"></a>
 </p>
 
 ## Introduction
@@ -99,6 +99,15 @@ pip install PyPortfolioOpt
 ```
 
 Until then, it is probably easiest to clone/download the project, and place the `pypfopt` folder into your working directory.
+
+## Principles guiding design decisions
+
+- It should be easy to swap out individual components of the optimisation process with the user's proprietary improvements.
+- User-friendliness is **everything**.
+- There is no point in portfolio optimisation unless it can be practically applied to real asset prices.
+- Everything that has been implemented should be tested
+- Inline documentation is good: dedicated documentation hosted on readthedocs is better.
+- Formatting should never get in the way of good code: because of this I have deferred **all** formatting decisions to [Black](https://github.com/ambv/black). Initially some of its decisions irritated me, but it is extremely consistent and actually quite elegant.
 
 ### Advantages over existing implementations
 
@@ -199,15 +208,6 @@ ef.max_sharpe(alpha=1)
 - Genetic optimisation methods
 - Further support for different risk/return models, including constant correlation shrinkage.
 
-## Design decisions
-
-This section motivates some of the overarching goals of the project
-
-- It should be easy to swap out individual components of the optimisation process with the user's proprietary improvements.
-- User-friendliness is **everything**.
-- There needs to be some robustness to missing data, this is handled nicely by pandas.
-- Everything that has been implemented should be tested
-- Formatting should never get in the way of good code: because of this I have deferred **all** formatting decisions to [Black](https://github.com/ambv/black). Initially some of its decisions irritated me, but it is extremely consistent and actually quite elegant.
 
 ## Testing
 
