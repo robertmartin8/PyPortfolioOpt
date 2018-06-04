@@ -5,14 +5,14 @@
 <!-- issues, build status -->
 <p align="center">
     <a href="https://www.python.org/">
-        <img src="https://img.shields.io/badge/python-3-blueB.svg?style=flat-square&colorB=30A8CB"
-            alt="python"></a>
+        <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
+            alt="python"></a> &nbsp
     <a href="https://opensource.org/licenses/MIT">
-        <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square&colorB=30A8CB"
-            alt="MIT license"></a>
+        <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
+            alt="MIT license"></a> &nbsp
     <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
-        <img src="https://img.shields.io/badge/Maintained%3F-yes-blue.svg?style=flat-square&colorB=30A8CB"
-            alt="MIT license"></a>
+        <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg?style=flat-square"
+            alt="MIT license"></a> &nbsp
 </p>
 
 ## Introduction
@@ -23,6 +23,10 @@ PyPortfolioOpt is a library that contains widely-used classical portfolio optimi
 a number of novel features. It is extensive, yet easily extensible – the methods provided herein are useful for both the casual investor and the serious practitioner.
 
 Whether you are a fundamentals-oriented investor who has identified a handful of undervalued picks, or an algorithmic trader who has a basket of signals, portfolio optimisation methods are important to help you combine your alpha-generators in a risk-efficient way. `PyPortfolioOpt` is designed to be easily compatible with your own strategy: just feed in the expected risk and return of the assets or signals, and let PyPortfolioOpt weight them the *right* way.
+
+<center>
+<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v1.png" style="width:90%;"/>
+</center>
 
 Here is an example on real life stock data, demonstrating how easy it is to find the long-only portfolio that maximises the Sharpe Ratio (a measure of risk adjusted returns).
 
@@ -207,7 +211,6 @@ ef.max_sharpe(alpha=1)
 - Open-source backtests using either [Backtrader](https://www.backtrader.com/) or [Zipline](https://github.com/quantopian/zipline).
 - Genetic optimisation methods
 - Further support for different risk/return models, including constant correlation shrinkage.
-
 
 ## Testing
 
