@@ -25,7 +25,7 @@ a number of novel features. It is extensive, yet easily extensible – the metho
 Whether you are a fundamentals-oriented investor who has identified a handful of undervalued picks, or an algorithmic trader who has a basket of signals, portfolio optimisation methods are important to help you combine your alpha-generators in a risk-efficient way. `PyPortfolioOpt` is designed to be easily compatible with your own strategy: just feed in the expected risk and return of the assets or signals, and let PyPortfolioOpt weight them the *right* way.
 
 <center>
-<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v1.png" style="width:90%;"/>
+<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v1.png" style="width:75%;"/>
 </center>
 
 Here is an example on real life stock data, demonstrating how easy it is to find the long-only portfolio that maximises the Sharpe Ratio (a measure of risk adjusted returns).
