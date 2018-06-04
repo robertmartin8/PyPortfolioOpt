@@ -75,7 +75,7 @@ This outputs the following weights:
  'SBUX': 0.03769399641173482}
 
 Expected annual return: 33.0%
-Annual volatility: 21.7
+Annual volatility: 21.7%
 Sharpe Ratio: 1.43
 ```
 
@@ -87,11 +87,12 @@ from pypfopt import discrete_allocation
 latest_prices = discrete_allocation.get_latest_prices(df)
 allocation, leftover = discrete_allocation.portfolio(weights, latest_prices, 10000)
 print(allocation)
-print("Leftover: ${:.2f}".format(leftover))
+print("Funds remaining: ${:.2f}".format(leftover))
 ```
 
 ```txt
 {'MA': 14, 'FB': 12, 'PFE': 51, 'BABA': 5, 'AAPL': 5, 'AMZN': 0, 'BBY': 9, 'SBUX': 6, 'GOOG': 1}
+Funds remaining: $12.15
 ```
 
 ### Getting started
