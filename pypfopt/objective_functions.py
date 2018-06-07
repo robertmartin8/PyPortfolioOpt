@@ -31,7 +31,7 @@ def negative_mean_return(weights, expected_returns):
 
 
 def negative_sharpe(
-    weights, expected_returns, cov_matrix, alpha=0, risk_free_rate=0.02
+    weights, expected_returns, cov_matrix, gamma=0, risk_free_rate=0.02
 ):
     """
     Calculate the negative Sharpe ratio of a portfolio
@@ -42,9 +42,9 @@ def negative_sharpe(
     :type expected_returns: pd.Series
     :param cov_matrix: the covariance matrix of asset returns
     :type cov_matrix: pd.DataFrame
-    :param alpha: L2 regularisation parameter, defaults to 0. Increase if you want more
+    :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                     non-negligible weights
-    :param alpha: float, optional
+    :param gamma: float, optional
     :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
     :type risk_free_rate: float, optional
     :return: negative Sharpe ratio
@@ -52,11 +52,11 @@ def negative_sharpe(
     """
     mu = weights.dot(expected_returns)
     sigma = np.sqrt(np.dot(weights, np.dot(cov_matrix, weights.T)))
-    L2_reg = alpha * (weights ** 2).sum()
+    L2_reg = gamma * (weights ** 2).sum()
     return -(mu - risk_free_rate) / sigma + L2_reg
 
 
-def volatility(weights, cov_matrix, alpha=0):
+def volatility(weights, cov_matrix, gamma=0):
     """
     Calculate the volatility of a portfolio
     :param weights: asset weights of the portfolio
@@ -66,5 +66,5 @@ def volatility(weights, cov_matrix, alpha=0):
     :return: portfolio volatility
     :rtype: float
     """
-    L2_reg = alpha * (weights ** 2).sum()
+    L2_reg = gamma * (weights ** 2).sum()
     return np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) + L2_reg

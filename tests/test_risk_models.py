@@ -148,6 +148,6 @@ def test_oracle_approximating():
 #     assert list(shrunk_cov.columns) == list(df.columns)
 #     assert not shrunk_cov.isnull().any().any()
 
-#     shrunk_cov2 = cs.graph_lasso(alpha=0)
+#     shrunk_cov2 = cs.graph_lasso(gamma=0)
 #     num_nonzero2 = np.sum(shrunk_cov2.astype(bool).values)
 #     assert num_nonzero2 >= np.sum(shrunk_cov.astype(bool).values)

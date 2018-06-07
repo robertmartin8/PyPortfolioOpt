@@ -31,7 +31,7 @@ class EfficientFrontier:
     - Output: weights
 
     Public methods:
-    
+
         - max_sharpe() optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
         - min_volatility() optimises for minimum volatility
         - efficient_risk() maximises Sharpe for a given target risk
@@ -91,31 +91,31 @@ class EfficientFrontier:
                 raise ValueError("Lower bound is too high")
         return (test_bounds,) * self.n_assets
 
-    def max_sharpe(self, alpha=0, risk_free_rate=0.02):
+    def max_sharpe(self, gamma=0, risk_free_rate=0.02):
         """
         Maximise the Sharpe Ratio.
 
         The result is also referred to as the tangency portfolio, as it is the tangent to the
         efficient frontier curve that intercepts the risk free rate.
 
-        :param alpha: L2 regularisation parameter, defaults to 0. Increase if you want more
+        :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                       non-negligible weights
-        :param alpha: float, optional
+        :param gamma: float, optional
         :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
         :type risk_free_rate: float, optional
-        :raises ValueError: if alpha or risk_free_rate is non-numeric
+        :raises ValueError: if gamma or risk_free_rate is non-numeric
         :return: asset weights for the Sharpe-maximising portfolio
         :rtype: dict
         """
-        if not isinstance(alpha, (int, float)):
-            raise ValueError("alpha should be numeric")
-        if alpha < 0:
-            warnings.warn("in most cases, alpha should be positive", UserWarning)
+        if not isinstance(gamma, (int, float)):
+            raise ValueError("gamma should be numeric")
+        if gamma < 0:
+            warnings.warn("in most cases, gamma should be positive", UserWarning)
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
 
         self.risk_free_rate = risk_free_rate
-        args = (self.expected_returns, self.cov_matrix, alpha, risk_free_rate)
+        args = (self.expected_returns, self.cov_matrix, gamma, risk_free_rate)
         constraints = self.constraints
         result = sco.minimize(
             objective_functions.negative_sharpe,
@@ -128,23 +128,23 @@ class EfficientFrontier:
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
-    def min_volatility(self, alpha=0):
+    def min_volatility(self, gamma=0):
         """
         Minimise volatility.
 
-        :param alpha: L2 regularisation parameter, defaults to 0. Increase if you want more
+        :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                       non-negligible weights
-        :param alpha: float, optional
-        :raises ValueError: if alpha or risk_free_rate is non-numeric
+        :param gamma: float, optional
+        :raises ValueError: if gamma or risk_free_rate is non-numeric
         :return: asset weights for the volatility-minimising portfolio
         :rtype: dict
         """
-        if not isinstance(alpha, (int, float)):
-            raise ValueError("alpha should be numeric")
-        if alpha < 0:
-            warnings.warn("in most cases, alpha should be positive", UserWarning)
+        if not isinstance(gamma, (int, float)):
+            raise ValueError("gamma should be numeric")
+        if gamma < 0:
+            warnings.warn("in most cases, gamma should be positive", UserWarning)
 
-        args = (self.cov_matrix, alpha)
+        args = (self.cov_matrix, gamma)
         constraints = self.constraints
         result = sco.minimize(
             objective_functions.volatility,
@@ -158,7 +158,7 @@ class EfficientFrontier:
         return dict(zip(self.tickers, self.weights))
 
     def efficient_risk(
-        self, target_risk, alpha=0, risk_free_rate=0.02, market_neutral=False
+        self, target_risk, gamma=0, risk_free_rate=0.02, market_neutral=False
     ):
         """
         Calculate the Sharpe-maximising portfolio for a given volatility (i.e max return
@@ -166,30 +166,30 @@ class EfficientFrontier:
 
         :param target_risk: the desired volatility of the resulting portfolio.
         :type target_risk: float
-        :param alpha: L2 regularisation parameter, defaults to 0. Increase if you want more
+        :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                       non-negligible weights
-        :param alpha: float, optional
+        :param gamma: float, optional
         :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
         :type risk_free_rate: float, optional
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
         :raises ValueError: if target_risk is not a positive float
-        :raises ValueError: if alpha or risk_free_rate is non-numeric
+        :raises ValueError: if gamma or risk_free_rate is non-numeric
         :return: asset weights for the efficient risk portfolio
         :rtype: dict
         """
         if not isinstance(target_risk, float) or target_risk < 0:
             raise ValueError("target_risk should be a positive float")
-        if not isinstance(alpha, (int, float)):
-            raise ValueError("alpha should be numeric")
-        if alpha < 0:
-            warnings.warn("in most cases, alpha should be positive", UserWarning)
+        if not isinstance(gamma, (int, float)):
+            raise ValueError("gamma should be numeric")
+        if gamma < 0:
+            warnings.warn("in most cases, gamma should be positive", UserWarning)
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
 
         self.n_assets = len(self.expected_returns)
-        args = (self.expected_returns, self.cov_matrix, alpha, risk_free_rate)
+        args = (self.expected_returns, self.cov_matrix, gamma, risk_free_rate)
         target_constraint = {
             "type": "ineq",
             "fun": lambda w: target_risk
@@ -222,32 +222,32 @@ class EfficientFrontier:
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
-    def efficient_return(self, target_return, alpha=0, market_neutral=False):
+    def efficient_return(self, target_return, gamma=0, market_neutral=False):
         """
         Calculate the 'Markowitz portfolio', minimising volatility for a given target return.
 
         :param target_return: the desired return of the resulting portfolio.
         :type target_return: float
-        :param alpha: L2 regularisation parameter, defaults to 0. Increase if you want more
+        :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                       non-negligible weights
-        :param alpha: float, optional
+        :param gamma: float, optional
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
         :raises ValueError: if target_return is not a positive float
-        :raises ValueError: if alpha is non-numeric
+        :raises ValueError: if gamma is non-numeric
         :return: asset weights for the Markowitz portfolio
         :rtype: dict
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_risk should be a positive float")
-        if not isinstance(alpha, (int, float)):
-            raise ValueError("alpha should be numeric")
-        if alpha < 0:
-            warnings.warn("in most cases, alpha should be positive", UserWarning)
+        if not isinstance(gamma, (int, float)):
+            raise ValueError("gamma should be numeric")
+        if gamma < 0:
+            warnings.warn("in most cases, gamma should be positive", UserWarning)
 
         self.n_assets = len(self.expected_returns)
-        args = (self.cov_matrix, alpha)
+        args = (self.cov_matrix, gamma)
         target_constraint = {
             "type": "eq",
             "fun": lambda w: w.dot(self.expected_returns) - target_return,

@@ -225,11 +225,11 @@ ef.efficient_return(target_return=0.2, market_neutral=True)
 ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.1))
 ```
 
-- L2 Regularisation: this is a novel experimental feature which can be used to reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `alpha`) on small weights, with a term that looks just like L2 regularisation in machine learning (except with the opposite sign). It may be necessary to trial a number of `alpha` values to achieve the desired number of non-neglibile weights. For the test portfolio of 20 securities, `alpha ~ 1` is sufficient
+- L2 Regularisation: this is a novel experimental feature which can be used to reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `gamma`) on small weights, with a term that looks just like L2 regularisation in machine learning (except with the opposite sign). It may be necessary to trial a number of `gamma` values to achieve the desired number of non-neglibile weights. For the test portfolio of 20 securities, `gamma ~ 1` is sufficient
 
 ```python
 ef = EfficientFrontier(mu, S)
-ef.max_sharpe(alpha=1)
+ef.max_sharpe(gamma=1)
 ```
 
 ## Roadmap

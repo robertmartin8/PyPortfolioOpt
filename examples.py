@@ -33,7 +33,7 @@ Funds remaining: $12.15
 # e.g if we want at least 15/20 tickers to have non-neglible weights, and no
 # asset should have a weight greater than 10%
 ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.10))
-weights = ef.min_volatility(alpha=1)
+weights = ef.min_volatility(gamma=1)
 print(weights)
 ef.portfolio_performance(verbose=True)
 
