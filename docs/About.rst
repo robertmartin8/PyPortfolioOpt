@@ -16,5 +16,5 @@ Who are you?
 I'm Robert, a natural sciences student at the University of Cambridge. I am interested in a broad 
 range of quantitative topics, including physics, statistics, finance and computer science (and the
 intersection between them). For more about me, please head over to my 
-`website <https://resaonabledeviations.science>`_. 
+`website <https://resaonabledeviations.science>`_.
 

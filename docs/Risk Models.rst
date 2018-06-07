@@ -2,4 +2,6 @@
 Risk Models
 ###########
 
-test
+
+.. automodule:: risk_models
+   :members:
