@@ -1,4 +1,0 @@
-PyPortfolioOpt
-====================
-
-.. module::PyPortfolioOpt
