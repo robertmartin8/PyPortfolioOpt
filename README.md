@@ -82,34 +82,35 @@ S = risk_models.sample_cov(df)
 
 # Optimise for maximal Sharpe ratio
 ef = EfficientFrontier(mu, S)
-weights = ef.max_sharpe()
-print(weights)
+raw_weights = ef.max_sharpe()
+cleaned_weights = ef.clean_weights()
+print(cleaned_weights)
 ef.portfolio_performance(verbose=True)
 ```
 
 This outputs the following weights:
 
 ```txt
-{'GOOG': 0.012686476493307005,
- 'AAPL': 0.09201504086768657,
- 'FB': 0.19856142332208873,
- 'BABA': 0.0964204513428177,
- 'AMZN': 0.07158459468700305,
- 'GE': 9.865059336174564e-17,
- 'AMD': 2.9475583731962473e-16,
- 'WMT': 6.367602325244733e-17,
- 'BAC': 1.2450912524798556e-16,
- 'GM': 3.6652897677048814e-17,
- 'T': 6.7707051460844506e-18,
- 'UAA': 1.246670524382067e-17,
- 'SHLD': 2.021027903443432e-16,
- 'XOM': 1.976362521670158e-17,
- 'RRC': 2.0602865427398947e-17,
- 'BBY': 0.061286677246206595,
- 'MA': 0.24562306492773736,
- 'PFE': 0.18412827470141765,
- 'JPM': 1.1654588908289105e-17,
- 'SBUX': 0.03769399641173482}
+{'GOOG': 0.01269,
+ 'AAPL': 0.09202,
+ 'FB': 0.19856,
+ 'BABA': 0.09642,
+ 'AMZN': 0.07158,
+ 'GE': 0.0,
+ 'AMD': 0.0,
+ 'WMT': 0.0,
+ 'BAC': 0.0,
+ 'GM': 0.0,
+ 'T': 0.0,
+ 'UAA': 0.0,
+ 'SHLD': 0.0,
+ 'XOM': 0.0,
+ 'RRC': 0.0,
+ 'BBY': 0.06129,
+ 'MA': 0.24562,
+ 'PFE': 0.18413,
+ 'JPM': 0.0,
+ 'SBUX': 0.03769}
 
 Expected annual return: 33.0%
 Annual volatility: 21.7%
