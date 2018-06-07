@@ -5,6 +5,7 @@ knowledge of numerical methods. Thus this module mostly provides a convenient wr
 underrated `sklearn.covariance` module.
 
 Currently implemented:
+
 - sample covariance
 - mininum covariance determinant
 - Shrunk covariance matrices:
@@ -49,9 +50,9 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     :type prices: pd.DataFrame
     :param frequency: number of time periods in a year, defaults to 252 - the number
                       of trading days in a year.
-    :param frequency: int, optional
+    :int frequency: int, optional
     :param random_state: random seed to make results reproducible, defaults to None
-    :param random_state: int, optional
+    :int random_state: int, optional
     :return: annualised estimate of covariance matrix
     :rtype: pd.DataFrame
     """
@@ -68,12 +69,16 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
 class CovarianceShrinkage:
     """
     Shrinkage involves combining the sample covariance matrix and a structured estimator with a
-    shrinkage constant delta :: (1 - delta) * cov + delta * F
+    shrinkage constant delta::
+
+    (1 - delta) * cov + delta * F
+
     sklearn.covariance chooses F to be an identity matrix multiplied by average sample variance.
     The shrinkage constant can be input manually, though there exist methods (notably Ledoit Wolf)
     to estimate the optimal value.
 
     Instance variables:
+
     - X (returns)
     - S (sample covariance matrix)
     - delta (shrinkage constant)
@@ -82,11 +87,11 @@ class CovarianceShrinkage:
     def __init__(self, prices, frequency=252):
         """
         :param prices: adjusted closing prices of the asset, each row is a date
-                    and each column is a ticker/id.
+        and each column is a ticker/id.
         :type prices: pd.DataFrame
         :param frequency: number of time periods in a year, defaults to 252 - the number
-                        of trading days in a year.
-        :param frequency: int, optional
+        of trading days in a year.
+        :int frequency: int, optional
         """
         if not isinstance(prices, pd.DataFrame):
             warnings.warn("prices are not in a dataframe", RuntimeWarning)
@@ -115,7 +120,7 @@ class CovarianceShrinkage:
         Shrink a sample covariance matrix to the identity matrix (scaled by average sample variance)
 
         :param delta: shrinkage parameter, defaults to 0.2.
-        :param delta: float, optional
+        :type delta: float, optional
         :return: shrunk sample covariance matrix
         :rtype: np.ndarray
         """

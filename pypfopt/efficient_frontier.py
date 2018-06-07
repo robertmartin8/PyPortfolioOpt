@@ -18,18 +18,20 @@ class EfficientFrontier:
     (corresponding to different objective functions) with various parameters.
 
     Instance variables:
-        Inputs:
-            - cov_matrix
-            - n_assets
-            - tickers
-            - bounds
-        Optimisation parameters:
-            - initial_guess
-            - constraints
-            - risk_free_rate
-        Output: weights
+
+    - Inputs:
+        - cov_matrix
+        - n_assets
+        - tickers
+        - bounds
+    - Optimisation parameters:
+        - initial_guess
+        - constraints
+        - risk_free_rate
+    - Output: weights
 
     Public methods:
+    
         - max_sharpe() optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
         - min_volatility() optimises for minimum volatility
         - efficient_risk() maximises Sharpe for a given target risk
