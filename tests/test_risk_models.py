@@ -136,18 +136,3 @@ def test_oracle_approximating():
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
     assert not shrunk_cov.isnull().any().any()
-
-
-# def test_graph_lasso():
-#     df = get_data()
-#     cs = risk_models.CovarianceShrinkage(df)
-#     shrunk_cov = cs.graph_lasso()
-#     assert cs.delta is None
-#     assert shrunk_cov.shape == (20, 20)
-#     assert list(shrunk_cov.index) == list(df.columns)
-#     assert list(shrunk_cov.columns) == list(df.columns)
-#     assert not shrunk_cov.isnull().any().any()
-
-#     shrunk_cov2 = cs.graph_lasso(gamma=0)
-#     num_nonzero2 = np.sum(shrunk_cov2.astype(bool).values)
-#     assert num_nonzero2 >= np.sum(shrunk_cov.astype(bool).values)
