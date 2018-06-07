@@ -279,6 +279,26 @@ class EfficientFrontier:
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
+    def clean_weights(self, cutoff=1e-4, rounding=5):
+        """
+        Cleans the raw weights, setting any weights whose absolute values are below the cutoff
+        to zero, and rounding the rest.
+        :param cutoff: the lower bound, defaults to 1e-4
+        :type cutoff: float, optional
+        :param rounding: number of decimal places to round the weights, defaults to 5. Set to None if
+        rounding is not desired.
+        :type rounding: int, optional
+        :return: asset weights
+        :rtype: dict
+        """
+        if not isinstance(rounding, int) or rounding < 1:
+            raise ValueError("rounding must be a positive integer")
+        clean_weights = self.weights.copy()
+        clean_weights[np.abs(clean_weights) < cutoff] = 0
+        if rounding is not None:
+            clean_weights = np.round(clean_weights, rounding)
+        return dict(zip(self.tickers, clean_weights))
+
     def portfolio_performance(self, verbose=False):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
