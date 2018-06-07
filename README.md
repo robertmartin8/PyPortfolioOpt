@@ -17,10 +17,9 @@
 
 **This project is still in development, please check back in one week!**
 
-PyPortfolioOpt is a library that contains widely-used classical portfolio optimisation techniques, with
-a number of experimental features. It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious practitioner.
+PyPortfolioOpt is a library that implements widely-used classical portfolio optimisation techniques, with a number of experimental features. It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious practitioner.
 
-Whether you are a fundamentals-oriented investor who has identified a handful of undervalued picks, or an algorithmic trader who has a basket of signals, PyPortfolioOpt can help you combine your alpha-generators in a risk-efficient way.
+Whether you are a fundamentals-oriented investor who has identified a handful of undervalued picks, or an algorithmic trader who has a basket of interesting signals, PyPortfolioOpt can help you combine your alpha-generators in a risk-efficient way.
 
 Head over to the documentation on readthedocs to have an in-depth view on the project, or continue below to check out some examples.
 
@@ -81,9 +80,9 @@ df = pd.read_csv("tests/stock_prices.csv", parse_dates=True, index_col="date")
 mu = expected_returns.mean_historical_return(df)
 S = risk_models.sample_cov(df)
 
-# Optimise
+# Optimise for maximal Sharpe ratio
 ef = EfficientFrontier(mu, S)
-weights = ef.max_sharpe()  # optimise for the Sharpe Ratio
+weights = ef.max_sharpe()
 print(weights)
 ef.portfolio_performance(verbose=True)
 ```
@@ -170,7 +169,7 @@ Thus this project provides four major sets of functionality (though of course th
 
 In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. Full examples are offered in `examples.py`.
 
-A far more comprehensive version of this can be found on readthedocs.
+A far more comprehensive version of this can be found on readthedocs, as well as possible extensions for more advanced users.
 
 ### Expected returns
 

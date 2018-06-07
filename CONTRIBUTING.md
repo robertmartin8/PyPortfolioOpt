@@ -32,7 +32,7 @@ If you have any questions related to the project, it is probably easiest to [rai
 
 If you have questions unrelated to the project, drop me an email - contact details can be found on my [website](https://reasonabledeviations.science/about/)
 
-## Bugs/issus
+## Bugs/issues
 
 If you find any bugs, or the portfolio optimisation is not working as expected, feel free to [raise an issue](https://github.com/robertmartin8/PyPortfolioOpt/issues). I would ask that you provide the following information in the issue:
 
