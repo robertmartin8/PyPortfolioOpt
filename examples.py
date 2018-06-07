@@ -83,12 +83,11 @@ Sharpe Ratio: 2.77
 # A market-neutral Markowitz portfolio finding the minimum volatility
 # for a target return of 20%
 ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
-weights = ef.efficient_return(target_return=0.20)
-print(weights)
+weights = ef.efficient_return(target_return=0.20, market_neutral=True)
 ef.portfolio_performance(verbose=True)
 
 """
-Volatility: 0.21671629525656422
-Expected return: 0.33035542211545876
-Sharpe: 1.4320816150351678
+Expected annual return: 20.0%
+Annual volatility: 16.5%
+Sharpe Ratio: 1.09
 """
