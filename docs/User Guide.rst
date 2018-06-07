@@ -5,10 +5,10 @@ User Guide
 ##########
 
 This is designed to be a pratical guide, mostly aimed at users who are interested in a quick way of
-optimally combining some assets (most likely equities). However, I point out areas that a more advanced
-user might like to take note of, as they may be suitable springboards for more advanced optimisation
-techniques. Details about the parameters are left for the respective documentation pages (please see
-the sidebar). 
+optimally combining some assets (most likely equities). However, when necessary I do introduce the
+required theory, as well as pointing out areas that may be suitable springboards for more advanced 
+optimisation techniques. Details about the parameters are left for the respective documentation 
+pages (please see the sidebar). 
 
 PyPortfolioOpt is designed with modulatrity in mind; the below flowchart sums up the current 
 functionality and overall layout of PyPortfolioOpt.
@@ -121,8 +121,122 @@ The Sharpe ratio is the portfolio's return less the risk free rate, per unit ris
 It is particularly important because it measures the portfolio returns, adjusted for risk.
 So in practice, rather than trying to minimise volatility for a given target return
 (as per Markowitz 1952), it often makes more sense to just find the portfolio that maximises
-the Sharpe ratio. 
+the Sharpe ratio. This is implemented as the :py:meth:`max_sharpe` method in the 
+:py:class:`EfficientFrontier` class. Using the series ``mu`` and dataframe ``S`` from before:
 
-This is implemented in...
+
+.. code:: python
+
+    from pypfopt.efficient_frontier import EfficientFrontier
+
+    ef = EfficientFrontier(mu, S)
+    weights = ef.max_sharpe()
+
+If you print these weights, you will get quite an ugly result, because they will be the raw
+results from the optimiser. As such, it is recommended that you use the :py:meth:`clean_weights`
+method, which truncates tiny weights to zero, and rounds the rest.
+
+.. code:: python
+
+    cleaned_weights = ef.clean_weights()
+    print(cleaned_weights)
+
+Which prints::
+
+    {'GOOG': 0.01269,
+    'AAPL': 0.09202,
+    'FB': 0.19856,
+    'BABA': 0.09642,
+    'AMZN': 0.07158,
+    'GE': 0.0,
+    'AMD': 0.0,
+    'WMT': 0.0,
+    'BAC': 0.0,
+    'GM': 0.0,
+    'T': 0.0,
+    'UAA': 0.0,
+    'SHLD': 0.0,
+    'XOM': 0.0,
+    'RRC': 0.0,
+    'BBY': 0.06129,
+    'MA': 0.24562,
+    'PFE': 0.18413,
+    'JPM': 0.0,
+    'SBUX': 0.03769}
 
 
+If we want to know how the expected performance of the portfolio with optimal weights ``w``, 
+we can use the :py:meth:`portfolio_performance` method:
+
+.. code:: python
+
+    ef.portfolio_performance(verbose=True)
+
+.. code-block:: text
+
+    Expected annual return: 33.0%
+    Annual volatility: 21.7%
+    Sharpe Ratio: 1.43
+
+A detailed discussion of optimisation parameters is presented in :ref:`efficient-frontier`.
+However, there are two main variations.
+
+
+Short positions
+---------------
+
+To allow for shorting, simply initialise the :py:class:`EfficientFrontier` object with bounds
+that allow negative weights, for example::
+
+    ef = EfficientFrontier(mu, S, weight_bounds=(-1,1)) 
+
+This can be extended to generate **market neutral portfolios** (with weights summing to zero),
+but these are only available for the :py:meth:`efficient_risk` and :py:meth:`efficient_return` 
+optimisation methods for mathematical reasons. This is shown here::
+
+    ef.efficient_return(target_return=0.2, market_neutral=True)
+
+Dealing with many negligible weights
+------------------------------------
+
+From experience, I have found that efficient frontier optimisation often sets many of the asset
+weights to be zero. This may not be ideal if you need to have a certain number of positions in
+your portfolio, for diversification purposes or otherwise. 
+
+To combat this, I have introduced an experimental feature, which borrows the idea of regularisation
+from machine learning. Essentially, by adding an additional cost function to the objective, 
+you can 'encourage' the optimiser to choose different weights (mathematical details are provided in the
+:ref:`L2-Regularisation` section). In practice, you can try this by using the ``gamma`` parameter of
+the optimisation methods, but be warned that there is no justification for this method in the
+literature::
+
+    ef = EfficientFrontier(mu, S)
+    ef.max_sharpe(gamma=1)
+    print(ef.clean_weights())
+
+The result of this has far fewer negligible weights than before::
+
+    {'GOOG': 0.05664,
+    'AAPL': 0.087,
+    'FB': 0.1591,
+    'BABA': 0.09784,
+    'AMZN': 0.06986,
+    'GE': 0.0,
+    'AMD': 0.0,
+    'WMT': 0.03649,
+    'BAC': 0.0,
+    'GM': 0.0,
+    'T': 0.02204,
+    'UAA': 0.0,
+    'SHLD': 0.0,
+    'XOM': 0.04812,
+    'RRC': 0.0045,
+    'BBY': 0.06389,
+    'MA': 0.16382,
+    'PFE': 0.1358,
+    'JPM': 0.0,
+    'SBUX': 0.05489}
+
+This concludes the guided tour of PyPortfolioOpt. Head over to the appropriate sections in the sidebar
+to learn more about the parameters and theoretical details of the different functionality offered by 
+PyPortfolioOpt.
