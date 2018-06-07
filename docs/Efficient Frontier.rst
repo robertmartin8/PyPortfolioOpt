@@ -1,6 +1,15 @@
+.. _efficient-frontier:
+
 ###############################
 Efficient Frontier Optimisation
 ###############################
+
+
+.. _L2-Regularisation:
+
+L2 Regularisation
+=================
+
 
 .. caution::
 
