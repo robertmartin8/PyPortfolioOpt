@@ -94,10 +94,10 @@ Contents
 .. toctree::
     :maxdepth: 2
 
-    User Guide
-    Expected Returns
-    Risk Models
-    Efficient Frontier
+    UserGuide
+    ExpectedReturns
+    RiskModels
+    EfficientFrontier
     Postprocessing
     Roadmap
     Contributing
