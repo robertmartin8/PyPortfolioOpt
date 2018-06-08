@@ -1,5 +1,8 @@
+.. _expected-returns:
+
+################
 Expected Returns
-================
+################
 
 Mean-variance optimisation requries knowledge of the mean returns. In practice, this is
 of course impossible to know – if we knew the expected return of a stock, life would be
