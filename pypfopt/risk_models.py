@@ -1,14 +1,17 @@
-""" Given historical asset price data, calculate the covariance matrix.
+"""
+The ``risk_models`` module provides functions for estimating the covariance matrix given
+historical returns. Because of the complexity of estimating covariance matrices
+(and the importance of efficient computations), this module mostly provides a convenient
+wrapper around the underrated `sklearn.covariance` module.
 
-Estimating the covariance matrix is a very deep topic that involves statistics, econometrics, and
-knowledge of numerical methods. Thus this module mostly provides a convenient wrapper around the
-underrated `sklearn.covariance` module.
+The format of the data input is the same as that in :ref:`expected-returns`.
 
-Currently implemented:
+**Currently implemented:**
 
 - sample covariance
 - mininum covariance determinant
 - Shrunk covariance matrices:
+
     - manual shrinkage
     - Ledoit Wolf Shrinkage
     - Oracle Approximating Shrinkage
@@ -27,9 +30,9 @@ def sample_cov(prices, frequency=252):
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
-    :param frequency: number of time periods in a year, defaults to 252 - the number
-                      of trading days in a year.
-    :param frequency: int, optional
+    :param frequency: number of time periods in a year, defaults to 252 (the number
+                      of trading days in a year)
+    :type frequency: int, optional
     :return: annualised sample covariance matrix
     :rtype: pd.DataFrame
     """
@@ -48,11 +51,11 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
-    :param frequency: number of time periods in a year, defaults to 252 - the number
-                      of trading days in a year.
-    :int frequency: int, optional
+    :param frequency: number of time periods in a year, defaults to 252 (the number
+                      of trading days in a year)
+    :type frequency: int, optional
     :param random_state: random seed to make results reproducible, defaults to None
-    :int random_state: int, optional
+    :type random_state: int, optional
     :return: annualised estimate of covariance matrix
     :rtype: pd.DataFrame
     """
@@ -68,30 +71,24 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
 
 class CovarianceShrinkage:
     """
-    Shrinkage involves combining the sample covariance matrix and a structured estimator with a
-    shrinkage constant delta::
-
-    (1 - delta) * cov + delta * F
-
-    sklearn.covariance chooses F to be an identity matrix multiplied by average sample variance.
-    The shrinkage constant can be input manually, though there exist methods (notably Ledoit Wolf)
-    to estimate the optimal value.
+    Provide methods for computing shrinkage estimates of the covariance matrix, using the
+    sample covariance matrix and choosing the structured estimator to be an identity matrix
+    multiplied by the average sample variance. The shrinkage constant can be input manually,
+    though there exist methods (notably Ledoit Wolf) to estimate the optimal value.
 
     Instance variables:
 
-    - X (returns)
-    - S (sample covariance matrix)
-    - delta (shrinkage constant)
+    - ``X`` (returns)
+    - ``S`` (sample covariance matrix)
+    - ``delta`` (shrinkage constant)
     """
 
     def __init__(self, prices, frequency=252):
         """
-        :param prices: adjusted closing prices of the asset, each row is a date
-        and each column is a ticker/id.
+        :param prices: adjusted closing prices of the asset, each row is a date and each column is a ticker/id.
         :type prices: pd.DataFrame
-        :param frequency: number of time periods in a year, defaults to 252 - the number
-        of trading days in a year.
-        :int frequency: int, optional
+        :param frequency: number of time periods in a year, defaults to 252 (the number of trading days in a year)
+        :type frequency: int, optional
         """
         if not isinstance(prices, pd.DataFrame):
             warnings.warn("prices are not in a dataframe", RuntimeWarning)
@@ -103,7 +100,8 @@ class CovarianceShrinkage:
 
     def format_and_annualise(self, raw_cov_array):
         """
-        Annualises the output of shrinkage calculations, and formats into a dataframe
+        Helper method which annualises the output of shrinkage calculations,
+        and formats the result into a dataframe
 
         :param raw_cov_array: raw covariance matrix of daily returns
         :type raw_cov_array: np.ndarray
@@ -117,7 +115,9 @@ class CovarianceShrinkage:
 
     def shrunk_covariance(self, delta=0.2):
         """
-        Shrink a sample covariance matrix to the identity matrix (scaled by average sample variance)
+        Shrink a sample covariance matrix to the identity matrix (scaled by the average
+        sample variance). This method does not estimate an optimal shrinkage parameter,
+        it requires manual input.
 
         :param delta: shrinkage parameter, defaults to 0.2.
         :type delta: float, optional
@@ -135,8 +135,8 @@ class CovarianceShrinkage:
 
     def ledoit_wolf(self):
         """
-        Calculate the Ledoit Wolf shrinkage estimate.
-
+        Calculate the Ledoit-Wolf shrinkage estimate.
+        
         :return: shrunk sample covariance matrix
         :rtype: np.ndarray
         """
