@@ -136,7 +136,7 @@ class CovarianceShrinkage:
     def ledoit_wolf(self):
         """
         Calculate the Ledoit-Wolf shrinkage estimate.
-        
+
         :return: shrunk sample covariance matrix
         :rtype: np.ndarray
         """

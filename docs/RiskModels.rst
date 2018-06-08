@@ -38,7 +38,7 @@ more robust statistical estimators of the covariance matrix.
         in mean-variance optimisation, because the optimiser may give extra credence to
         the erroneous values.
 
-        .. tip::
+        .. note::
 
             This should *not* be your default choice! Please use a shrinkage estimator
             instead.
@@ -86,10 +86,15 @@ target, and the actual formula for the constant depends on the implementation.
 PyPortfolioOpt offers two methods for calculating the shrinkage constant:
 
 - Ledoit-Wolf shrinkage, using the formulae in their 2004 paper [5]_.
-- TODO
+- Oracle approximating shrinkage (OAS), invented by Chen et al. (2010) [6]_, which
+  has a lower mean-squared error than Ledoit-Wolf shrinkage when samples are
+  Gaussian or near-Gaussian.
 
-is quite ugly (though not
-necessarily too tough to implement).
+.. tip::
+
+    For most use cases, I would just go with Ledoit Wolf shrinkage, as recommended by
+    `Quantopian <https://www.quantopian.com/>`_ in their lecture series on quantitative
+    finance.
 
 
 .. autoclass:: CovarianceShrinkage
@@ -98,22 +103,12 @@ necessarily too tough to implement).
     .. automethod:: __init__
 
 
-.. automethod::format_and_annualise
-
-
-
-.. automethod::shrunk_covariance
-
-
 References
 ==========
 
 .. [1] Ledoit, O., & Wolf, M. (2003). `Honey, I Shrunk the Sample Covariance Matrix <http://www.ledoit.net/honey.pdf>`_ The Journal of Portfolio Management, 30(4), 110–119. https://doi.org/10.3905/jpm.2004.110
-
 .. [2] Ledoit, O., & Wolf, M. (2001). `Improved estimation of the covariance matrix of stock returns with an application to portfolio selection <http://www.ledoit.net/ole2.pdf>`_, 10, 603–621.
-
 .. [3] 	Rousseeuw, P., J (1984). `Least median of squares regression <http://web.ipac.caltech.edu/staff/fmasci/home/astro_refs/LeastMedianOfSquares.pdf>`_. The Journal of the American Statistical Association, 79, 871-880.
-
 .. [4] Rousseeuw, P., J (1999). `A Fast Algorithm for the Minimum Covariance Determinant Estimator <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.5870&rep=rep1&type=pdf>`_. The Journal of the American Statistical Association, 41, 212-223.
-
 .. [5] Ledoit, O., & Wolf, M. (2004) `A Well-Conditioned Estimator for Large-Dimensional Covariance Matrices <http://perso.ens-lyon.fr/patrick.flandrin/LedoitWolf_JMA2004.pdf>`_, Journal of Multivariate Analysis, 88(2), 365-411
+.. [6] Chen et al. (2010),  `Shrinkage Algorithms for MMSE Covariance Estimation <https://arxiv.org/pdf/0907.4698.pdf>`_, IEEE Transactions on Signals Processing, 58(10), 5016-5029.
