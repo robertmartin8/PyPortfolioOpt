@@ -25,7 +25,7 @@ more robust statistical estimators of the covariance matrix.
     to familiarise myself with the seminal papers in the field.
 
 
-.. automodule:: risk_models
+.. automodule:: pypfopt.risk_models
 
     .. autofunction:: sample_cov
 

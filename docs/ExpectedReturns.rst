@@ -13,7 +13,7 @@ lies – the optimisation procedure is sound, and provides strong mathematical g
 users should be able to come up with their own superior models and feed them into the
 optimiser.
 
-.. automodule:: expected_returns
+.. automodule:: pypfopt.expected_returns
 
     .. autofunction:: mean_historical_return
 
