@@ -6,8 +6,8 @@ It is assumed that daily prices are provided, though in reality the functions ar
 to the time period (just change the ``frequency`` parameter). Asset prices must be given as
 a pandas dataframe, as per the format described in the :ref:`user-guide`.
 
-Both functions process the price data into percentage returns data, before making calculating
-their respective estimate of expected returns.
+All of the functions process the price data into percentage returns data, before
+calculating their respective estimates of expected returns.
 
 Currently implemented:
     - mean historical return
