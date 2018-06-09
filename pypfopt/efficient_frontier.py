@@ -105,10 +105,10 @@ class EfficientFrontier:
     def max_sharpe(self, risk_free_rate=0.02):
         """
         Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
-        as it is the tangent to the efficient frontier curve that intercepts the risk free
+        as it is the tangent to the efficient frontier curve that intercepts the risk-free
         rate.
 
-        :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
         :type risk_free_rate: float, optional
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the Sharpe-maximising portfolio
@@ -158,7 +158,7 @@ class EfficientFrontier:
 
         :param target_risk: the desired volatility of the resulting portfolio.
         :type target_risk: float
-        :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
         :type risk_free_rate: float, optional
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
@@ -284,7 +284,7 @@ class EfficientFrontier:
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
-        :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
         :type risk_free_rate: float, optional
         :raises ValueError: if weights have not been calcualted yet
         :return: expected return, volatility, Sharpe ratio.

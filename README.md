@@ -150,22 +150,22 @@ Funds remaining: $12.15
 - There is no point in portfolio optimisation unless it can be practically applied to real asset prices.
 - Everything that has been implemented should be tested.
 - Inline documentation is good: dedicated (separate) documentation is better. The two are not mutually exclusive.
-- Formatting should never get in the way of good code: because of this I have deferred **all** formatting decisions to [Black](https://github.com/ambv/black). Initially some of its decisions irritated me, but it is extremely consistent and actually quite elegant.
+- Formatting should never get in the way of good code: because of this I have deferred **all** formatting decisions to [Black](https://github.com/ambv/black). Initially, some of its decisions irritated me, but it is extremely consistent and actually quite elegant.
 
 ## Advantages over existing implementations
 
 - Includes both classical methods (Markowitz 1952), and more recent developments (covariance shrinkage), as well as experimental features such as L2-regularised weights.
 - Native support for pandas dataframes: easily input your daily prices data.
-- Clear and comprehensive documentation, hosted on readthedocs (coming soon)
+- Clear and comprehensive documentation, hosted on ReadTheDocs (coming soon)
 - Extensive practical tests, which use real-life data.
 - Easy to combine with your own proprietary strategies and models.
 - Robust to missing data, and price-series of different lengths (e.g FB data only goes back to 2012, whereas AAPL data goes back to 1980).
 
 ## An overview of classical portfolio optimisation methods
 
-Harry Markowitz's 1952 paper is the undeniable classic, which turned portfolio optimisation from an art into a science. The key insight is that by combining assets with different expected returns and volatilities, one can decide on a matehmatically optimal allocation, which can efficiently minimise the risk for a target return – the set of all such optimal portfolios is referred to as the **efficient frontier**.
+Harry Markowitz's 1952 paper is the undeniable classic, which turned portfolio optimisation from an art into a science. The key insight is that by combining assets with different expected returns and volatilities, one can decide on a mathematically optimal allocation which minimises the risk for a target return – the set of all such optimal portfolios is referred to as the **efficient frontier**.
 
-Although much development has been made in the subject, more than half a century later, Markowitz's core ideas are still fundamentally important, and see daily use in many portfolio management firms. The main drawback of mean variance optimisation is that the theoretical treatment requires knowledge of the expected returns and the future risk-characteristics (covariance) of the assets. Obviously, if we knew the expected returns of a stock life would be much easier, but the whole game is that stock returns are notoriously hard to forecast. As a substitute, we can derive estimates of the expected return and covariance based on historical data – though we do lose the theoretical guarantees provided by Markowitz, the closer our estimates are to the real values, the better our portfolio will be.
+Although much development has been made in the subject, more than half a century later, Markowitz's core ideas are still fundamentally important, and see daily use in many portfolio management firms. The main drawback of mean-variance optimisation is that the theoretical treatment requires knowledge of the expected returns and the future risk-characteristics (covariance) of the assets. Obviously, if we knew the expected returns of a stock life would be much easier, but the whole game is that stock returns are notoriously hard to forecast. As a substitute, we can derive estimates of the expected return and covariance based on historical data – though we do lose the theoretical guarantees provided by Markowitz, the closer our estimates are to the real values, the better our portfolio will be.
 
 Thus this project provides four major sets of functionality (though of course they are intimately related)
 
@@ -178,7 +178,7 @@ Thus this project provides four major sets of functionality (though of course th
 
 In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. Full examples are offered in `examples.py`.
 
-A far more comprehensive version of this can be found on readthedocs, as well as possible extensions for more advanced users.
+A far more comprehensive version of this can be found on ReadTheDocs, as well as possible extensions for more advanced users.
 
 ### Expected returns
 
@@ -191,7 +191,7 @@ A far more comprehensive version of this can be found on readthedocs, as well as
 
 ### Covariance
 
-The covariance matrix encodes not just the volatility of an asset, but also how it correlated to other assets. This is important, because in order to reap the benefits of diversification (and thus increase return per unit risk), the assets in the portfolio should be as uncorrelated as possible.
+The covariance matrix encodes not just the volatility of an asset, but also how it correlated to other assets. This is important because in order to reap the benefits of diversification (and thus increase return per unit risk), the assets in the portfolio should be as uncorrelated as possible.
 
 - Sample covariance matrix:
     - an unbiased estimate of the covariance matrix
@@ -208,20 +208,20 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
 
 ### Objective functions
 
-- Maximum Sharpe ratio: this is also called the *tangency portfolio*, because on a graph of returns vs risk, this portfolio corresponds to the tangent of the efficient frontier that has a y-intercept equal to the risk free rate. This is the default option, because it finds the optimal return per unit risk.
-- Minimum volatility. This may be useful if you're trying to get an idea of how low the volatiltiy *could* be, but in practice it makes a lot more sense to me to use the portfolio that maximises the Sharpe ratio.
+- Maximum Sharpe ratio: this is also called the *tangency portfolio* because on a graph of returns vs risk, this portfolio corresponds to the tangent of the efficient frontier that has a y-intercept equal to the risk-free rate. This is the default option because it finds the optimal return per unit risk.
+- Minimum volatility. This may be useful if you're trying to get an idea of how low the volatility *could* be, but in practice it makes a lot more sense to me to use the portfolio that maximises the Sharpe ratio.
 - Efficient return, a.k.a. the Markowitz portfolio, which minimises risk for a given target return – this was the main focus of Markowitz 1952
 - Efficient risk: the Sharpe-maximising portfolio for a given target risk.
 
 ### Optional parameters
 
-- Long/short: by default all of the mean variance optimisation methods in PyPortfolioOpt are long-only, but they can be initialised to allow for short positions by changing the weight bounds:
+- Long/short: by default all of the mean-variance optimisation methods in PyPortfolioOpt are long-only, but they can be initialised to allow for short positions by changing the weight bounds:
 
 ```python
 ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
 ```
 
-- Market neutrality: for the `efficient_risk` and `efficient_return` methods, PyPortfolioOpt provides an option to form a market neutral portfolio (i.e weights sum to zero). This is not possible for the max Sharpe portfolio and the min volatility portfolio because in those cases because they are not invariant with respect to leverage. Market neturality requires negative weights:
+- Market neutrality: for the `efficient_risk` and `efficient_return` methods, PyPortfolioOpt provides an option to form a market neutral portfolio (i.e weights sum to zero). This is not possible for the max Sharpe portfolio and the min volatility portfolio because in those cases because they are not invariant with respect to leverage. Market neutrality requires negative weights:
 
 ```python
 ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
@@ -234,7 +234,7 @@ ef.efficient_return(target_return=0.2, market_neutral=True)
 ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.1))
 ```
 
-- L2 Regularisation: this is a novel experimental feature which can be used to reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `gamma`) on small weights, with a term that looks just like L2 regularisation in machine learning. It may be necessary to trial a number of `gamma` values to achieve the desired number of non-neglibile weights. For the test portfolio of 20 securities, `gamma ~ 1` is sufficient
+- L2 Regularisation: this is a novel experimental feature which can be used to reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `gamma`) on small weights, with a term that looks just like L2 regularisation in machine learning. It may be necessary to trial a number of `gamma` values to achieve the desired number of non-negligible weights. For the test portfolio of 20 securities, `gamma ~ 1` is sufficient
 
 ```python
 ef = EfficientFrontier(mu, S, gamma=1)
@@ -256,7 +256,7 @@ Feel free to raise an issue requesting any new features – here are some of the
 
 ## Testing
 
-Tests are written in pytest (much more intuitive than `unittest` and the variants IMO), and I have tried to ensure close to 100% coverage. Run the tests by navigating to the package directory and simply running `pytest` on the command line.
+Tests are written in pytest (much more intuitive than `unittest` and the variants in my opinion), and I have tried to ensure close to 100% coverage. Run the tests by navigating to the package directory and simply running `pytest` on the command line.
 
 PyPortfolioOpt provides a test dataset of daily returns for 20 tickers:
 
@@ -271,7 +271,7 @@ PyPortfolioOpt provides a test dataset of daily returns for 20 tickers:
 - different performances and volatilities
 - different amounts of data to test robustness
 
-Currently, the tests have not explored all of the edge cases, however I have investigated the experimental features like L2 regularisation. Additionally, the tests currently have not satisfactorily tested all combinations of of objective function and options.
+Currently, the tests have not explored all of the edge cases, however I have investigated the experimental features like L2 regularisation. Additionally, the tests currently have not satisfactorily tested all combinations of objective function and options.
 
 ## Contributing
 

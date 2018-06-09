@@ -10,7 +10,7 @@ over to my `website <https://resaonabledeviations.science>`_.
 I learn fastest when making real projects. A few months back I began seriously trying
 to self-educate on certain topics in quantitative finance, and mean-variance
 optimisation is one of the cornerstones of this field. I read quite a few journal
-articles and explanations, but ultimately felt that a real proof of understanding would
+articles and explanations but ultimately felt that a real proof of understanding would
 lie in the implementation. At the same time, I realised that existing open-source
 (python) portfolio optimisation libraries (there are one or two), were unsatisfactory
 for a number of reasons, and that people 'out there' might benefit from a

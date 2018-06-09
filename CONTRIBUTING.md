@@ -22,9 +22,9 @@ Any contributions **must** be accompanied by unit tests (written with `pytest`).
 
 ### Documentation
 
-Inline comments (and docstrings!) are great when needed, but don't go overboard. A lot of the explanation can and should be offloaded to readthedocs. Docstrings should follow [PEP257](https://stackoverflow.com/questions/2557110/what-to-put-in-a-python-module-docstring) semantically and sphinx syntactically.
+Inline comments (and docstrings!) are great when needed, but don't go overboard. A lot of the explanation can and should be offloaded to ReadTheDocs. Docstrings should follow [PEP257](https://stackoverflow.com/questions/2557110/what-to-put-in-a-python-module-docstring) semantically and sphinx syntactically.
 
-I would appreciate if changes are accompanied by relevant documentation – it doesn't have to be pretty, because I will probably try to tidy it up before it goes onto readthedocs, but it'd make things a lot simpler to have the person who wrote the code explain it in their own words.
+I would appreciate if changes are accompanied by relevant documentation – it doesn't have to be pretty, because I will probably try to tidy it up before it goes onto ReadTheDocs, but it'd make things a lot simpler to have the person who wrote the code explain it in their own words.
 
 ## Questions
 
@@ -34,7 +34,7 @@ If you have questions unrelated to the project, drop me an email – contact det
 
 ## Bugs/issues
 
-If you find any bugs, or the portfolio optimisation is not working as expected, feel free to [raise an issue](https://github.com/robertmartin8/PyPortfolioOpt/issues). I would ask that you provide the following information in the issue:
+If you find any bugs or the portfolio optimisation is not working as expected, feel free to [raise an issue](https://github.com/robertmartin8/PyPortfolioOpt/issues). I would ask that you provide the following information in the issue:
 
 - Descriptive title so that other users can see the existing issues
 - Operating system, python version, and python distribution (optional).

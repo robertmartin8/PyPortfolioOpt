@@ -153,7 +153,7 @@ Advantages over existing implementations
   (covariance shrinkage), as well as experimental features such as
   L2-regularised weights.
 - Native support for pandas dataframes: easily input your daily prices data.
-- Clear and comprehensive documentation, hosted on readthedocs (coming soon)
+- Clear and comprehensive documentation, hosted on ReadTheDocs (coming soon)
 - Extensive practical tests, which use real-life data.
 - Easy to combine with your own proprietary strategies and models.
 - Robust to missing data, and price-series of different lengths (e.g FB data
