@@ -24,13 +24,13 @@ Any contributions **must** be accompanied by unit tests (written with `pytest`).
 
 Inline comments (and docstrings!) are great when needed, but don't go overboard. A lot of the explanation can and should be offloaded to readthedocs. Docstrings should follow [PEP257](https://stackoverflow.com/questions/2557110/what-to-put-in-a-python-module-docstring) semantically and sphinx syntactically.
 
-I would appreciate if changes are accompanied by relevant documentation - it doesn't have to be pretty, because I will probably try to tidy it up before it goes onto readthedocs, but it'd make things a lot simpler to have the person who wrote the code explain it in their own words.
+I would appreciate if changes are accompanied by relevant documentation – it doesn't have to be pretty, because I will probably try to tidy it up before it goes onto readthedocs, but it'd make things a lot simpler to have the person who wrote the code explain it in their own words.
 
 ## Questions
 
 If you have any questions related to the project, it is probably easiest to [raise an issue](https://github.com/robertmartin8/PyPortfolioOpt/issues), and I will tag it as a question.
 
-If you have questions unrelated to the project, drop me an email - contact details can be found on my [website](https://reasonabledeviations.science/about/)
+If you have questions unrelated to the project, drop me an email – contact details can be found on my [website](https://reasonabledeviations.science/about/)
 
 ## Bugs/issues
 

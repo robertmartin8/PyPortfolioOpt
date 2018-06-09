@@ -13,8 +13,8 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 - Shrunk covariance matrices:
 
     - manual shrinkage
-    - Ledoit Wolf Shrinkage
-    - Oracle Approximating Shrinkage
+    - Ledoit Wolf shrinkage
+    - Oracle Approximating shrinkage
 """
 
 import warnings

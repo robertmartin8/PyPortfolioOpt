@@ -4,8 +4,8 @@ Risk Models
 
 In addition to the expected asset returns, mean-variance optimisation requires a
 **risk model**, some way of quantifying asset risk. The most common risk model is
-probably the covariance matrix, an abstract statistical entity that describes the
-volatility of the asset returns and how they vary with one another. This is
+probably the covariance matrix, a statistical entity that describes the
+volatility of asset returns and how they vary with one another. This is
 important because one of the principles of diversification is that risk can be
 reduced by making many uncorrelated bets (and correlation is just normalised
 covariance).
@@ -14,13 +14,13 @@ The problem, however, is that in practice we do not have access to the covarianc
 matrix (in the same way that we don't have access to expected returns) – the only
 thing we can do is to make estimates based on past data. The most straightforward
 approach is to just calculate the **sample covariance matrix** based on historical
-returns, but relatively recent (post 2000) research indicates that there are much
+returns, but relatively recent (post-2000) research indicates that there are much
 more robust statistical estimators of the covariance matrix.
 
 .. attention::
 
     Estimation of the covariance matrix is a very deep and actively-researched
-    topic that involves statistics, neconometrics, and numerical/computational
+    topic that involves statistics, econometrics, and numerical/computational
     approaches. Please note that I am not an expert, but I have made an effort
     to familiarise myself with the seminal papers in the field.
 
@@ -57,7 +57,7 @@ Shrinkage estimators
 
 A great starting point for those interested in understanding shrinkage estimators is
 *Honey, I Shrunk the Sample Covariance Matrix* [1]_ by Ledoit and Wolf, which does a
-good job at capturing the intuition behind shrinkage estimators. We will adopt the
+good job at capturing the intuition behind them – we will adopt the
 notation used therein. I have written a summary of this article, which is available
 on my `website <http://reasonabledeviations.science/notes/papers/ledoit_wolf_covariance/>`_.
 A more rigorous reference can be found in Ledoit and Wolf (2001) [2]_.
@@ -69,9 +69,9 @@ combined with a structured estimator :math:`F`, using the below formula (where
 .. math::
     \hat{\Sigma} = \delta F + (1-\delta) S
 
-It is called shrinkage, because it can be thought of as "shrinking" the sample
+It is called shrinkage because it can be thought of as "shrinking" the sample
 covariance matrix towards the other estimator, which is accordingly called the
-**shrinkage target**. There are many possible choices for a shrinkage target,
+**shrinkage target**. There are many possible options for a shrinkage target,
 but popular choices include:
 
 - The diagonal matrix with sample variances on the diagonals and zeroes elsewhere,
