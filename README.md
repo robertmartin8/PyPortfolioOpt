@@ -235,8 +235,8 @@ ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.1))
 - L2 Regularisation: this is a novel experimental feature which can be used to reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `gamma`) on small weights, with a term that looks just like L2 regularisation in machine learning (except with the opposite sign). It may be necessary to trial a number of `gamma` values to achieve the desired number of non-neglibile weights. For the test portfolio of 20 securities, `gamma ~ 1` is sufficient
 
 ```python
-ef = EfficientFrontier(mu, S)
-ef.max_sharpe(gamma=1)
+ef = EfficientFrontier(mu, S, gamma=1)
+ef.max_sharpe()
 ```
 
 ## Roadmap
