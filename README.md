@@ -15,13 +15,11 @@
             alt="MIT license"></a> &nbsp
 </p>
 
-**This project is still in development, please check back in one week!**
-
 PyPortfolioOpt is a library that implements widely-used classical portfolio optimisation techniques, with a number of experimental features. It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious practitioner.
 
 Whether you are a fundamentals-oriented investor who has identified a handful of undervalued picks, or an algorithmic trader who has a basket of interesting signals, PyPortfolioOpt can help you combine your alpha-generators in a risk-efficient way.
 
-Head over to the documentation on readthedocs to have an in-depth view on the project, or continue below to check out some examples.
+Head over to the documentation on ReadTheDocs to get an in-depth look at the project, or continue below to check out some examples.
 
 <center>
 <img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v1.png" style="width:70%;"/>
@@ -47,13 +45,17 @@ Head over to the documentation on readthedocs to have an in-depth view on the pr
 
 ## Getting started
 
-Within this week, the project will become available on PyPI, so it will just be a matter of:
+This project is available on PyPI, meaning that you can just:
 
 ```bash
 pip install PyPortfolioOpt
 ```
 
-Until then, it is probably easiest to clone/download the project, and place the `pypfopt` folder into your working directory.
+Otherwise, clone/download the project and in the project directory run:
+
+```bash
+python setup.py install
+```
 
 ### For development
 
@@ -232,7 +234,7 @@ ef.efficient_return(target_return=0.2, market_neutral=True)
 ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.1))
 ```
 
-- L2 Regularisation: this is a novel experimental feature which can be used to reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `gamma`) on small weights, with a term that looks just like L2 regularisation in machine learning (except with the opposite sign). It may be necessary to trial a number of `gamma` values to achieve the desired number of non-neglibile weights. For the test portfolio of 20 securities, `gamma ~ 1` is sufficient
+- L2 Regularisation: this is a novel experimental feature which can be used to reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `gamma`) on small weights, with a term that looks just like L2 regularisation in machine learning. It may be necessary to trial a number of `gamma` values to achieve the desired number of non-neglibile weights. For the test portfolio of 20 securities, `gamma ~ 1` is sufficient
 
 ```python
 ef = EfficientFrontier(mu, S, gamma=1)
