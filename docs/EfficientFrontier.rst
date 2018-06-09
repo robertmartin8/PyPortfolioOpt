@@ -14,11 +14,11 @@ these objective functions would still be applicable.
 Optimisation
 ============
 
-Optimisation uses `scipy.optimize <https://docs.scipy.org/doc/scipy/reference/optimize.html>`_.
+PyPortfolioOpt uses `scipy.optimize <https://docs.scipy.org/doc/scipy/reference/optimize.html>`_.
 I realise that most python optimisation projects use `cvxopt <https://cvxopt.org/>`_
 instead, but I do think that scipy.optimize is far cleaner and much more readable
-(as per the Zen ofPython, "Readability counts"). That being said, scipy.optimize
-arguably has worse documentation, though in the end I felt that it was intuitive
+(as per the Zen of Python, "Readability counts"). That being said, scipy.optimize
+arguably has worse documentation, though ultimately I felt that it was intuitive
 enough to justify the lack of explained examples. Because they are both based on
 `LAPACK <http://www.netlib.org/lapack/>`_, I don't see why performance should
 differ significantly, but if it transpires that cvxopt is faster by an order of
@@ -73,8 +73,8 @@ the minimum volatility objective for instance, we have:
 
 Note that :math:`w^T w` is the same as the sum of squared weights (I didn't
 write this explicitly to reduce confusion caused by :math:`\Sigma` denoting both the
-covariance matrix and the summation operator). This term serves the purpose of
-reducing neglibile weights, because it has a minimum value when all weights are
+covariance matrix and the summation operator). This term reduces the number of
+negligible weights, because it has a minimum value when all weights are
 equally distributed, and maximum value in the limiting case where the entire portfolio
 is allocated to one asset. I refer to it as **L2 regularisation** because it has
 exactly the same form as the L2 regularisation term in machine learning, though
@@ -84,5 +84,6 @@ a slightly different purpose (in ML it is used to keep weights small).
 
     In practice, :math:`\gamma` must be tuned to achieve the level
     of regularisation that you want. However, if the universe of assets is small
-    (less than 20 assets), then ``gamma=1`` is a good starting point, but try
-    increasing it further if you want more assets in the final portfolio.
+    (less than 20 assets), then ``gamma=1`` is a good starting point. For larger
+    universes, or if you want more non-negligible weights in the final portfolio,
+    increase ``gamma``.
