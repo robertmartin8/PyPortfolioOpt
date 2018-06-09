@@ -43,6 +43,22 @@ The alternative is to clone/download the project, then in the project directory 
     If either of these methods doesn't work, please `raise an issue
     <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_  on GitHub
 
+
+For developers
+--------------
+
+If you are planning on using PyPortfolioOpt as a starting template for significant
+modifications, it probably makes sense to clone this repository and to just use the
+source code::
+
+    git clone https://github.com/robertmartin8/PyPortfolioOpt
+
+Alternatively, if you still want the convenience of ``from pypfopt import x``,
+you should try::
+
+    pip install -e git+https://github.com/robertmartin8/PyPortfolioOpt.git
+
+
 A Quick Example
 ===============
 

@@ -63,6 +63,12 @@ If you would like to make major changes to integrate this with your proprietary 
 git clone https://github.com/robertmartin8/PyPortfolioOpt
 ```
 
+Alternatively, you could try:
+
+```bash
+pip install -e git+https://github.com/robertmartin8/PyPortfolioOpt.git
+```
+
 ## A quick example
 
 Here is an example on real life stock data, demonstrating how easy it is to find the long-only portfolio that maximises the Sharpe ratio (a measure of risk adjusted returns).
