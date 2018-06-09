@@ -15,13 +15,14 @@ Optimisation
 ============
 
 Optimisation uses `scipy.optimize <https://docs.scipy.org/doc/scipy/reference/optimize.html>`_.
-I realise that most python optimisation projects use `cvxopt <https://cvxopt.org/>`_ instead,
-but I do think that scipy.optimize is far cleaner and much more readable (as per the Zen of
-Python, "Readability counts"). That being said, scipy.optimize arguably has worse
-documentation, though in the end I felt that it was intuitive enough to justify the lack of
-explained examples. Because they are both based on `LAPACK <http://www.netlib.org/lapack/>`_,
-I don't see why performance should differ significantly, but if it transpires that cvxopt is
-faster by an order of magnitude, I will definitely consider switching.
+I realise that most python optimisation projects use `cvxopt <https://cvxopt.org/>`_
+instead, but I do think that scipy.optimize is far cleaner and much more readable
+(as per the Zen ofPython, "Readability counts"). That being said, scipy.optimize
+arguably has worse documentation, though in the end I felt that it was intuitive
+enough to justify the lack of explained examples. Because they are both based on
+`LAPACK <http://www.netlib.org/lapack/>`_, I don't see why performance should
+differ significantly, but if it transpires that cvxopt is faster by an order of
+magnitude, I will definitely consider switching.
 
 
 .. automodule:: pypfopt.efficient_frontier
@@ -38,14 +39,15 @@ faster by an order of magnitude, I will definitely consider switching.
 
 .. caution::
 
-    If you pass an unreasonable parameter into ``target_risk`` or ``target_return``,
-    the optimiser will fail silently and return weird weights. *Caveat emptor* applies!
+    If you pass an unreasonable target into :py:meth:`efficient_risk` or
+    :py:meth:`efficient_return`, the optimiser will fail silently and return
+    weird weights. *Caveat emptor* applies!
 
 Objective functions
 ===================
 
 .. automodule:: pypfopt.objective_functions
-
+    :members:
 
 One of the experimental features implemented in PyPortfolioOpt is the L2 regularisation
 parameter ``gamma``, which is discussed below.
@@ -53,7 +55,7 @@ parameter ``gamma``, which is discussed below.
 .. _L2-Regularisation:
 
 L2 Regularisation
------------------
+=================
 
 As has been discussed in the :ref:`user-guide`, efficient frontier optimisation often
 results in many weights being negligible, i.e the efficient portfolio does not end up
@@ -82,9 +84,5 @@ a slightly different purpose (in ML it is used to keep weights small).
 
     In practice, :math:`\gamma` must be tuned to achieve the level
     of regularisation that you want. However, if the universe of assets is small
-    (less than 20 assets), then ``gamma=1`` is a good starting point.
-
-
-
-
-
+    (less than 20 assets), then ``gamma=1`` is a good starting point, but try
+    increasing it further if you want more assets in the final portfolio.

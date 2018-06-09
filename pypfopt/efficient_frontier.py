@@ -39,7 +39,7 @@ class EfficientFrontier:
     - ``efficient_risk()`` maximises Sharpe for a given target risk
     - ``efficient_return()`` minimises risk for a given target return
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
-    the optimised portfolio.
+      the optimised portfolio.
     """
 
     def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1), gamma=0):
@@ -54,8 +54,8 @@ class EfficientFrontier:
         :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                       non-negligible weights
         :type gamma: float, optional
-        :raises TypeError: if expected returns is not a series, list or array
-        :raises TypeError: if cov_matrix is not a dataframe or array
+        :raises TypeError: if ``expected_returns`` is not a series, list or array
+        :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
         # Inputs
         if not isinstance(expected_returns, (pd.Series, list, np.ndarray)):
@@ -85,9 +85,10 @@ class EfficientFrontier:
         """
         Private method: process input bounds into a form acceptable by scipy.optimize,
         and check the validity of said bounds.
+
         :param test_bounds: minimum and maximum weight of an asset
         :type test_bounds: tuple
-        :raises ValueError: if test_bounds is not a tuple of length two.
+        :raises ValueError: if ``test_bounds`` is not a tuple of length two.
         :raises ValueError: if the lower bound is too high
         :return: a tuple of bounds, e.g ((0, 1), (0, 1), (0, 1) ...)
         :rtype: tuple of tuples
@@ -103,14 +104,13 @@ class EfficientFrontier:
 
     def max_sharpe(self, risk_free_rate=0.02):
         """
-        Maximise the Sharpe Ratio.
-
-        The result is also referred to as the tangency portfolio, as it is the tangent to the
-        efficient frontier curve that intercepts the risk free rate.
+        Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
+        as it is the tangent to the efficient frontier curve that intercepts the risk free
+        rate.
 
         :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
         :type risk_free_rate: float, optional
-        :raises ValueError: if risk_free_rate is non-numeric
+        :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the Sharpe-maximising portfolio
         :rtype: dict
         """
@@ -134,7 +134,7 @@ class EfficientFrontier:
         """
         Minimise volatility.
 
-        :raises ValueError: if risk_free_rate is non-numeric
+        :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the volatility-minimising portfolio
         :rtype: dict
         """
@@ -163,8 +163,8 @@ class EfficientFrontier:
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
-        :raises ValueError: if target_risk is not a positive float
-        :raises ValueError: if risk_free_rate is non-numeric
+        :raises ValueError: if ``target_risk`` is not a positive float
+        :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the efficient risk portfolio
         :rtype: dict
         """
@@ -215,8 +215,8 @@ class EfficientFrontier:
         :type target_return: float
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
-        :param market_neutral: bool, optional
-        :raises ValueError: if target_return is not a positive float
+        :type market_neutral: bool, optional
+        :raises ValueError: if ``target_return`` is not a positive float
         :return: asset weights for the Markowitz portfolio
         :rtype: dict
         """
@@ -258,12 +258,13 @@ class EfficientFrontier:
 
     def clean_weights(self, cutoff=1e-4, rounding=5):
         """
-        Cleans the raw weights, setting any weights whose absolute values are below the cutoff
-        to zero, and rounding the rest.
+        Helper method to clean the raw weights, setting any weights whose absolute
+        values are below the cutoff to zero, and rounding the rest.
+
         :param cutoff: the lower bound, defaults to 1e-4
         :type cutoff: float, optional
-        :param rounding: number of decimal places to round the weights, defaults to 5. Set to None if
-        rounding is not desired.
+        :param rounding: number of decimal places to round the weights, defaults to 5. 
+                         Set to None if rounding is not desired.
         :type rounding: int, optional
         :return: asset weights
         :rtype: dict
@@ -282,7 +283,7 @@ class EfficientFrontier:
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
 
         :param verbose: whether performance should be printed, defaults to False
-        :param verbose: bool, optional
+        :type verbose: bool, optional
         :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
         :type risk_free_rate: float, optional
         :raises ValueError: if weights have not been calcualted yet
