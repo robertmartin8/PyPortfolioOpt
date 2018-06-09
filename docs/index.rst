@@ -35,7 +35,9 @@ Installation should *never* be more difficult than::
 
     pip install PyPortfolioOpt
 
-The alternative is to clone/download the project, then in the project directory run::
+The alternative is to clone/download the project, then in the project directory run
+
+.. code-block:: text
 
     python setup.py install
 
@@ -49,12 +51,16 @@ For developers
 
 If you are planning on using PyPortfolioOpt as a starting template for significant
 modifications, it probably makes sense to clone this repository and to just use the
-source code::
+source code
+
+.. code-block:: text
 
     git clone https://github.com/robertmartin8/PyPortfolioOpt
 
 Alternatively, if you still want the convenience of ``from pypfopt import x``,
-you should try::
+you should try
+
+.. code-block:: text
 
     pip install -e git+https://github.com/robertmartin8/PyPortfolioOpt.git
 
@@ -63,12 +69,15 @@ A Quick Example
 ===============
 
 This section contains a quick look at what PyPortfolioOpt can do. For a full tour,
-please check out the :ref:`user-guide`. If you already have expected returns and
-a risk model for your set of assets, optimising them is as easy as:
+please check out the :ref:`user-guide`.
+
+If you already have expected returns and a risk model for your set of assets,
+generating an optimal portfolio is as easy as:
 
 .. code:: python
 
     from pypfopt.efficient_frontier import EfficientFrontier
+
     ef = EfficientFrontier(mu, S)
     weights = ef.max_sharpe()
 
