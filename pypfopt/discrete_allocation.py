@@ -57,7 +57,9 @@ def portfolio(weights, latest_prices, min_allocation=0.01, total_portfolio_value
     # Drop any companies with negligible weights. We use a tuple because order matters.
     nonzero_weights = [(k, v) for k, v in weights.items() if v > min_allocation]
     print(
-        f"{len(weights) - len(nonzero_weights)} out of {len(weights)} tickers were removed"
+        "{} out of {} tickers were removed".format(
+            len(weights) - len(nonzero_weights), len(weights)
+        )
     )
     # Sort in descending order of weight
     nonzero_weights.sort(key=lambda x: x[1], reverse=True)
@@ -118,7 +120,7 @@ def portfolio(weights, latest_prices, min_allocation=0.01, total_portfolio_value
         shares_bought[idx] += 1
         available_funds -= price
 
-    print(f"Funds remaining: {available_funds:.2f}")
+    print("Funds remaining: {:.2f}".format(available_funds))
 
     num_shares = dict(zip([i[0] for i in nonzero_weights], shares_bought))
     return num_shares, available_funds
