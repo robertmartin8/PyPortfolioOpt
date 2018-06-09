@@ -1,16 +1,15 @@
 from setuptools import setup
 
-desc = """PyPortfolioOpt offers an intuitive, well-documented solution to various portfolio optimisation problems
-that is both extensive and extensible. Currently there is support for maximum-sharpe, minimum-volatility,
-efficient risk (max return for a given risk) and efficient return (min risk for a target return). Classical
-and experimental options are provided, including better estimates of covariance."""
-
+with open("README.md", "r") as f:
+    desc = f.read()
+    desc = desc.split("</p>")[-1]
 
 setup(
     name="PyPortfolioOpt",
-    version="0.1.0",
-    description="PyPortfolioOpt: Efficient Frontier portfolio optimisation",
+    version="0.1.0-rc.7",
+    description="Financial portfolio optimisation in python",
     long_description=desc,
+    long_description_content_type="text/markdown",
     url="https://github.com/robertmartin8/PyPortfolioOpt",
     author="Robert Andrew Martin",
     author_email="martin.robertandrew@gmail.com",
@@ -25,17 +24,20 @@ setup(
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Office/Business :: Financial",
         "Topic :: Office/Business :: Financial :: Investment",
         "Topic :: Scientific/Engineering :: Mathematics",
     ],
     keywords="portfolio finance optimization quant trading investing",
-    install_requires=["numpy", "pandas", "pytest", "scikit-learn", "scipy"],
-    project_urls=(
-        {  # TODO add documentation link
-            "Issues?": "https://github.com/robertmartin8/PyPortfolioOpt/issues",
-            "Personal website": "https://reasonabledeviations.science",
-        },
-    ),
+    install_requires=["numpy", "pandas", "scikit-learn", "scipy"],
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest"],
+    python_requires=">=3",
+    project_urls={  # TODO add documentation link
+        "Issues": "https://github.com/robertmartin8/PyPortfolioOpt/issues",
+        "Personal website": "https://reasonabledeviations.science",
+    },
 )

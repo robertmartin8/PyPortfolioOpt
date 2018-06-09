@@ -1,1 +1,3 @@
-include README.rst
+include README.md
+include LICENSE.txt
+include examples.py
