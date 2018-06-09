@@ -4,13 +4,13 @@
 User Guide
 ##########
 
-This is designed to be a pratical guide, mostly aimed at users who are interested in a
+This is designed to be a practical guide, mostly aimed at users who are interested in a
 quick way of optimally combining some assets (most likely equities). However, when
-necessary I do introduce the required theory, as well as pointing out areas that may be
+necessary I do introduce the required theory and also point out areas that may be
 suitable springboards for more advanced optimisation techniques. Details about the
 parameters are left for the respective documentation pages (please see the sidebar).
 
-PyPortfolioOpt is designed with modulatrity in mind; the below flowchart sums up the
+PyPortfolioOpt is designed with modularity in mind; the below flowchart sums up the
 current functionality and overall layout of PyPortfolioOpt.
 
 .. image:: ../media/conceptual_flowchart_v1-grey.png
@@ -37,8 +37,8 @@ This dataset should look something like the one below::
     2010-01-08  54.358093  52.597733  32.297466  21.945297  13.756095  36.677460
 
 The index should consist of dates or timestamps, and each column should represent the
-timeseries of prices for an asset. A dataset of real-life stock prices has been included
-in the `tests folder <https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests>`_
+time series of prices for an asset. A dataset of real-life stock prices has been
+included in the `tests folder <https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests>`_
 of the GitHub repo.
 
 .. note::
@@ -47,7 +47,7 @@ of the GitHub repo.
     be the same across all assets (workarounds exist but are not pretty).
 
 After reading your historical prices into a pandas dataframe ``df``, you need to decide
-between the avaialble methods for estimating expected returns and the covariance matrix.
+between the available methods for estimating expected returns and the covariance matrix.
 Sensible defaults are :py:func:`expected_returns.mean_historical_return()` and
 the Ledoit Wolf shrinkage estimate of the covariance matrix found in
 :py:class:`risk_models.CovarianceShrinkage`. It is simply a matter of applying the
@@ -81,11 +81,10 @@ actual portfolio optimisation.
 Efficient Frontier Optimisation
 ===============================
 
-Efficient Frontier Optimisation is based on `Harry Markowitz's 1952 classic
-<https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-6261.1952.tb01525.x>`_, which
+Efficient Frontier Optimisation is based on Harry Markowitz's 1952 classic [1]_, which
 turned  portfolio management into a science. The key insight is that by combining
 assets with different expected returns and volatilities, one can decide on a
-matehmatically optimal allocation.
+mathematically optimal allocation.
 
 If :math:`w` is the weight vector of stocks with expected returns :math:`\mu`, then the
 portfolio return is equal to each stock's weight multiplied by its return, i.e
@@ -118,7 +117,7 @@ corresponding to 'better' portfolios (in terms of the Sharpe Ratio). The dotted
 black line is the efficient frontier itself. The triangular markers represent the
 best portfolios for different optimisation objectives.
 
-The Sharpe ratio is the portfolio's return less the risk free rate, per unit risk
+The Sharpe ratio is the portfolio's return less the risk-free rate, per unit risk
 (volatility).
 
 .. math::
@@ -140,8 +139,8 @@ dataframe ``S`` from before:
     weights = ef.max_sharpe()
 
 If you print these weights, you will get quite an ugly result, because they will
-be the raw results from the optimiser. As such, it is recommended that you use
-the :py:meth:`clean_weights` method, which truncates tiny weights to zero,
+be the raw output from the optimiser. As such, it is recommended that you use
+the :py:meth:`clean_weights` method, which truncates tiny weights to zero
 and rounds the rest.
 
 .. code:: python
@@ -149,7 +148,7 @@ and rounds the rest.
     cleaned_weights = ef.clean_weights()
     print(cleaned_weights)
 
-Which prints::
+This prints::
 
     {'GOOG': 0.01269,
     'AAPL': 0.09202,
@@ -173,7 +172,7 @@ Which prints::
     'SBUX': 0.03769}
 
 
-If we want to know how the expected performance of the portfolio with optimal
+If we want to know the expected performance of the portfolio with optimal
 weights ``w``, we can use the :py:meth:`portfolio_performance` method:
 
 .. code:: python
@@ -187,7 +186,8 @@ weights ``w``, we can use the :py:meth:`portfolio_performance` method:
     Sharpe Ratio: 1.43
 
 A detailed discussion of optimisation parameters is presented in
-:ref:`efficient-frontier`. However, there are two main variations.
+:ref:`efficient-frontier`. However, there are two main variations which
+are discussed below.
 
 
 Short positions
@@ -216,12 +216,10 @@ To combat this, I have introduced an experimental feature, which borrows the ide
 regularisation from machine learning. Essentially, by adding an additional cost
 function to the objective, you can 'encourage' the optimiser to choose different
 weights (mathematical details are provided in the :ref:`L2-Regularisation` section).
-In practice, you can try this by using the ``gamma`` parameter of the optimisation
-methods, but be warned that there is no justification for this method in the
-literature::
+To use this feature, change the ``gamma`` parameter::
 
-    ef = EfficientFrontier(mu, S)
-    ef.max_sharpe(gamma=1)
+    ef = EfficientFrontier(mu, S, gamma=1)
+    ef.max_sharpe()
     print(ef.clean_weights())
 
 The result of this has far fewer negligible weights than before::
@@ -250,3 +248,9 @@ The result of this has far fewer negligible weights than before::
 This concludes the guided tour. Head over to the appropriate sections
 in the sidebar to learn more about the parameters and theoretical details of the
 different functionality offered by PyPortfolioOpt.
+
+
+References
+==========
+
+.. [1] Markowitz, H. (1952). `Portfolio Selection <https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-6261.1952.tb01525.x>`_. The Journal of Finance, 7(1), 77–91. https://doi.org/10.1111/j.1540-6261.1952.tb01525.x
