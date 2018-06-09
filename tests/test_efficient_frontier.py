@@ -71,7 +71,8 @@ def test_max_sharpe_short():
 
 def test_max_sharpe_L2_reg():
     ef = setup_efficient_frontier()
-    w = ef.max_sharpe(gamma=1)
+    ef.gamma = 1
+    w = ef.max_sharpe()
     assert isinstance(w, dict)
     assert list(w.keys()) == ef.tickers
     assert list(w.keys()) == list(ef.expected_returns.index)
@@ -89,7 +90,8 @@ def test_max_sharpe_L2_reg_many_values():
     # Count the number of weights more 1%
     initial_number = sum(ef.weights > 0.01)
     for a in np.arange(0.5, 5, 0.5):
-        ef.max_sharpe(gamma=a)
+        ef.gamma = a
+        ef.max_sharpe()
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         new_number = sum(ef.weights > 0.01)
         # Higher gamma should reduce the number of small weights
@@ -99,7 +101,8 @@ def test_max_sharpe_L2_reg_many_values():
 
 def test_max_sharpe_L2_reg_limit_case():
     ef = setup_efficient_frontier()
-    ef.max_sharpe(gamma=1e10)
+    ef.gamma = 1e10
+    ef.max_sharpe()
     equal_weights = np.array([1 / ef.n_assets] * ef.n_assets)
     np.testing.assert_array_almost_equal(ef.weights, equal_weights)
 
@@ -110,7 +113,8 @@ def test_max_sharpe_L2_reg_reduces_sharpe():
     ef_no_reg.max_sharpe()
     sharpe_no_reg = ef_no_reg.portfolio_performance()[2]
     ef = setup_efficient_frontier()
-    ef.max_sharpe(gamma=1)
+    ef.gamma = 1
+    ef.max_sharpe()
     sharpe = ef.portfolio_performance()[2]
 
     assert sharpe < sharpe_no_reg
@@ -124,7 +128,8 @@ def test_max_sharpe_L2_reg_with_shorts():
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
     )
-    w = ef.max_sharpe(gamma=1)
+    ef.gamma = 1
+    w = ef.max_sharpe()
     assert isinstance(w, dict)
     assert list(w.keys()) == ef.tickers
     assert list(w.keys()) == list(ef.expected_returns.index)
@@ -142,21 +147,22 @@ def test_max_sharpe_risk_free_rate():
     ef.max_sharpe()
     _, _, initial_sharpe = ef.portfolio_performance()
     ef.max_sharpe(risk_free_rate=0.10)
-    _, _, new_sharpe = ef.portfolio_performance()
+    _, _, new_sharpe = ef.portfolio_performance(risk_free_rate=0.10)
     assert new_sharpe <= initial_sharpe
 
     ef.max_sharpe(risk_free_rate=0)
-    _, _, new_sharpe = ef.portfolio_performance()
+    _, _, new_sharpe = ef.portfolio_performance(risk_free_rate=0)
     assert new_sharpe >= initial_sharpe
 
 
 def test_max_sharpe_input_errors():
-    ef = setup_efficient_frontier()
     with pytest.raises(ValueError):
-        ef.max_sharpe(gamma="2")
+        ef = EfficientFrontier(
+            *setup_efficient_frontier(data_only=True), gamma="2"
+        )
 
     with warnings.catch_warnings(record=True) as w:
-        ef.max_sharpe(gamma=-1)
+        ef = EfficientFrontier(*setup_efficient_frontier(data_only=True), gamma=-1)
         assert len(w) == 1
         assert issubclass(w[0].category, UserWarning)
         assert (
@@ -205,7 +211,8 @@ def test_min_volatility_short():
 
 def test_min_volatility_L2_reg():
     ef = setup_efficient_frontier()
-    w = ef.min_volatility(gamma=1)
+    ef.gamma = 1
+    w = ef.min_volatility()
     assert isinstance(w, dict)
     assert list(w.keys()) == ef.tickers
     assert list(w.keys()) == list(ef.expected_returns.index)
@@ -223,7 +230,8 @@ def test_min_volatility_L2_reg_many_values():
     # Count the number of weights more 1%
     initial_number = sum(ef.weights > 0.01)
     for a in np.arange(0.5, 5, 0.5):
-        ef.min_volatility(gamma=a)
+        ef.gamma = a
+        ef.min_volatility()
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         new_number = sum(ef.weights > 0.01)
         # Higher gamma should reduce the number of small weights
@@ -277,7 +285,8 @@ def test_efficient_risk_short():
 
 def test_efficient_risk_L2_reg():
     ef = setup_efficient_frontier()
-    w = ef.efficient_risk(0.19, gamma=1)
+    ef.gamma = 1
+    w = ef.efficient_risk(0.19)
     assert isinstance(w, dict)
     assert list(w.keys()) == ef.tickers
     assert list(w.keys()) == list(ef.expected_returns.index)
@@ -296,7 +305,8 @@ def test_efficient_risk_L2_reg_many_values():
     # Count the number of weights more 1%
     initial_number = sum(ef.weights > 0.01)
     for a in np.arange(0.5, 5, 0.5):
-        ef.efficient_risk(0.19, gamma=a)
+        ef.gamma = a
+        ef.efficient_risk(0.19)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         new_number = sum(ef.weights > 0.01)
         # Higher gamma should reduce the number of small weights
@@ -382,7 +392,8 @@ def test_efficient_return_short():
 
 def test_efficient_return_L2_reg():
     ef = setup_efficient_frontier()
-    w = ef.efficient_return(0.25, gamma=1)
+    ef.gamma = 1
+    w = ef.efficient_return(0.25)
     assert isinstance(w, dict)
     assert list(w.keys()) == ef.tickers
     assert list(w.keys()) == list(ef.expected_returns.index)
@@ -399,7 +410,8 @@ def test_efficient_return_L2_reg_many_values():
     # Count the number of weights more 1%
     initial_number = sum(ef.weights > 0.01)
     for a in np.arange(0.5, 5, 0.5):
-        ef.efficient_return(0.25, gamma=a)
+        ef.gamma = a
+        ef.efficient_return(0.25)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         new_number = sum(ef.weights > 0.01)
         # Higher gamma should reduce the number of small weights
