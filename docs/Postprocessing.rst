@@ -33,9 +33,9 @@ existing weights for each asset. We wanted Apple to form 15% of the portfolio
 there is a deviation of :math:`0.15 - 0.133`. Some assets will have a higher
 deviation from the ideal, so we will purchase shares of these first. We then
 repeat the process, always buying shares of the asset whose current weight is
-furthest away from the ideal weight. Of course this will not guarantee the optimal
-solution, but I have found that this method allows us to generate discrete allocations
-with very little money left over.
+furthest away from the ideal weight. Though this algorithm will not guarantee
+the optimal solution, I have found that it allows us to generate discrete
+allocations with very little money left over.
 
 
 .. warning::
