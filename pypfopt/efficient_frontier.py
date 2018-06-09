@@ -1,7 +1,6 @@
-""" Optimise a portfolio with the Efficient Frontier algorithm.
-
-EfficientFrontier(expected_returns, cov_matrix, weight_bounds) initialises an object which
-will generate an optimal portfolio for various possible objective functions and parameters.
+"""
+The ``efficient_frontier`` module houses the EfficientFrontier object, which
+generates optimal portfolios for various possible objective functions and parameters.
 """
 
 import warnings
@@ -20,24 +19,27 @@ class EfficientFrontier:
     Instance variables:
 
     - Inputs:
-        - cov_matrix
-        - n_assets
-        - tickers
-        - bounds
+
+        - ``cov_matrix``
+        - ``n_assets``
+        - ``tickers``
+        - ``bounds``
+
     - Optimisation parameters:
-        - initial_guess
-        - constraints
-        - risk_free_rate
-    - Output: weights
+
+        - ``initial_guess``
+        - ``constraints``
+
+    - Output: ``weights``
 
     Public methods:
 
-        - max_sharpe() optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
-        - min_volatility() optimises for minimum volatility
-        - efficient_risk() maximises Sharpe for a given target risk
-        - efficient_return() minimises risk for a given target return
-        - portfolio_performance() calculates the expected return, volatility and Sharpe ratio for
-        the optimised portfolio.
+    - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
+    - ``min_volatility()`` optimises for minimum volatility
+    - ``efficient_risk()`` maximises Sharpe for a given target risk
+    - ``efficient_return()`` minimises risk for a given target return
+    - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
+    the optimised portfolio.
     """
 
     def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1)):
@@ -67,7 +69,6 @@ class EfficientFrontier:
         # Optimisation parameters
         self.initial_guess = np.array([1 / self.n_assets] * self.n_assets)
         self.constraints = [{"type": "eq", "fun": lambda x: np.sum(x) - 1}]
-        self.risk_free_rate = 0.02
         # Outputs
         self.weights = None
 
@@ -114,7 +115,6 @@ class EfficientFrontier:
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
 
-        self.risk_free_rate = risk_free_rate
         args = (self.expected_returns, self.cov_matrix, gamma, risk_free_rate)
         constraints = self.constraints
         result = sco.minimize(
@@ -299,13 +299,15 @@ class EfficientFrontier:
             clean_weights = np.round(clean_weights, rounding)
         return dict(zip(self.tickers, clean_weights))
 
-    def portfolio_performance(self, verbose=False):
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
 
         :param verbose: whether performance should be printed, defaults to False
         :param verbose: bool, optional
+        :param risk_free_rate: risk free rate of borrowing/lending, defaults to 0.02
+        :type risk_free_rate: float, optional
         :raises ValueError: if weights have not been calcualted yet
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
@@ -316,7 +318,7 @@ class EfficientFrontier:
         mu = self.weights.dot(self.expected_returns)
 
         sharpe = -objective_functions.negative_sharpe(
-            self.weights, self.expected_returns, self.cov_matrix, self.risk_free_rate
+            self.weights, self.expected_returns, self.cov_matrix, risk_free_rate
         )
         if verbose:
             print("Expected annual return: {:.1f}%".format(100 * mu))
