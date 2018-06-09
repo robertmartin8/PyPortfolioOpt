@@ -106,7 +106,7 @@ portfolio optimisation problem is as follows:
     \end{equation*}
 
 If we vary the target return, we will get a different set of weights (i.e a different
-portfolio) - the set of all these optimal portfolios is referred to as the
+portfolio) – the set of all these optimal portfolios is referred to as the
 **efficient frontier**.
 
 .. image:: ../media/efficient_frontier.png
