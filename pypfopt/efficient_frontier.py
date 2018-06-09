@@ -263,7 +263,7 @@ class EfficientFrontier:
 
         :param cutoff: the lower bound, defaults to 1e-4
         :type cutoff: float, optional
-        :param rounding: number of decimal places to round the weights, defaults to 5. 
+        :param rounding: number of decimal places to round the weights, defaults to 5.
                          Set to None if rounding is not desired.
         :type rounding: int, optional
         :return: asset weights
