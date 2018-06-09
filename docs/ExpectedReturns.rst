@@ -4,14 +4,13 @@
 Expected Returns
 ################
 
-Mean-variance optimisation requries knowledge of the mean returns. In practice, this is
-of course impossible to know – if we knew the expected return of a stock, life would be
-much easier. Thus the best we can do is to come up with estimates; one way is to
-extrapolate historical price data. This is where the main flaw in efficient frontier
-lies – the optimisation procedure is sound, and provides strong mathematical guarantees,
-*given the correct inputs*. This is one of the reasons why I have emphasised modularity:
-users should be able to come up with their own superior models and feed them into the
-optimiser.
+Mean-variance optimisation requires knowledge of the mean returns. In practice, these
+are rather difficult to know with any certainty. Thus the best we can do is to come up
+with estimates; one way is to extrapolate historical price data. This is where the main
+flaw in efficient frontier lies – the optimisation procedure is sound, and provides
+strong mathematical guarantees, *given the correct inputs*. This is one of the reasons
+why I have emphasised modularity: users should be able to come up with their own
+superior models and feed them into the optimiser.
 
 .. automodule:: pypfopt.expected_returns
 
@@ -29,10 +28,10 @@ optimiser.
 
     .. autofunction:: ema_historical_return
 
-        Using the exponential moving average is a simple improvement over the mean historical
+        The exponential moving average is a simple improvement over the mean historical
         return; it gives more credence to recent returns and thus aims to increase the relevance
-        of the estimates. This is paramaterised by the ``span`` parameter, which gives users
+        of the estimates. This is parameterised by the ``span`` parameter, which gives users
         the ability to decide exactly how much more weight is given to recent data.
-        Generally, I would err on the side of a higher span - in the limit, this tends towards
+        Generally, I would err on the side of a higher span – in the limit, this tends towards
         the mean historical return. However, if you plan on rebalancing much more frequently,
         there is a case to be made for lowering the span in order to capture recent trends.
