@@ -1,9 +1,6 @@
-""" Generate a discrete allocation from continuous weights
-
-get_latest_prices(prices) retrieves the latest asset prices from a dataframe of asset prices.
-
-portfolio(weights, latest_prices, min_allocation, total_portfolio_value) converts continuous weights
-to a discrete allocation that can be purchased.
+"""
+The ``discrete_allocation`` module contains functions to generate a discrete
+allocation from continuous weights.
 """
 
 import numpy as np
@@ -12,10 +9,10 @@ import pandas as pd
 
 def get_latest_prices(prices):
     """
-    This is a helper tool which retrieves the most recent asset prices from a dataframe of
+    A helper tool which retrieves the most recent asset prices from a dataframe of
     asset prices, required in order to generate a discrete allocation.
 
-    :param prices: (daily) stock prices
+    :param prices: historical asset prices
     :type prices: pd.DataFrame
     :raises TypeError: if prices are not in a dataframe
     :return: the most recent price of each asset
@@ -28,22 +25,22 @@ def get_latest_prices(prices):
 
 def portfolio(weights, latest_prices, min_allocation=0.01, total_portfolio_value=10000):
     """
-    For a long only portfolio, convert the continuous weights to a discrete allocation in a greedy
-    iterative approach. This can be thought of as a clever way to round the continuous weights to an
-    integer number of shares
+    For a long only portfolio, convert the continuous weights to a discrete allocation
+    in a greedy iterative approach. This can be thought of as a clever way to round
+    the continuous weights to an integer number of shares
 
-    :param weights: continuous weights generated from the efficient_frontier module
+    :param weights: continuous weights generated from the ``efficient_frontier`` module
     :type weights: dict
     :param latest_prices: the most recent price for each asset
     :type latest_prices: pd.Series or dict
-    :param min_allocation: any weights less than this number are considered neglibile,
+    :param min_allocation: any weights less than this number are considered negligible,
                            defaults to 0.01
     :type min_allocation: float, optional
     :param total_portfolio_value: the desired total value of the portfolio, defaults to 10000
     :type total_portfolio_value: int/float, optional
-    :raises TypeError: if weights isn't a dict
-    :raises TypeError: if latest_prices isn't a series
-    :raises ValueError: if min_allocation is above 0.3 or less than 0
+    :raises TypeError: if ``weights`` is not a dict
+    :raises TypeError: if ``latest_prices`` isn't a series
+    :raises ValueError: if ``0 < min_allocation < 0.3``
     :return: the number of shares of each ticker that should be purchased, along with the amount
              of funds leftover.
     :rtype: (dict, float)
