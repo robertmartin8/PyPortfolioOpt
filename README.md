@@ -2,27 +2,28 @@
     <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v1.png">
 </p>
 
-<!-- issues, build status -->
+<!-- buttons -->
 <p align="center">
     <a href="https://www.python.org/">
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
-            alt="python"></a> &nbsp
+            alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
         <img src="https://img.shields.io/badge/pypi-v0.1.0rc1-brightgreen.svg?style=flat-square"
-            alt="python"></a> &nbsp
+            alt="python"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
-            alt="MIT license"></a> &nbsp
+            alt="MIT license"></a> &nbsp;
     <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
         <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg?style=flat-square"
-            alt="MIT license"></a> &nbsp
+            alt="MIT license"></a> &nbsp;
 </p>
+<!-- content -->
 
 PyPortfolioOpt is a library that implements widely-used classical portfolio optimisation techniques, with a number of experimental features. It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious practitioner.
 
 Whether you are a fundamentals-oriented investor who has identified a handful of undervalued picks, or an algorithmic trader who has a basket of interesting signals, PyPortfolioOpt can help you combine your alpha-generators in a risk-efficient way.
 
-Head over to the documentation on ReadTheDocs to get an in-depth look at the project, or continue below to check out some examples.
+Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/) to get an in-depth look at the project, or continue below to check out some examples.
 
 <center>
 <img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v1.png" style="width:70%;"/>
@@ -159,7 +160,7 @@ Funds remaining: $12.15
 
 - Includes both classical methods (Markowitz 1952), and more recent developments (covariance shrinkage), as well as experimental features such as L2-regularised weights.
 - Native support for pandas dataframes: easily input your daily prices data.
-- Clear and comprehensive documentation, hosted on ReadTheDocs (coming soon)
+- Clear and comprehensive [documentation](https://pyportfolioopt.readthedocs.io/en/latest/), hosted on ReadTheDocs.
 - Extensive practical tests, which use real-life data.
 - Easy to combine with your own proprietary strategies and models.
 - Robust to missing data, and price-series of different lengths (e.g FB data only goes back to 2012, whereas AAPL data goes back to 1980).
@@ -181,7 +182,7 @@ Thus this project provides four major sets of functionality (though of course th
 
 In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. Full examples are offered in `examples.py`.
 
-A far more comprehensive version of this can be found on ReadTheDocs, as well as possible extensions for more advanced users.
+A far more comprehensive version of this can be found on [ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/), as well as possible extensions for more advanced users.
 
 ### Expected returns
 
