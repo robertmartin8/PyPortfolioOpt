@@ -138,7 +138,9 @@ Instead of just stopping here, PyPortfolioOpt provides a method which allows you
 from pypfopt import discrete_allocation
 
 latest_prices = discrete_allocation.get_latest_prices(df)
-allocation, leftover = discrete_allocation.portfolio(weights, latest_prices, 10000)
+allocation, leftover = discrete_allocation.portfolio(
+    weights, latest_prices, total_portfolio_value=10000
+)
 print(allocation)
 print("Funds remaining: ${:.2f}".format(leftover))
 ```
