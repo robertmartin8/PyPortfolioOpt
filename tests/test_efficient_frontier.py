@@ -38,7 +38,7 @@ def test_max_sharpe_long_only():
     w = ef.max_sharpe()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     np.testing.assert_allclose(
@@ -54,7 +54,7 @@ def test_max_sharpe_short():
     w = ef.max_sharpe()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -75,7 +75,7 @@ def test_max_sharpe_L2_reg():
     w = ef.max_sharpe()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     np.testing.assert_allclose(
@@ -132,7 +132,7 @@ def test_max_sharpe_L2_reg_with_shorts():
     w = ef.max_sharpe()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -179,7 +179,7 @@ def test_min_volatility():
     w = ef.min_volatility()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -194,7 +194,7 @@ def test_min_volatility_short():
     w = ef.min_volatility()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -215,7 +215,7 @@ def test_min_volatility_L2_reg():
     w = ef.min_volatility()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     np.testing.assert_allclose(
@@ -244,7 +244,7 @@ def test_efficient_risk():
     w = ef.efficient_risk(0.19)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.285775, 0.19, 1.396493), atol=1e-6
@@ -267,7 +267,7 @@ def test_efficient_risk_short():
     w = ef.efficient_risk(0.19)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -289,7 +289,7 @@ def test_efficient_risk_L2_reg():
     w = ef.efficient_risk(0.19)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     np.testing.assert_allclose(
@@ -321,7 +321,7 @@ def test_efficient_risk_market_neutral():
     w = ef.efficient_risk(0.19, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 0)
     assert (ef.weights < 1).all() and (ef.weights > -1).all()
     np.testing.assert_almost_equal(
@@ -353,7 +353,7 @@ def test_efficient_return():
     w = ef.efficient_return(0.25)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.25, 0.173885, 1.320507), atol=1e-6
@@ -376,7 +376,7 @@ def test_efficient_return_short():
     w = ef.efficient_return(0.25)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.25, 0.16826260520748268, 1.3641098601259731)
@@ -396,7 +396,7 @@ def test_efficient_return_L2_reg():
     w = ef.efficient_return(0.25)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     np.testing.assert_allclose(
@@ -426,7 +426,7 @@ def test_efficient_return_market_neutral():
     w = ef.efficient_return(0.25, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    assert list(w.keys()) == list(ef.expected_returns.index)
+    assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 0)
     assert (ef.weights < 1).all() and (ef.weights > -1).all()
     np.testing.assert_almost_equal(
