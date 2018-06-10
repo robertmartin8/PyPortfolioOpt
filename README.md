@@ -5,21 +5,25 @@
 <!-- buttons -->
 <p align="center">
     <a href="https://www.python.org/">
-        <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
+        <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v0.1.0rc1-brightgreen.svg?style=flat-square"
+        <img src="https://img.shields.io/badge/pypi-v0.1.0rc1-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
-        <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
+        <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
             alt="MIT license"></a> &nbsp;
     <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
-        <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg?style=flat-square"
+        <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg"
             alt="issues"></a> &nbsp;
     <a href="https://pyportfolioopt.readthedocs.io/en/latest/">
-        <img src="https://img.shields.io/badge/docs-passing-brightgreen.svg?style=flat-square"
+        <img src="https://img.shields.io/badge/docs-passing-brightgreen.svg"
             alt="docs"></a> &nbsp;
+    <a href="https://travis-ci.org/robertmartin8/PyPortfolioOpt">
+        <img src="https://travis-ci.org/robertmartin8/PyPortfolioOpt.svg?branch=master"
+            alt="travis"></a> &nbsp;
 </p>
+
 <!-- content -->
 
 PyPortfolioOpt is a library that implements widely-used classical portfolio optimisation techniques, with a number of experimental features. It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious practitioner.
