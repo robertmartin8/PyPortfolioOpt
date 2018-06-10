@@ -61,16 +61,11 @@ def test_sample_cov_frequency():
 
 def test_min_cov_det():
     df = get_data()
-    S = risk_models.min_cov_determinant(df)
+    S = risk_models.min_cov_determinant(df, random_state=8)
     assert S.shape == (20, 20)
     assert S.index.equals(df.columns)
     assert S.index.equals(S.columns)
     assert S.notnull().all().all()
-
-
-def test_min_cov_det_frequency():
-    df = get_data()
-    S = risk_models.min_cov_determinant(df, random_state=8)
     S2 = risk_models.min_cov_determinant(df, frequency=2, random_state=8)
     pd.testing.assert_frame_equal(S / 126, S2)
 
