@@ -5,7 +5,7 @@ About
 I'm Robert, a natural sciences student at the University of Cambridge. I am interested
 in a broad range of quantitative topics, including physics, statistics, finance and
 computer science (and the intersection between them). For more about me, please head
-over to my `website <https://resaonabledeviations.science>`_.
+over to my `website <https://reasonabledeviations.science>`_.
 
 I learn fastest when making real projects. A few months back I began seriously trying
 to self-educate on certain topics in quantitative finance, and mean-variance
