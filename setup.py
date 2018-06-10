@@ -1,12 +1,15 @@
 from setuptools import setup
+import re
 
 with open("README.md", "r") as f:
     desc = f.read()
-    desc = desc.split("</p>")[-1]
+    desc = desc.split("<!-- buttons -->")[-1]
+    desc = re.sub("<[^<]+?>", "", desc)  # Remove html
+
 
 setup(
     name="PyPortfolioOpt",
-    version="0.1.0-rc.7",
+    version="0.1.0rc1",
     description="Financial portfolio optimisation in python",
     long_description=desc,
     long_description_content_type="text/markdown",
