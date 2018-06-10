@@ -13,8 +13,8 @@ def test_negative_mean_return_dummy():
     negative_mu = objective_functions.negative_mean_return(w, e_rets)
     assert isinstance(negative_mu, float)
     assert negative_mu < 0
-    assert negative_mu == -w.dot(e_rets)
-    assert negative_mu == -(w * e_rets).sum()
+    np.testing.assert_almost_equal(negative_mu, -w.dot(e_rets))
+    np.testing.assert_almost_equal(negative_mu, -(w * e_rets).sum())
 
 
 def test_negative_mean_return_real():

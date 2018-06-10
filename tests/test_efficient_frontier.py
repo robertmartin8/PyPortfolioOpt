@@ -37,7 +37,7 @@ def test_max_sharpe_long_only():
     ef = setup_efficient_frontier()
     w = ef.max_sharpe()
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
@@ -53,7 +53,7 @@ def test_max_sharpe_short():
     )
     w = ef.max_sharpe()
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
@@ -74,7 +74,7 @@ def test_max_sharpe_L2_reg():
     ef.gamma = 1
     w = ef.max_sharpe()
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
@@ -131,7 +131,7 @@ def test_max_sharpe_L2_reg_with_shorts():
     ef.gamma = 1
     w = ef.max_sharpe()
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
@@ -178,7 +178,7 @@ def test_min_volatility():
     ef = setup_efficient_frontier()
     w = ef.min_volatility()
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
@@ -193,7 +193,7 @@ def test_min_volatility_short():
     )
     w = ef.min_volatility()
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
@@ -214,7 +214,7 @@ def test_min_volatility_L2_reg():
     ef.gamma = 1
     w = ef.min_volatility()
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
@@ -243,7 +243,7 @@ def test_efficient_risk():
     ef = setup_efficient_frontier()
     w = ef.efficient_risk(0.19)
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
@@ -266,7 +266,7 @@ def test_efficient_risk_short():
     )
     w = ef.efficient_risk(0.19)
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
@@ -288,7 +288,7 @@ def test_efficient_risk_L2_reg():
     ef.gamma = 1
     w = ef.efficient_risk(0.19)
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
@@ -320,7 +320,7 @@ def test_efficient_risk_market_neutral():
     )
     w = ef.efficient_risk(0.19, market_neutral=True)
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 0)
     assert (ef.weights < 1).all() and (ef.weights > -1).all()
@@ -352,7 +352,7 @@ def test_efficient_return():
     ef = setup_efficient_frontier()
     w = ef.efficient_return(0.25)
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
@@ -375,7 +375,7 @@ def test_efficient_return_short():
     )
     w = ef.efficient_return(0.25)
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
@@ -395,7 +395,7 @@ def test_efficient_return_L2_reg():
     ef.gamma = 1
     w = ef.efficient_return(0.25)
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
@@ -425,7 +425,7 @@ def test_efficient_return_market_neutral():
     )
     w = ef.efficient_return(0.25, market_neutral=True)
     assert isinstance(w, dict)
-    assert list(w.keys()) == ef.tickers
+    assert set(w.keys()) == set(ef.tickers)
     assert list(w.keys()) == list(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 0)
     assert (ef.weights < 1).all() and (ef.weights > -1).all()
