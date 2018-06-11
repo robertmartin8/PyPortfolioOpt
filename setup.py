@@ -9,7 +9,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="PyPortfolioOpt",
-    version="0.1.0rc1",
+    version="0.1.0",
     description="Financial portfolio optimisation in python",
     long_description=desc,
     long_description_content_type="text/markdown",
@@ -39,7 +39,8 @@ setup(
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     python_requires=">=3",
-    project_urls={  # TODO add documentation link
+    project_urls={
+        "Documentation": "https://pyportfolioopt.readthedocs.io/en/latest/",
         "Issues": "https://github.com/robertmartin8/PyPortfolioOpt/issues",
         "Personal website": "https://reasonabledeviations.science",
     },
