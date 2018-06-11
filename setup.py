@@ -3,13 +3,13 @@ import re
 
 with open("README.md", "r") as f:
     desc = f.read()
-    desc = desc.split("<!-- buttons -->")[-1]
+    desc = desc.split("<!-- content -->")[-1]
     desc = re.sub("<[^<]+?>", "", desc)  # Remove html
 
 
 setup(
     name="PyPortfolioOpt",
-    version="0.1.0",
+    version="0.1.1",
     description="Financial portfolio optimisation in python",
     long_description=desc,
     long_description_content_type="text/markdown",
