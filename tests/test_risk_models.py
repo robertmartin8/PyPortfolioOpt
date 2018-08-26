@@ -59,6 +59,29 @@ def test_sample_cov_frequency():
     pd.testing.assert_frame_equal(S / 126, S2)
 
 
+def test_semicovariance():
+    df = get_data()
+    S = risk_models.semicovariance(df)
+    assert S.shape == (20, 20)
+    assert S.index.equals(df.columns)
+    assert S.index.equals(S.columns)
+    assert S.notnull().all().all()
+    S2 = risk_models.semicovariance(df, frequency=2)
+    pd.testing.assert_frame_equal(S / 126, S2)
+
+
+def test_semicovariance_benchmark():
+    df = get_data()
+    # When the benchmark is very negative, the cov matrix should be zeroes
+    S_negative_benchmark = risk_models.semicovariance(df, benchmark=-0.5)
+    np.testing.assert_allclose(S_negative_benchmark, 0, atol=1e-4)
+
+    # Increasing the benchmark should increase covariances on average
+    S = risk_models.semicovariance(df, benchmark=0)
+    S2 = risk_models.semicovariance(df, benchmark=1)
+    assert S2.sum().sum() > S.sum().sum()
+
+
 def test_min_cov_det():
     df = get_data()
     S = risk_models.min_cov_determinant(df, random_state=8)
@@ -93,7 +116,8 @@ def test_shrunk_covariance_extreme_delta():
     cs = risk_models.CovarianceShrinkage(df)
     # if delta = 0, no shrinkage occurs
     shrunk_cov = cs.shrunk_covariance(0)
-    np.testing.assert_array_almost_equal(shrunk_cov.values, risk_models.sample_cov(df))
+    np.testing.assert_array_almost_equal(
+        shrunk_cov.values, risk_models.sample_cov(df))
     # if delta = 1, sample cov does not contribute to shrunk cov
     shrunk_cov = cs.shrunk_covariance(1)
     N = df.shape[1]
