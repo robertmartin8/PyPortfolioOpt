@@ -9,8 +9,10 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 **Currently implemented:**
 
 - sample covariance
+- semicovariance
+- exponentially weighted covariance
 - mininum covariance determinant
-- Shrunk covariance matrices:
+- shrunk covariance matrices:
 
     - manual shrinkage
     - Ledoit Wolf shrinkage
@@ -41,6 +43,63 @@ def sample_cov(prices, frequency=252):
         prices = pd.DataFrame(prices)
     daily_returns = prices.pct_change().dropna(how="all")
     return daily_returns.cov() * frequency
+
+
+def semicovariance(prices, benchmark=0, frequency=252):
+    """
+    Estimate the semicovariance matrix, i.e the covariance given that
+    the returns are less than the benchmark.
+
+    .. semicov = E([min(r_i - B, 0)] . [min(r_j - B, 0)])
+
+    :param prices: adjusted closing prices of the asset, each row is a date
+                   and each column is a ticker/id.
+    :type prices: pd.DataFrame
+    :param benchmark: the benchmark return, defaults to 0.
+    :type benchmark: float
+    :param frequency: number of time periods in a year, defaults to 252 (the number
+                      of trading days in a year)
+    :type frequency: int, optional
+    :return: semicovariance matrix
+    :rtype: pd.DataFrame
+    """
+    if not isinstance(prices, pd.DataFrame):
+        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        prices = pd.DataFrame(prices)
+    daily_returns = prices.pct_change().dropna(how="all")
+    drops = np.fmin(daily_returns - benchmark, 0)
+    return drops.cov() * frequency
+
+
+def _pair_exp_cov(X, Y, alpha=0.5):
+    # TODO documentation
+    # alpha is the span parameter in terms of the length of the data.
+    # higher alpha tends towards the simple mean.
+    # alpha * T = 1 sets the mean = the last result
+    # recommended alpha = 0.5
+    covariation = (X - X.mean()) * (Y - Y.mean())
+    T = covariation.notnull().sum()
+    return covariation.ewm(span=alpha * T).mean()[-1]
+
+
+def exp_cov(prices, alpha=0.5, frequency=252):
+    # TODO documentation
+    if not isinstance(prices, pd.DataFrame):
+        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        prices = pd.DataFrame(prices)
+    assets = prices.columns
+    daily_returns = prices.pct_change().dropna(how="all")
+    N = len(assets)
+
+    S = np.zeros((N, N))
+    for i in range(N):
+        for j in range(i, N):
+            S[i, j] = S[j, i] = _pair_exp_cov(
+                daily_returns.iloc[:, i],
+                daily_returns.iloc[:, j],
+                alpha
+            )
+    return pd.DataFrame(S * frequency, columns=assets, index=assets)
 
 
 def min_cov_determinant(prices, frequency=252, random_state=None):
@@ -110,7 +169,8 @@ class CovarianceShrinkage:
         """
         assets = self.X.columns
         return (
-            pd.DataFrame(raw_cov_array, index=assets, columns=assets) * self.frequency
+            pd.DataFrame(raw_cov_array, index=assets,
+                         columns=assets) * self.frequency
         )
 
     def shrunk_covariance(self, delta=0.2):
