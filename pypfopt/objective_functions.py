@@ -14,9 +14,11 @@ Currently implemented:
 - negative mean return
 - (regularised) negative Sharpe ratio
 - (regularised) volatility
+- CVaR (expected shortfall)
 """
 
 import numpy as np
+import scipy.stats
 
 
 def negative_mean_return(weights, expected_returns):
@@ -74,4 +76,5 @@ def volatility(weights, cov_matrix, gamma=0):
     :rtype: float
     """
     L2_reg = gamma * (weights ** 2).sum()
-    return np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) + L2_reg
+    portfolio_volatility = np.dot(weights.T, np.dot(cov_matrix, weights))
+    return portfolio_volatility + L2_reg
