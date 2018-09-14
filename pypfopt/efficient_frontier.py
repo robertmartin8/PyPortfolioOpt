@@ -276,7 +276,8 @@ class EfficientFrontier(BaseOptimizer):
         """
         if self.weights is None:
             raise ValueError("Weights not calculated yet")
-        sigma = objective_functions.volatility(self.weights, self.cov_matrix)
+        sigma = np.sqrt(objective_functions.volatility(
+            self.weights, self.cov_matrix))
         mu = self.weights.dot(self.expected_returns)
 
         sharpe = -objective_functions.negative_sharpe(

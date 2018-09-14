@@ -63,7 +63,9 @@ def negative_sharpe(
 
 def volatility(weights, cov_matrix, gamma=0):
     """
-    Calculate the volatility of a portfolio
+    Calculate the volatility of a portfolio. This is actually a misnomer because
+    the function returns variance, which is technically the correct objective
+    function when minimising volatility.
 
     :param weights: asset weights of the portfolio
     :type weights: np.ndarray
@@ -72,9 +74,19 @@ def volatility(weights, cov_matrix, gamma=0):
     :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                   non-negligible weights
     :type gamma: float, optional
-    :return: portfolio volatility
+    :return: portfolio variance
     :rtype: float
     """
     L2_reg = gamma * (weights ** 2).sum()
     portfolio_volatility = np.dot(weights.T, np.dot(cov_matrix, weights))
     return portfolio_volatility + L2_reg
+
+
+def negative_cvar(weights, returns, s=10000, beta=0.95, random_state=None):
+    # TODO cvar documentation
+    np.random.seed(seed=random_state)
+    portfolio_returns = (weights * returns).sum(axis=1)
+    dist = scipy.stats.gaussian_kde(portfolio_returns)
+    sample = dist.resample(s)
+    var = portfolio_returns.quantile(1 - beta)
+    return -sample[sample < var].mean()
