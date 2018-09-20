@@ -82,6 +82,28 @@ def test_semicovariance_benchmark():
     assert S2.sum().sum() > S.sum().sum()
 
 
+def test_exp_cov_matrix():
+    df = get_data()
+    S = risk_models.exp_cov(df)
+    assert S.shape == (20, 20)
+    assert S.index.equals(df.columns)
+    assert S.index.equals(S.columns)
+    assert S.notnull().all().all()
+    S2 = risk_models.exp_cov(df, frequency=2)
+    pd.testing.assert_frame_equal(S / 126, S2)
+
+
+def test_exp_cov_limits():
+    df = get_data()
+    sample_cov = risk_models.sample_cov(df)
+    S = risk_models.exp_cov(df)
+    assert not np.allclose(sample_cov, S)
+
+    # As span gets larger, it should tend towards sample covariance
+    S2 = risk_models.exp_cov(df, span=1e20)
+    assert np.abs(S2 - sample_cov).max().max() < 1e-3
+
+
 def test_min_cov_det():
     df = get_data()
     S = risk_models.min_cov_determinant(df, random_state=8)
