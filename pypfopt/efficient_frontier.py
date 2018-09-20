@@ -1,5 +1,5 @@
 """
-The ``efficient_frontier`` module houses the EfficientFrontier object, which
+The ``efficient_frontier`` module houses the EfficientFrontier class, which
 generates optimal portfolios for various possible objective functions and parameters.
 """
 
@@ -140,8 +140,8 @@ class EfficientFrontier(BaseOptimizer):
         can be optimised via a quadratic optimiser, this is not enforced. Thus there is a
         decent chance of silent failure.
 
-        :param objective_function: function which maps (weight, *args) -> cost
-        :type objective_function: function with signature (np.Array, *args) -> float
+        :param objective_function: function which maps (weight, args) -> cost
+        :type objective_function: function with signature (np.ndarray, args) -> float
         :return: asset weights that optimise the custom objective
         :rtype: dict
         """
@@ -184,7 +184,7 @@ class EfficientFrontier(BaseOptimizer):
         target_constraint = {
             "type": "ineq",
             "fun": lambda w: target_risk
-            - objective_functions.volatility(w, self.cov_matrix),
+            - np.sqrt(objective_functions.volatility(w, self.cov_matrix)),
         }
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
