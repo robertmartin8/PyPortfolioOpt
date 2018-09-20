@@ -18,7 +18,6 @@ The format of the data input is the same as that in :ref:`expected-returns`.
     - Ledoit Wolf shrinkage
     - Oracle Approximating shrinkage
 """
-
 import warnings
 import numpy as np
 import pandas as pd
@@ -71,19 +70,42 @@ def semicovariance(prices, benchmark=0, frequency=252):
     return drops.cov() * frequency
 
 
-def _pair_exp_cov(X, Y, alpha=0.5):
-    # TODO documentation
-    # alpha is the span parameter in terms of the length of the data.
-    # higher alpha tends towards the simple mean.
-    # alpha * T = 1 sets the mean = the last result
-    # recommended alpha = 0.5
+def _pair_exp_cov(X, Y, span=180):
+    """
+    Calculate the exponential covariance between two timeseries of returns.
+
+    :param X: first time series of returns
+    :type X: pd.Series
+    :param Y: second time series of returns
+    :type Y: pd.Series
+    :param span: the span of the exponential weighting function, defaults to 180
+    :type span: int, optional
+    :return: the exponential covariance between X and Y
+    :rtype: float
+    """
     covariation = (X - X.mean()) * (Y - Y.mean())
-    T = covariation.notnull().sum()
-    return covariation.ewm(span=alpha * T).mean()[-1]
+    # Exponentially weight the covariation and take the mean
+    if span < 10:
+        warnings.warn("it is recommended to use a higher span, e.g 30 days")
+    return covariation.ewm(span=span).mean()[-1]
 
 
-def exp_cov(prices, alpha=0.5, frequency=252):
-    # TODO documentation
+def exp_cov(prices, span=180, frequency=252):
+    """
+    Estimate the exponentially-weighted covariance matrix, which gives
+    greater weight to more recent data.
+
+    :param prices: adjusted closing prices of the asset, each row is a date
+                   and each column is a ticker/id.
+    :type prices: pd.DataFrame
+    :param span: the span of the exponential weighting function, defaults to 180
+    :type span: int, optional
+    :param frequency: number of time periods in a year, defaults to 252 (the number
+                      of trading days in a year)
+    :type frequency: int, optional
+    :return: annualised estimate of exponential covariance matrix
+    :rtype: pd.DataFrame
+    """
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
@@ -91,13 +113,14 @@ def exp_cov(prices, alpha=0.5, frequency=252):
     daily_returns = prices.pct_change().dropna(how="all")
     N = len(assets)
 
+    # Loop over matrix, filling entries with the pairwise exp cov
     S = np.zeros((N, N))
     for i in range(N):
         for j in range(i, N):
             S[i, j] = S[j, i] = _pair_exp_cov(
                 daily_returns.iloc[:, i],
                 daily_returns.iloc[:, j],
-                alpha
+                span
             )
     return pd.DataFrame(S * frequency, columns=assets, index=assets)
 
