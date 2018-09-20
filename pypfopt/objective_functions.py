@@ -83,10 +83,31 @@ def volatility(weights, cov_matrix, gamma=0):
 
 
 def negative_cvar(weights, returns, s=10000, beta=0.95, random_state=None):
-    # TODO cvar documentation
+    """
+    Calculate the negative CVaR. Though we want the "min CVaR portfolio", we
+    actually need to maximise the expected return of the worst q% cases, thus
+    we need this value to be negative.
+
+    :param weights: asset weights of the portfolio
+    :type weights: np.ndarray
+    :param returns: asset returns
+    :type returns: pd.DataFrame or np.ndarray
+    :param s: number of bootstrap draws, defaults to 10000
+    :type s: int, optional
+    :param beta: "significance level" (i. 1 - q), defaults to 0.95
+    :type beta: float, optional
+    :param random_state: seed for random sampling, defaults to None
+    :type random_state: int, optional
+    :return: negative CVaR
+    :rtype: float
+    """
     np.random.seed(seed=random_state)
+    # Calcualte the returns given the weights
     portfolio_returns = (weights * returns).sum(axis=1)
+    # Sample from the historical distribution
     dist = scipy.stats.gaussian_kde(portfolio_returns)
     sample = dist.resample(s)
+    # Calculate the value at risk
     var = portfolio_returns.quantile(1 - beta)
+    # Mean of all losses worse than the value at risk
     return -sample[sample < var].mean()
