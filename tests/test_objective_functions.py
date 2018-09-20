@@ -52,13 +52,30 @@ def test_negative_sharpe():
 def test_volatility_dummy():
     w = np.array([0.4, 0.4, 0.2])
     data = np.diag([0.5, 0.8, 0.9])
-    test_vol = objective_functions.volatility(w, data)
-    np.testing.assert_almost_equal(test_vol, 0.244 ** 0.5)
+    test_var = objective_functions.volatility(w, data)
+    np.testing.assert_almost_equal(test_var, 0.244)
 
 
 def test_volatility():
     df = get_data()
     S = sample_cov(df)
     w = np.array([1 / df.shape[1]] * df.shape[1])
-    vol = objective_functions.volatility(w, S)
-    np.testing.assert_almost_equal(vol, 0.21209018103844543)
+    var = objective_functions.volatility(w, S)
+    np.testing.assert_almost_equal(var, 0.04498224489292057)
+
+
+def test_cvar():
+    df = get_data()
+    returns = df.pct_change().dropna(how="all")
+    w = np.array([1 / df.shape[1]] * df.shape[1])
+    cvar0 = objective_functions.negative_cvar(
+        w, returns, s=5000, random_state=0)
+    np.testing.assert_almost_equal(cvar0, 0.02430440871014094)
+    cvar1 = objective_functions.negative_cvar(
+        w, returns, s=5000, beta=0.98, random_state=0)
+    np.testing.assert_almost_equal(cvar1, 0.0312109776702776)
+
+    # Nondeterministic
+    cvar2 = objective_functions.negative_cvar(
+        w, returns, s=5000, random_state=1)
+    assert not cvar0 == cvar2
