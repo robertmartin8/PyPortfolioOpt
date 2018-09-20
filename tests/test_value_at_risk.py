@@ -13,8 +13,8 @@ def test_init_cvar():
     # Inheritance
     assert vr.bounds == ((0, 1), ) * len(df.columns)
     assert vr.clean_weights
-    assert vr.initial_guess
-    assert vr.constraints
+    assert isinstance(vr.initial_guess, np.ndarray)
+    assert isinstance(vr.constraints, list)
 
 
 def test_init_cvar_errors():

@@ -70,10 +70,10 @@ def test_cvar():
     w = np.array([1 / df.shape[1]] * df.shape[1])
     cvar0 = objective_functions.negative_cvar(
         w, returns, s=5000, random_state=0)
-    np.testing.assert_almost_equal(cvar0, 0.02430440871014094)
+    assert cvar0 > 0
     cvar1 = objective_functions.negative_cvar(
         w, returns, s=5000, beta=0.98, random_state=0)
-    np.testing.assert_almost_equal(cvar1, 0.0312109776702776)
+    assert cvar1 > 0
 
     # Nondeterministic
     cvar2 = objective_functions.negative_cvar(
