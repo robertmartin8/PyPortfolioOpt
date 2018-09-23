@@ -42,14 +42,14 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
 - [Getting started](#getting-started)
     - [For development](#for-development)
 - [A quick example](#a-quick-example)
-- [Project principles and design decisions](#project-principles-and-design-decisions)
-- [Advantages over existing implementations](#advantages-over-existing-implementations)
 - [An overview of classical portfolio optimisation methods](#an-overview-of-classical-portfolio-optimisation-methods)
 - [Features](#features)
     - [Expected returns](#expected-returns)
-    - [Covariance](#covariance)
+    - [Risk models (covariance)](#risk-models-covariance)
     - [Objective functions](#objective-functions)
     - [Optional parameters](#optional-parameters)
+- [Advantages over existing implementations](#advantages-over-existing-implementations)
+- [Project principles and design decisions](#project-principles-and-design-decisions)
 - [Roadmap](#roadmap)
 - [Testing](#testing)
 - [Contributing](#contributing)
@@ -156,24 +156,6 @@ Funds remaining: $12.15
 
 *Disclaimer: nothing about this project constitues investment advice, and the author bears no responsibiltiy for your subsequent investment decisions. Please refer to the [license](https://github.com/robertmartin8/PyPortfolioOpt/blob/master/LICENSE.txt) for more information.*
 
-## Project principles and design decisions
-
-- It should be easy to swap out individual components of the optimisation process with the user's proprietary improvements.
-- User-friendliness is **everything**.
-- There is no point in portfolio optimisation unless it can be practically applied to real asset prices.
-- Everything that has been implemented should be tested.
-- Inline documentation is good: dedicated (separate) documentation is better. The two are not mutually exclusive.
-- Formatting should never get in the way of good code: because of this I have deferred **all** formatting decisions to [Black](https://github.com/ambv/black). Initially, some of its decisions irritated me, but it is extremely consistent and actually quite elegant.
-
-## Advantages over existing implementations
-
-- Includes both classical methods (Markowitz 1952), and more recent developments (covariance shrinkage), as well as experimental features such as L2-regularised weights.
-- Native support for pandas dataframes: easily input your daily prices data.
-- Clear and comprehensive [documentation](https://pyportfolioopt.readthedocs.io/en/latest/), hosted on ReadTheDocs.
-- Extensive practical tests, which use real-life data.
-- Easy to combine with your own proprietary strategies and models.
-- Robust to missing data, and price-series of different lengths (e.g FB data only goes back to 2012, whereas AAPL data goes back to 1980).
-
 ## An overview of classical portfolio optimisation methods
 
 Harry Markowitz's 1952 paper is the undeniable classic, which turned portfolio optimisation from an art into a science. The key insight is that by combining assets with different expected returns and volatilities, one can decide on a mathematically optimal allocation which minimises the risk for a target return – the set of all such optimal portfolios is referred to as the **efficient frontier**.
@@ -202,7 +184,7 @@ A far more comprehensive version of this can be found on [ReadTheDocs](https://p
     - similar to mean historical returns, except it gives exponentially more weight to recent prices
     - it is likely the case that an asset's most recent returns hold more weight than returns from 10 years ago when it comes to estimating future returns.
 
-### Covariance
+### Risk models (covariance)
 
 The covariance matrix encodes not just the volatility of an asset, but also how it correlated to other assets. This is important because in order to reap the benefits of diversification (and thus increase return per unit risk), the assets in the portfolio should be as uncorrelated as possible.
 
@@ -211,6 +193,8 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
     - relatively easy to compute
     - the de facto standard for many years
     - however, it has a high estimation error, which is particularly dangerous in mean-variance optimisation because the optimiser is likely to give excess weight to these erroneous estimates.
+- Semicovariance: a measure of risk that focuses on downside variation.
+- Exponential covariance: an improvement over sample covariance that gives more weight to recent data
 - Covariance shrinkage: techniques that involve combining the sample covariance matrix with a structured estimator, in order to reduce the effect of erroneous weights. PyPortfolioOpt provides wrappers around the efficient vectorised implementations provided by `sklearn.covariance`.
     - manual shrinkage
     - Ledoit Wolf shrinkage, which chooses an optimal shrinkage parameter
@@ -221,10 +205,11 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
 
 ### Objective functions
 
-- Maximum Sharpe ratio: this is also called the *tangency portfolio* because on a graph of returns vs risk, this portfolio corresponds to the tangent of the efficient frontier that has a y-intercept equal to the risk-free rate. This is the default option because it finds the optimal return per unit risk.
+- Maximum Sharpe ratio: this results in a *tangency portfolio* because on a graph of returns vs risk, this portfolio corresponds to the tangent of the efficient frontier that has a y-intercept equal to the risk-free rate. This is the default option because it finds the optimal return per unit risk.
 - Minimum volatility. This may be useful if you're trying to get an idea of how low the volatility *could* be, but in practice it makes a lot more sense to me to use the portfolio that maximises the Sharpe ratio.
 - Efficient return, a.k.a. the Markowitz portfolio, which minimises risk for a given target return – this was the main focus of Markowitz 1952
 - Efficient risk: the Sharpe-maximising portfolio for a given target risk.
+- Condiitional value-at-risk: a measure of tail loss
 
 ### Optional parameters
 
@@ -253,6 +238,31 @@ ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.1))
 ef = EfficientFrontier(mu, S, gamma=1)
 ef.max_sharpe()
 ```
+
+## Advantages over existing implementations
+
+- Includes both classical methods (Markowitz 1952), suggested best practices
+  (e.g covariance shrinkage), along with many recent developments and novel
+  features, like L2 regularisation, shrunk covariance, hierarchical risk parity.
+- Native support for pandas dataframes: easily input your daily prices data.
+- Extensive practical tests, which use real-life data.
+- Easy to combine with your own proprietary strategies and models.
+- Robust to missing data, and price-series of different lengths (e.g FB data
+  only goes back to 2012 whereas AAPL data goes back to 1980).
+
+## Project principles and design decisions
+
+- It should be easy to swap out individual components of the optimisation process
+  with the user's proprietary improvements.
+- Usability is everything: it is better to be self-explanatory than consistent.
+- There is no point in portfolio optimisation unless it can be practically
+  applied to real asset prices.
+- Everything that has been implemented should be tested.
+- Inline documentation is good: dedicated (separate) documentation is better.
+  The two are not mutually exclusive.
+- Formatting should never get in the way of good code: because of this,
+  I have deferred **all** formatting decisions to `Black
+  <https://github.com/ambv/black>`_.
 
 ## Roadmap
 
@@ -284,7 +294,9 @@ PyPortfolioOpt provides a test dataset of daily returns for 20 tickers:
 - different performances and volatilities
 - different amounts of data to test robustness
 
-Currently, the tests have not explored all of the edge cases, however I have investigated the experimental features like L2 regularisation. Additionally, the tests currently have not satisfactorily tested all combinations of objective function and options.
+Currently, the tests have not explored all of the edge cases and combinations
+of objective functions and parameters. However, each method and parameter has
+been tested to work as intended.
 
 ## Contributing
 
