@@ -69,3 +69,22 @@ def test_custom_deviation_risk_parity():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+
+
+def test_custom_utility_objective():
+    ef = setup_efficient_frontier()
+
+    def utility_obj(weights, mu, cov_matrix, k=1):
+        return -weights.dot(mu) + k * np.dot(weights.T, np.dot(cov_matrix, weights))
+
+    w = ef.custom_objective(utility_obj, ef.expected_returns, ef.cov_matrix, 1)
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    assert set(w.keys()) == set(ef.expected_returns.index)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    vol1 = ef.portfolio_performance()[1]
+
+    # If we increase k, volatility should decrease
+    ef.custom_objective(utility_obj, ef.expected_returns, ef.cov_matrix, 2)
+    vol2 = ef.portfolio_performance()[1]
+    assert vol2 < vol1
