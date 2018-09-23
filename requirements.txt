@@ -1,6 +1,7 @@
 atomicwrites==1.1.5
 attrs==18.1.0
 more-itertools==4.2.0
+noisyopt==0.2.2
 numpy==1.14.3
 pandas>=0.21.0
 pluggy==0.6.0
