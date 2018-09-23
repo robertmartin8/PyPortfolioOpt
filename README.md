@@ -261,8 +261,7 @@ ef.max_sharpe()
 - Inline documentation is good: dedicated (separate) documentation is better.
   The two are not mutually exclusive.
 - Formatting should never get in the way of good code: because of this,
-  I have deferred **all** formatting decisions to `Black
-  <https://github.com/ambv/black>`_.
+  I have deferred **all** formatting decisions to [Black](https://github.com/ambv/black).
 
 ## Roadmap
 
