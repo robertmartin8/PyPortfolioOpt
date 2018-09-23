@@ -45,7 +45,7 @@ class CVAROpt(BaseOptimizer):
         :type weight_bounds: tuple, optional
         :raises TypeError: if ``returns`` is not a dataframe
         """
-        if not isinstance(returns, pd.DataFrame,):
+        if not isinstance(returns, pd.DataFrame):
             raise TypeError("returns are not a dataframe")
         self.returns = returns
         self.tickers = returns.columns
