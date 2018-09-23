@@ -11,6 +11,10 @@ between the optimisation objective and the actual optimisation method – if we
 wanted to use something other than mean-variance optimisation via quadratic programming,
 these objective functions would still be applicable.
 
+It should be noted that while efficient frontier optimisation is technically a very
+specific method, I tend to use it as a blanket term (interchangeably with mean-variance
+optimisation) to refer to anything similar, such as minimising variance.
+
 Optimisation
 ============
 
@@ -29,6 +33,7 @@ magnitude, I will definitely consider switching.
 
     .. autoclass:: EfficientFrontier
         :members:
+        :exclude-members: custom_objective
 
         .. automethod:: __init__
 
@@ -65,7 +70,7 @@ if you need a certain number of assets in your portfolio.
 In order to coerce the efficient frontier optimiser to produce more non-negligible
 weights, I have added what can be thought of as a "small weights penalty" to all
 of the objective functions, parameterised by :math:`\gamma` (``gamma``). Considering
-the minimum volatility objective for instance, we have:
+the minimum variance objective for instance, we have:
 
 .. math::
     \underset{w}{\text{minimise}} ~ \left\{w^T \Sigma w \right\} ~~~ \longrightarrow ~~~
@@ -78,7 +83,8 @@ negligible weights, because it has a minimum value when all weights are
 equally distributed, and maximum value in the limiting case where the entire portfolio
 is allocated to one asset. I refer to it as **L2 regularisation** because it has
 exactly the same form as the L2 regularisation term in machine learning, though
-a slightly different purpose (in ML it is used to keep weights small).
+a slightly different purpose (in ML it is used to keep weights small while here it is
+used to make them larger).
 
 .. note::
 
@@ -87,3 +93,41 @@ a slightly different purpose (in ML it is used to keep weights small).
     (less than 20 assets), then ``gamma=1`` is a good starting point. For larger
     universes, or if you want more non-negligible weights in the final portfolio,
     increase ``gamma``.
+
+
+Custom objectives
+=================
+
+Though it is simple enough to modify ``objective_functions.py`` to implement
+a custom objective (indeed, this is the recommended approach for long-term use),
+I understand that most users would find it much more convenient to pass a
+custom objective into the optimiser without having to edit the source files.
+
+Thus, v0.2.0 introduces a simple API within the ``EfficientFrontier`` object for
+optimising your own objective function.
+
+The first step is to define the objective function, which must take an array
+of weights as input (with optional additional arguments), and return a single
+float corresponding to the cost. As an example, we will pretend that L2
+regularisation is not built-in and re-implement it below:
+
+
+.. code:: python
+
+    def my_objective_function(weights, cov_matrix, k):
+        variance = np.dot(weights.T, np.dot(cov_matrix, weights))
+        return variance + k * (weights ** 2).sum()
+
+Next, we instantiate the ``EfficientFrontier`` object, and pass the objectives
+function (and all required arguments) into ``custom_objective()``,
+
+.. code:: python
+
+    ef = EfficientFrontier(mu, S)
+    weights = ef.custom_objective(my_objective_function, ef.cov_matrix, 0.3)
+
+
+.. caution::
+    It is assumed that the objective function you define will be solvable
+    by sequential quadratic programming. If this isn't the case, you may
+    experience silent failure.
