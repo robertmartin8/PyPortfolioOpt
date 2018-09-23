@@ -495,7 +495,6 @@ def test_min_volatilty_semicovariance_L2_reg():
 
 
 def test_efficient_return_semicovariance():
-    # f
     df = get_data()
     ef = setup_efficient_frontier()
     ef.cov_matrix = risk_models.semicovariance(df, benchmark=0)
