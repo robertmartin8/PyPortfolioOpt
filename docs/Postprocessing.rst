@@ -1,3 +1,5 @@
+.. _post-processing:
+
 #######################
 Post-processing weights
 #######################
