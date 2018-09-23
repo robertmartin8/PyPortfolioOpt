@@ -37,7 +37,7 @@ library, which is suited for optimising noisy functions.
     used the CVaR optimisation, I've noticed that it is very inconsistent
     (which to some extent is expected because of its stochastic nature).
     However, the optimiser doesn't always find a minimum, and it fails
-    silently.
+    silently. Additionally, the weight bounds are not treated as hard bounds.
 
 
 .. automodule:: pypfopt.value_at_risk
@@ -46,12 +46,6 @@ library, which is suited for optimising noisy functions.
         :members:
 
         .. automethod:: __init__
-
-            .. caution::
-
-                It should be reiterated that the CVaR currently does not respect
-                the bounds: changing the bounds has some effect, but does not
-                determine the final bounds.
 
     .. caution::
         Currently, we have not implemented any performance function. If you
@@ -85,6 +79,9 @@ portfolios that perform well out of sample.
 
     .. autofunction:: hrp_portfolio
 
+.. note::
+    Because the HRP functionality doesn't inherit from ``BaseOptimizer``, you will
+    have to implement pre-processing and post-processing methods on your own.
 
 References
 ==========
