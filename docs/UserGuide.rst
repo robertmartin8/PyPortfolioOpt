@@ -8,7 +8,14 @@ This is designed to be a practical guide, mostly aimed at users who are interest
 quick way of optimally combining some assets (most likely equities). However, when
 necessary I do introduce the required theory and also point out areas that may be
 suitable springboards for more advanced optimisation techniques. Details about the
-parameters are left for the respective documentation pages (please see the sidebar).
+parameters can be found in the respective documentation pages (please see the sidebar).
+
+For this guide, we will be focusing on mean-variance optimisation (MVO), which is what
+most people think of when they hear "portfolio optimisation". MVO forms the core of
+PyPortfolioOpt's offering, though it should be noted that MVO comes in many flavours,
+which can have very different performance characteristics. Please refer to the sidebar
+to get a feeling for the possiblities, as well as the other optimisation methods
+offered. But for now, we will continue with the Efficient Frontier.
 
 PyPortfolioOpt is designed with modularity in mind; the below flowchart sums up the
 current functionality and overall layout of PyPortfolioOpt.
@@ -82,8 +89,8 @@ Efficient Frontier Optimisation
 ===============================
 
 Efficient Frontier Optimisation is based on Harry Markowitz's 1952 classic [1]_, which
-turned  portfolio management into a science. The key insight is that by combining
-assets with different expected returns and volatilities, one can decide on a
+turned portfolio management from an art into a science. The key insight is that by
+combining assets with different expected returns and volatilities, one can decide on a
 mathematically optimal allocation.
 
 If :math:`w` is the weight vector of stocks with expected returns :math:`\mu`, then the
@@ -244,6 +251,25 @@ The result of this has far fewer negligible weights than before::
     'PFE': 0.1358,
     'JPM': 0.0,
     'SBUX': 0.05489}
+
+In practice, we then need to convert these weights into an actual allocation,
+telling you how many shares of each asset you should purchase. This is discussed
+in :ref:`post-processing`.
+
+Improving performance
+---------------------
+
+Let us say you have conducted backtests and the results aren't spectacular. What
+should you try?
+
+- Drop the expected returns. There is a large body of research that suggests that
+  minimum variance portfolios consistently outperform maximum Sharpe ratio portfolios
+  out-of-sample, because of the dififuclty of forecasting expected returns.
+- Try different risk models: different asset classes may require different risk models.
+- Tune the L2 regularisation parameter to see how diversification affects the
+  performance.
+- Try a different optimiser: see the :ref:`other-optimisers` section for some
+  possibilities.
 
 This concludes the guided tour. Head over to the appropriate sections
 in the sidebar to learn more about the parameters and theoretical details of the
