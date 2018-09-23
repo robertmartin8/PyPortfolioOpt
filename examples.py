@@ -1,12 +1,16 @@
 import pandas as pd
+import numpy as np
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
+from pypfopt.hierarchical_risk_parity import hrp_portfolio
+from pypfopt.value_at_risk import CVAROpt
 from pypfopt import discrete_allocation
 
 
 # Reading in the data; preparing expected returns and a risk model
 df = pd.read_csv("tests/stock_prices.csv", parse_dates=True, index_col="date")
+returns = df.pct_change().dropna(how="all")
 mu = expected_returns.mean_historical_return(df)
 S = risk_models.sample_cov(df)
 
@@ -90,4 +94,85 @@ ef.portfolio_performance(verbose=True)
 Expected annual return: 20.0%
 Annual volatility: 16.5%
 Sharpe Ratio: 1.09
+"""
+
+
+# Custom objective
+def utility_obj(weights, mu, cov_matrix, k=1):
+    return -weights.dot(mu) + k * np.dot(weights.T, np.dot(cov_matrix, weights))
+
+
+ef = EfficientFrontier(mu, S)
+ef.custom_objective(utility_obj, ef.expected_returns, ef.cov_matrix, 1)
+ef.portfolio_performance(verbose=True)
+
+"""
+Expected annual return: 40.1%
+Annual volatility: 29.2%
+Sharpe Ratio: 1.30
+"""
+
+ef.custom_objective(utility_obj, ef.expected_returns, ef.cov_matrix, 2)
+ef.portfolio_performance(verbose=True)
+
+"""
+Expected annual return: 36.6%
+Annual volatility: 24.7%
+Sharpe Ratio: 1.39
+"""
+
+# CVaR optimisation
+vr = CVAROpt(returns)
+vr.min_cvar()
+print(vr.clean_weights())
+
+"""
+{'GOOG': 0.10886,
+ 'AAPL': 0.0,
+ 'FB': 0.02598,
+ 'BABA': 0.57691,
+ 'AMZN': 0.0,
+ 'GE': 0.01049,
+ 'AMD': 0.0138,
+ 'WMT': 0.01581,
+ 'BAC': 0.01049,
+ 'GM': 0.03463,
+ 'T': 0.01049,
+ 'UAA': 0.07782,
+ 'SHLD': 0.04184,
+ 'XOM': 0.00931,
+ 'RRC': 0.0,
+ 'BBY': 0.01748,
+ 'MA': 0.03782,
+ 'PFE': 0.0,
+ 'JPM': 0.0,
+ 'SBUX': 0.00828}
+ """
+
+
+# Hierarchical risk parity
+weights = hrp_portfolio(returns)
+print(weights)
+
+"""
+{'AAPL': 0.022258941278778397,
+ 'AMD': 0.02229402179669211,
+ 'AMZN': 0.016086842079875,
+ 'BABA': 0.07963382071794091,
+ 'BAC': 0.014409222455552262,
+ 'BBY': 0.0340641943824504,
+ 'FB': 0.06272994714663534,
+ 'GE': 0.05519063444162849,
+ 'GM': 0.05557666024185722,
+ 'GOOG': 0.049560084289929286,
+ 'JPM': 0.017675709092515708,
+ 'MA': 0.03812737349732021,
+ 'PFE': 0.07786528342813454,
+ 'RRC': 0.03161528695094597,
+ 'SBUX': 0.039844436656239136,
+ 'SHLD': 0.027113184241298865,
+ 'T': 0.11138956508836476,
+ 'UAA': 0.02711590957075009,
+ 'WMT': 0.10569551148587905,
+ 'XOM': 0.11175337115721229}
 """
