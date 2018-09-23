@@ -134,7 +134,7 @@ class EfficientFrontier(BaseOptimizer):
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
-    def custom_objective(self, objective_function):
+    def custom_objective(self, objective_function, *args):
         """
         Optimise some objective function. While an implicit requirement is that the function
         can be optimised via a quadratic optimiser, this is not enforced. Thus there is a
@@ -145,7 +145,6 @@ class EfficientFrontier(BaseOptimizer):
         :return: asset weights that optimise the custom objective
         :rtype: dict
         """
-        args = (self.cov_matrix, self.gamma)
         result = sco.minimize(
             objective_function,
             x0=self.initial_guess,
