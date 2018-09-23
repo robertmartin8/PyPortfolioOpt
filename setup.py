@@ -9,7 +9,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="PyPortfolioOpt",
-    version="0.1.1",
+    version="0.2.0",
     description="Financial portfolio optimisation in python",
     long_description=desc,
     long_description_content_type="text/markdown",
@@ -19,7 +19,7 @@ setup(
     license="MIT",
     packages=["pypfopt"],
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Intended Audience :: Financial and Insurance Industry",
         "Intended Audience :: Science/Research",
@@ -35,7 +35,7 @@ setup(
         "Topic :: Scientific/Engineering :: Mathematics",
     ],
     keywords="portfolio finance optimization quant trading investing",
-    install_requires=["numpy", "pandas", "scikit-learn", "scipy"],
+    install_requires=["numpy", "pandas", "scikit-learn", "scipy", "noisyopt"],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     python_requires=">=3",

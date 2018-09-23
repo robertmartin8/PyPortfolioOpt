@@ -10,7 +10,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v0.1.0rc1-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v0.2.0-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
@@ -22,8 +22,10 @@
     </embed>
 
 
-PyPortfolioOpt is a library that implements widely-used classical portfolio optimisation
-techniques, with a number of experimental features. It is **extensive** yet easily
+PyPortfolioOpt is a library that implements portfolio optimisation methods, including
+classical efficient frontier techniques as well as recent developments in the field
+like shrinkage and CVaR optimisation, along with some novel experimental features.
+It is **extensive** yet easily
 **extensible**, and can be useful for both the casual investor and the serious
 practitioner. Whether you are a fundamentals-oriented investor who has identified a
 handful of undervalued picks, or an algorithmic trader who has a basket of
@@ -74,8 +76,8 @@ A Quick Example
 This section contains a quick look at what PyPortfolioOpt can do. For a full tour,
 please check out the :ref:`user-guide`.
 
-If you already have expected returns and a risk model for your set of assets,
-generating an optimal portfolio is as easy as:
+If you already have expected returns ``mu`` and a risk model ``S`` for your set of
+assets, generating an optimal portfolio is as easy as:
 
 .. code:: python
 
@@ -84,7 +86,7 @@ generating an optimal portfolio is as easy as:
     ef = EfficientFrontier(mu, S)
     weights = ef.max_sharpe()
 
-However, if you would like to use PyPortfolioOpt's built in methods of
+However, if you would like to use PyPortfolioOpt's built-in methods for
 calculating the expected returns and covariance matrix from historical data,
 that's fine too.
 
@@ -126,10 +128,23 @@ Contents
     ExpectedReturns
     RiskModels
     EfficientFrontier
+    OtherOptimisers
     Postprocessing
     Roadmap
     Contributing
     About
+
+Advantages over existing implementations
+========================================
+
+- Includes both classical methods (Markowitz 1952), suggested best practices
+  (e.g covariance shrinkage), along with many recent developments and novel
+  features, like L2 regularisation, shrunk covariance, hierarchical risk parity.
+- Native support for pandas dataframes: easily input your daily prices data.
+- Extensive practical tests, which use real-life data.
+- Easy to combine with your own proprietary strategies and models.
+- Robust to missing data, and price-series of different lengths (e.g FB data
+  only goes back to 2012 whereas AAPL data goes back to 1980).
 
 
 Project principles and design decisions
@@ -137,7 +152,7 @@ Project principles and design decisions
 
 - It should be easy to swap out individual components of the optimisation process
   with the user's proprietary improvements.
-- User-friendliness is **everything**.
+- Usability is everything: it is better to be self-explanatory than consistent.
 - There is no point in portfolio optimisation unless it can be practically
   applied to real asset prices.
 - Everything that has been implemented should be tested.
@@ -145,22 +160,9 @@ Project principles and design decisions
   The two are not mutually exclusive.
 - Formatting should never get in the way of good code: because of this,
   I have deferred **all** formatting decisions to `Black
-  <https://github.com/ambv/black>`_. Initially some of its decisions irritated me,
-  but it is extremely consistent and actually quite elegant.
+  <https://github.com/ambv/black>`_.
 
 
-Advantages over existing implementations
-========================================
-
-- Includes both classical methods (Markowitz 1952), and more recent developments
-  (covariance shrinkage), as well as experimental features such as
-  L2-regularised weights.
-- Native support for pandas dataframes: easily input your daily prices data.
-- Clear and comprehensive documentation, hosted on ReadTheDocs (coming soon)
-- Extensive practical tests, which use real-life data.
-- Easy to combine with your own proprietary strategies and models.
-- Robust to missing data, and price-series of different lengths (e.g FB data
-  only goes back to 2012 whereas AAPL data goes back to 1980).
 
 
 Indices and tables
