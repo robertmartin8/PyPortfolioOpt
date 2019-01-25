@@ -7,14 +7,13 @@ import warnings
 import numpy as np
 import pandas as pd
 import scipy.optimize as sco
-from . import objective_functions
-from .base_optimizer import BaseOptimizer
+from . import objective_functions, base_optimizer
 
 
-class EfficientFrontier(BaseOptimizer):
+class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
     """
-    An EfficientFrontier object (inheriting from BaseOptimizer) contains multiple
+    An EfficientFrontier object (inheriting from BaseScipyOptimizer) contains multiple
     optimisation methods that can be called (corresponding to different objective
     functions) with various parameters.
 
@@ -65,27 +64,24 @@ class EfficientFrontier(BaseOptimizer):
         self.cov_matrix = cov_matrix
         if expected_returns is not None:
             if not isinstance(expected_returns, (pd.Series, list, np.ndarray)):
-                raise TypeError(
-                    "expected_returns is not a series, list or array")
+                raise TypeError("expected_returns is not a series, list or array")
             if not isinstance(cov_matrix, (pd.DataFrame, np.ndarray)):
                 raise TypeError("cov_matrix is not a dataframe or array")
             self.expected_returns = expected_returns
-            self.tickers = list(expected_returns.index)
+        if isinstance(expected_returns, pd.Series):
+            tickers = list(expected_returns.index)
+        elif isinstance(cov_matrix, pd.DataFrame):
+            tickers = list(cov_matrix.columns)
         else:
-            self.tickers = list(cov_matrix.columns)
-        self.n_assets = len(self.tickers)
+            tickers = list(range(len(expected_returns)))
 
-        super().__init__(self.n_assets, weight_bounds)
+        super().__init__(len(tickers), tickers, weight_bounds)
 
         if not isinstance(gamma, (int, float)):
             raise ValueError("gamma should be numeric")
         if gamma < 0:
-            warnings.warn(
-                "in most cases, gamma should be positive", UserWarning)
+            warnings.warn("in most cases, gamma should be positive", UserWarning)
         self.gamma = gamma
-
-        # Outputs
-        self.weights = None
 
     def max_sharpe(self, risk_free_rate=0.02):
         """
@@ -102,8 +98,7 @@ class EfficientFrontier(BaseOptimizer):
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
 
-        args = (self.expected_returns, self.cov_matrix,
-                self.gamma, risk_free_rate)
+        args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
         result = sco.minimize(
             objective_functions.negative_sharpe,
             x0=self.initial_guess,
@@ -178,8 +173,7 @@ class EfficientFrontier(BaseOptimizer):
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
 
-        args = (self.expected_returns, self.cov_matrix,
-                self.gamma, risk_free_rate)
+        args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
         target_constraint = {
             "type": "ineq",
             "fun": lambda w: target_risk
@@ -273,17 +267,10 @@ class EfficientFrontier(BaseOptimizer):
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """
-        if self.weights is None:
-            raise ValueError("Weights not calculated yet")
-        sigma = np.sqrt(objective_functions.volatility(
-            self.weights, self.cov_matrix))
-        mu = self.weights.dot(self.expected_returns)
-
-        sharpe = -objective_functions.negative_sharpe(
-            self.weights, self.expected_returns, self.cov_matrix, risk_free_rate
+        return base_optimizer.portfolio_performance(
+            self.expected_returns,
+            self.cov_matrix,
+            self.weights,
+            verbose,
+            risk_free_rate,
         )
-        if verbose:
-            print("Expected annual return: {:.1f}%".format(100 * mu))
-            print("Annual volatility: {:.1f}%".format(100 * sigma))
-            print("Sharpe Ratio: {:.2f}".format(sharpe))
-        return mu, sigma, sharpe

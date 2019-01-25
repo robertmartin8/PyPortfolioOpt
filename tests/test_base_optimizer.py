@@ -58,8 +58,7 @@ def test_clean_weights():
     assert clean_number_tiny_weights == number_tiny_weights
     #  Check rounding
     cleaned_weights_str_length = [len(str(i)) for i in cleaned_weights]
-    assert all([length == 7 or length ==
-                3 for length in cleaned_weights_str_length])
+    assert all([length == 7 or length == 3 for length in cleaned_weights_str_length])
 
 
 def test_clean_weights_short():

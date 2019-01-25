@@ -40,7 +40,7 @@ def portfolio(weights, latest_prices, min_allocation=0.01, total_portfolio_value
     :type total_portfolio_value: int/float, optional
     :raises TypeError: if ``weights`` is not a dict
     :raises TypeError: if ``latest_prices`` isn't a series
-    :raises ValueError: if ``0 < min_allocation < 0.3``
+    :raises ValueError: if not ``0 < min_allocation < 0.3``
     :return: the number of shares of each ticker that should be purchased, along with the amount
              of funds leftover.
     :rtype: (dict, float)
