@@ -226,7 +226,7 @@ class EfficientFrontier(BaseOptimizer):
         :rtype: dict
         """
         if not isinstance(target_return, float) or target_return < 0:
-            raise ValueError("target_risk should be a positive float")
+            raise ValueError("target_return should be a positive float")
 
         args = (self.cov_matrix, self.gamma)
         target_constraint = {
