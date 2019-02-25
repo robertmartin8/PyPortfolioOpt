@@ -22,6 +22,11 @@ have any other feature requests, please raise them using GitHub
 - Genetic optimisation methods (tentative)
 - Further support for different risk/return models
 
+0.2.1
+-----
+
+- Included python 3.7 in travis build
+- Merged PR from `schneiderfelipe <https://github.com/schneiderfelipe>`_ to fix error message.
 
 0.2.0
 =====
