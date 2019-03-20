@@ -119,9 +119,7 @@ def exp_cov(prices, span=180, frequency=252):
     for i in range(N):
         for j in range(i, N):
             S[i, j] = S[j, i] = _pair_exp_cov(
-                daily_returns.iloc[:, i],
-                daily_returns.iloc[:, j],
-                span
+                daily_returns.iloc[:, i], daily_returns.iloc[:, j], span
             )
     return pd.DataFrame(S * frequency, columns=assets, index=assets)
 
@@ -245,7 +243,6 @@ class ConstantCorrelation(CovarianceShrinkage):
     if shrink is specified, then this constant is used for shrinkage
 
     The notation follows Ledoit and Wolf (2003, 2004) version 04/2014
-
     """
 
     def shrink(self):
@@ -279,11 +276,7 @@ class ConstantCorrelation(CovarianceShrinkage):
 
             # what we call pi-hat
             y = x ** 2.0
-            phi_mat = (
-                np.dot(y.T, y) / t
-                - 2 * np.dot(x.T, x) * sample / t
-                + sample ** 2
-            )
+            phi_mat = np.dot(y.T, y) / t - 2 * np.dot(x.T, x) * sample / t + sample ** 2
             phi = np.sum(phi_mat)
 
             # what we call rho-hat
