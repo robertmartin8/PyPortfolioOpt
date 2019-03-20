@@ -30,6 +30,8 @@ have any other feature requests, please raise them using GitHub
 - New algorithm: ML de Prado's CLA
 - New algorithms for converting continuous allocation to discrete (using linear
   programming).
+- Merged a `PR <https://github.com/robertmartin8/PyPortfolioOpt/pull/22>`_ implementing Single Factor and
+  Constant Correlation shrinkage.
 
 0.2.1
 -----
