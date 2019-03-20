@@ -5,6 +5,7 @@ noisyopt==0.2.2
 numpy==1.14.3
 pandas>=0.21.0
 pluggy==0.6.0
+pulp==1.6.9
 py==1.5.3
 pytest==3.6.0
 python-dateutil==2.7.3
