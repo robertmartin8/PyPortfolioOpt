@@ -22,6 +22,15 @@ have any other feature requests, please raise them using GitHub
 - Genetic optimisation methods (tentative)
 - Further support for different risk/return models
 
+0.3.0
+=====
+
+- Merged an amazing PR from `Dingyuan Wang <https://github.com/gumblex>`_ that rearchitects
+  the project to make it more self-consistent and extensible.
+- New algorithm: ML de Prado's CLA
+- New algorithms for converting continuous allocation to discrete (using linear
+  programming).
+
 0.2.1
 -----
 
