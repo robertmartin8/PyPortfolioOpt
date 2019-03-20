@@ -4,15 +4,15 @@ value-at-risk (CVaR) objective, which requires Monte Carlo simulation.
 """
 
 import pandas as pd
-from .base_optimizer import BaseOptimizer
+from .base_optimizer import BaseScipyOptimizer
 from . import objective_functions
 import noisyopt
 
 
-class CVAROpt(BaseOptimizer):
+class CVAROpt(BaseScipyOptimizer):
 
     """
-    A CVAROpt object (inheriting from BaseOptimizer) provides a method for
+    A CVAROpt object (inheriting from BaseScipyOptimizer) provides a method for
     optimising the CVaR (a.k.a expected shortfall) of a portfolio.
 
     Instance variables:
@@ -48,8 +48,8 @@ class CVAROpt(BaseOptimizer):
         if not isinstance(returns, pd.DataFrame):
             raise TypeError("returns are not a dataframe")
         self.returns = returns
-        self.tickers = returns.columns
-        super().__init__(returns.shape[1], weight_bounds)  # bounds
+        tickers = returns.columns
+        super().__init__(len(tickers), tickers, weight_bounds)
 
     def min_cvar(self, s=10000, beta=0.95, random_state=None):
         """

@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as ssd
+from .base_optimizer import BaseOptimizer
 
 # This code has been reproduced(with modification) from the paper:
 # López de Prado, M. (2016). Building Diversified Portfolios that Outperform Out of Sample.
@@ -66,6 +67,52 @@ def _raw_hrp_allocation(cov, ordered_tickers):
     return w
 
 
+class HRPOpt(BaseOptimizer):
+    """
+    A HRPOpt object (inheriting from BaseOptimizer) constructs a hierarchical
+    risk parity portfolio.
+
+    Instance variables:
+
+    - Inputs
+        - ``returns``
+
+    - Output: ``weights``
+
+    Public methods:
+
+    - ``hrp_portfolio()``
+    """
+
+    def __init__(self, returns):
+        """
+        :param returns: asset historical returns
+        :type returns: pd.DataFrame
+        :raises TypeError: if ``returns`` is not a dataframe
+        """
+        if not isinstance(returns, pd.DataFrame):
+            raise TypeError("returns are not a dataframe")
+
+        self.returns = returns
+        tickers = list(returns.columns)
+        super().__init__(len(tickers), tickers)
+
+    def hrp_portfolio(self):
+        corr, cov = self.returns.corr(), self.returns.cov()
+
+        # Compute distance matrix, with ClusterWarning fix as
+        # per https://stackoverflow.com/questions/18952587/
+        dist = ssd.squareform(((1 - corr) / 2) ** 0.5)
+
+        link = sch.linkage(dist, "single")
+        sort_ix = _get_quasi_diag(link)
+        ordered_tickers = corr.index[sort_ix].tolist()
+        hrp = _raw_hrp_allocation(cov, ordered_tickers)
+        weights = dict(hrp.sort_index())
+        self.set_weights(weights)
+        return weights
+
+
 def hrp_portfolio(returns):
     """
     Construct a hierarchical risk parity portfolio
@@ -76,16 +123,4 @@ def hrp_portfolio(returns):
     :rtype: dict
     :raises TypeError: if ``returns`` is not a dataframe
     """
-    if not isinstance(returns, pd.DataFrame):
-        raise TypeError("returns are not a dataframe")
-    corr, cov = returns.corr(), returns.cov()
-
-    # Compute distance matrix, with ClusterWarning fix as
-    # per https://stackoverflow.com/questions/18952587/
-    dist = ssd.squareform(((1 - corr) / 2) ** 0.5)
-
-    link = sch.linkage(dist, "single")
-    sort_ix = _get_quasi_diag(link)
-    ordered_tickers = corr.index[sort_ix].tolist()
-    hrp = _raw_hrp_allocation(cov, ordered_tickers)
-    return dict(hrp.sort_index())
+    return HRPOpt(returns).hrp_portfolio()

@@ -3,6 +3,7 @@ The ``discrete_allocation`` module contains functions to generate a discrete
 allocation from continuous weights.
 """
 
+import numbers
 import numpy as np
 import pandas as pd
 
@@ -40,7 +41,7 @@ def portfolio(weights, latest_prices, min_allocation=0.01, total_portfolio_value
     :type total_portfolio_value: int/float, optional
     :raises TypeError: if ``weights`` is not a dict
     :raises TypeError: if ``latest_prices`` isn't a series
-    :raises ValueError: if ``0 < min_allocation < 0.3``
+    :raises ValueError: if not ``0 < min_allocation < 0.3``
     :return: the number of shares of each ticker that should be purchased, along with the amount
              of funds leftover.
     :rtype: (dict, float)
@@ -124,3 +125,126 @@ def portfolio(weights, latest_prices, min_allocation=0.01, total_portfolio_value
 
     num_shares = dict(zip([i[0] for i in nonzero_weights], shares_bought))
     return num_shares, available_funds
+
+
+def portfolio_lp(
+    weights, latest_prices, min_allocation=0.01, total_portfolio_value=10000
+):
+    """
+    For a long only portfolio, convert the continuous weights to a discrete allocation
+    using Mixed Integer Linear Programming. This can be thought of as a clever way to round
+    the continuous weights to an integer number of shares
+
+    :param weights: continuous weights generated from the ``efficient_frontier`` module
+    :type weights: dict
+    :param latest_prices: the most recent price for each asset
+    :type latest_prices: pd.Series or dict
+    :param min_allocation: any weights less than this number are considered negligible,
+                           defaults to 0.01
+    :type min_allocation: float, optional
+    :param total_portfolio_value: the desired total value of the portfolio, defaults to 10000
+    :type total_portfolio_value: int/float, optional
+    :raises TypeError: if ``weights`` is not a dict
+    :raises TypeError: if ``latest_prices`` isn't a series
+    :raises ValueError: if not ``0 < min_allocation < 0.3``
+    :return: the number of shares of each ticker that should be purchased, along with the amount
+             of funds leftover.
+    :rtype: (dict, float)
+    """
+    import pulp
+
+    if not isinstance(weights, dict):
+        raise TypeError("weights should be a dictionary of {ticker: weight}")
+    if not isinstance(latest_prices, (pd.Series, dict)):
+        raise TypeError("latest_prices should be a pd.Series")
+    if min_allocation > 0.3:
+        raise ValueError("min_allocation should be a small float")
+    if total_portfolio_value <= 0:
+        raise ValueError("total_portfolio_value must be greater than zero")
+
+    m = pulp.LpProblem("PfAlloc", pulp.LpMinimize)
+    vals = {}
+    realvals = {}
+    etas = {}
+    abss = {}
+    remaining = pulp.LpVariable("remaining", 0)
+    for k, w in weights.items():
+        if w < min_allocation:
+            continue
+        vals[k] = pulp.LpVariable("x_%s" % k, 0, cat="Integer")
+        realvals[k] = latest_prices[k] * vals[k]
+        etas[k] = w * total_portfolio_value - realvals[k]
+        abss[k] = pulp.LpVariable("u_%s" % k, 0)
+        m += etas[k] <= abss[k]
+        m += -etas[k] <= abss[k]
+    m += remaining == total_portfolio_value - pulp.lpSum(realvals.values())
+    m += pulp.lpSum(abss.values()) + remaining
+    m.solve()
+    results = {k: val.varValue for k, val in vals.items()}
+    return results, remaining.varValue
+
+
+def portfolio_byvalue(
+    weights, steps, min_values, max_values=1e9, total_portfolio_value=10000
+):
+    """
+    For a long only portfolio, convert the continuous weights to a discrete
+    allocation using Mixed Integer Linear Programming. This function assumes
+    that we buy some asset based on value instead of shares, and there is a
+    limit of minimum value and increasing step.
+
+    :param weights: continuous weights generated from the ``efficient_frontier`` module
+    :type weights: dict
+    :param min_values: the minimum value for each asset
+    :type min_values: int/float or dict
+    :param max_values: the maximum value for each asset
+    :type max_values: int/float or dict
+    :param steps: the minimum value increase for each asset
+    :type steps: int/float or dict
+    :param total_portfolio_value: the desired total value of the portfolio, defaults to 10000
+    :type total_portfolio_value: int/float, optional
+    :raises TypeError: if ``weights`` is not a dict
+    :return: the number of value of each ticker that should be purchased,
+    along with the amount of funds leftover.
+    :rtype: (dict, float)
+    """
+    import pulp
+
+    if not isinstance(weights, dict):
+        raise TypeError("weights should be a dictionary of {ticker: weight}")
+    if total_portfolio_value <= 0:
+        raise ValueError("total_portfolio_value must be greater than zero")
+
+    if isinstance(steps, numbers.Real):
+        steps = {k: steps for k in weights}
+    if isinstance(min_values, numbers.Real):
+        min_values = {k: min_values for k in weights}
+    if isinstance(max_values, numbers.Real):
+        max_values = {k: max_values for k in weights}
+
+    m = pulp.LpProblem("PfAlloc", pulp.LpMinimize)
+    vals = {}
+    realvals = {}
+    usevals = {}
+    etas = {}
+    abss = {}
+    remaining = pulp.LpVariable("remaining", 0)
+    for k, w in weights.items():
+        if steps.get(k):
+            vals[k] = pulp.LpVariable("x_%s" % k, 0, cat="Integer")
+            realvals[k] = steps[k] * vals[k]
+            etas[k] = w * total_portfolio_value - realvals[k]
+        else:
+            realvals[k] = vals[k] = pulp.LpVariable("x_%s" % k, 0)
+            etas[k] = w * total_portfolio_value - vals[k]
+        abss[k] = pulp.LpVariable("u_%s" % k, 0)
+        usevals[k] = pulp.LpVariable("b_%s" % k, cat="Binary")
+        m += etas[k] <= abss[k]
+        m += -etas[k] <= abss[k]
+        m += realvals[k] >= usevals[k] * min_values.get(k, steps.get(k, 0))
+        m += realvals[k] <= usevals[k] * max_values.get(k, 1e18)
+    m += remaining == total_portfolio_value - pulp.lpSum(realvals.values())
+    m += pulp.lpSum(abss.values()) + remaining
+    m.solve()
+    results = {k: pulp.value(val) for k, val in realvals.items()}
+    return results, remaining.varValue

@@ -22,6 +22,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from sklearn import covariance
+from .expected_returns import daily_price_returns
 
 
 def sample_cov(prices, frequency=252):
@@ -40,7 +41,7 @@ def sample_cov(prices, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = prices.pct_change().dropna(how="all")
+    daily_returns = daily_price_returns(prices)
     return daily_returns.cov() * frequency
 
 
@@ -65,7 +66,7 @@ def semicovariance(prices, benchmark=0, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = prices.pct_change().dropna(how="all")
+    daily_returns = daily_price_returns(prices)
     drops = np.fmin(daily_returns - benchmark, 0)
     return drops.cov() * frequency
 
@@ -110,7 +111,7 @@ def exp_cov(prices, span=180, frequency=252):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
     assets = prices.columns
-    daily_returns = prices.pct_change().dropna(how="all")
+    daily_returns = daily_price_returns(prices)
     N = len(assets)
 
     # Loop over matrix, filling entries with the pairwise exp cov
@@ -192,8 +193,7 @@ class CovarianceShrinkage:
         """
         assets = self.X.columns
         return (
-            pd.DataFrame(raw_cov_array, index=assets,
-                         columns=assets) * self.frequency
+            pd.DataFrame(raw_cov_array, index=assets, columns=assets) * self.frequency
         )
 
     def shrunk_covariance(self, delta=0.2):

@@ -5,6 +5,16 @@ from pypfopt import expected_returns
 from tests.utilities_for_tests import get_data
 
 
+def test_returns_dataframe():
+    df = get_data()
+    returns_df = expected_returns.daily_price_returns(df)
+    assert isinstance(returns_df, pd.DataFrame)
+    assert returns_df.shape[1] == 20
+    assert len(returns_df) == 7125
+    assert returns_df.index.is_all_dates
+    assert not ((returns_df > 1) & returns_df.notnull()).any().any()
+
+
 def test_mean_historical_returns_dummy():
     data = pd.DataFrame(
         [
