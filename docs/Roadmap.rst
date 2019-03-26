@@ -22,6 +22,12 @@ have any other feature requests, please raise them using GitHub
 - Genetic optimisation methods (tentative)
 - Further support for different risk/return models
 
+0.3.1
+-----
+
+- Merged `PR <https://github.com/robertmartin8/PyPortfolioOpt/pull/23>`_ from `TommyBark <https://github.com/TommyBark>`_
+  fixing a bug in the arguments of a call to ``portfolio_performance``.
+
 0.3.0
 =====
 
