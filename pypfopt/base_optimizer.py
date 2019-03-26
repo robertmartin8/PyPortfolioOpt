@@ -134,7 +134,7 @@ def portfolio_performance(
     mu = newweights.dot(expected_returns)
 
     sharpe = -objective_functions.negative_sharpe(
-        newweights, expected_returns, cov_matrix, risk_free_rate
+        newweights, expected_returns, cov_matrix, risk_free_rate = risk_free_rate
     )
     if verbose:
         print("Expected annual return: {:.1f}%".format(100 * mu))
