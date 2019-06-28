@@ -50,7 +50,7 @@ def test_max_sharpe_long_only():
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.3303554237026972, 0.21671629636481254, 1.4288438866031374),
+        (0.3303554227420522, 0.21671629569400466, 1.4320816150358278),
     )
 
 
@@ -65,7 +65,7 @@ def test_max_sharpe_short():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.40723757138191374, 0.24823079451957306, 1.5524922427959371),
+        (0.4072375737868628, 0.24823079606119094, 1.5599900573634125)
     )
     sharpe = ef.portfolio_performance()[2]
 
@@ -87,7 +87,7 @@ def test_max_sharpe_L2_reg():
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.3062919882686126, 0.20291367026287507, 1.4087639167552641),
+        (0.3062919877378972, 0.20291366982652356, 1.4109053765705188),
     )
 
 
@@ -143,7 +143,7 @@ def test_max_sharpe_L2_reg_with_shorts():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.3236047844566581, 0.20241509723550233, 1.4969817524033966),
+        (0.32360478341793864, 0.20241509658051923, 1.499911758296975),
     )
     new_number = sum(ef.weights > 0.01)
     assert new_number >= initial_number
@@ -191,7 +191,7 @@ def test_min_volatility():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.17915572327783236, 0.1591542642140098, 0.9971057459792518),
+        (0.1791557243114251, 0.15915426422116669, 1.0000091740567905),
     )
 
 
@@ -206,7 +206,7 @@ def test_min_volatility_short():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.1719799158957379, 0.15559547854162945, 0.9734986722620801),
+        (0.1719799152621441, 0.1555954785460613, 0.9767630568850568),
     )
 
     # Shorting should reduce volatility
@@ -228,7 +228,7 @@ def test_min_volatility_L2_reg():
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2313619320427517, 0.195525914008473, 1.0799317402364261),
+        (0.23136193240984504, 0.1955259140191799, 1.0809919159314694),
     )
 
 
@@ -255,7 +255,7 @@ def test_efficient_risk():
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
-        ef.portfolio_performance(), (0.2857747021121558, 0.19, 1.396492876), atol=1e-6
+        ef.portfolio_performance(), (0.2857747021087114, 0.19, 1.3988133092245933), atol=1e-6
     )
 
 
@@ -279,8 +279,8 @@ def test_efficient_risk_short():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.30468522897560224, 0.19, 1.4947624032507056),
-        atol=1e6,
+        (0.30468522897430295, 0.19, 1.4983424153337392),
+        atol=1e-6,
     )
     sharpe = ef.portfolio_performance()[2]
 
@@ -302,7 +302,7 @@ def test_efficient_risk_L2_reg():
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2843888327412046, 0.19, 1.3895318474675356),
+        (0.28438883284316746, 0.19, 1.3915199577262938),
         atol=1e-6,
     )
 
@@ -332,9 +332,10 @@ def test_efficient_risk_market_neutral():
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 0)
     assert (ef.weights < 1).all() and (ef.weights > -1).all()
-    np.testing.assert_almost_equal(
+    np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2309497469661495, 0.19000021138101422, 1.1021245569881066)
+        (0.2309497469633197, 0.19, 1.1102605909328953),
+        atol=1e-6
     )
     sharpe = ef.portfolio_performance()[2]
 
@@ -364,7 +365,7 @@ def test_efficient_return():
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
-        ef.portfolio_performance(), (0.25, 0.17388778912324757, 1.3204920206007777), atol=1e-6
+        ef.portfolio_performance(), (0.25, 0.1738877891235972, 1.3226920714748545), atol=1e-6
     )
 
 
@@ -387,7 +388,7 @@ def test_efficient_return_short():
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
-        ef.portfolio_performance(), (0.25, 0.168264744226909, 1.3640929002973508)
+        ef.portfolio_performance(), (0.25, 0.1682647442258144, 1.3668935881968987)
     )
     sharpe = ef.portfolio_performance()[2]
 
@@ -408,7 +409,7 @@ def test_efficient_return_L2_reg():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     np.testing.assert_allclose(
-        ef.portfolio_performance(), (0.25, 0.20032972838376054, 1.1470454626523598)
+        ef.portfolio_performance(), (0.25, 0.20032972845476912, 1.1481071819692497)
     )
 
 
@@ -439,7 +440,7 @@ def test_efficient_return_market_neutral():
     assert (ef.weights < 1).all() and (ef.weights > -1).all()
     np.testing.assert_almost_equal(
         ef.portfolio_performance(),
-        (0.25, 0.20567621957041887, 1.1087335497769277)
+        (0.25, 0.20567621957479246, 1.1182624830289896)
     )
     sharpe = ef.portfolio_performance()[2]
 
@@ -462,7 +463,6 @@ def test_efficient_return_market_neutral_warning():
 
 
 def test_max_sharpe_semicovariance():
-    # f
     df = get_data()
     ef = setup_efficient_frontier()
     ef.cov_matrix = risk_models.semicovariance(df, benchmark=0)
@@ -473,14 +473,12 @@ def test_max_sharpe_semicovariance():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2972237362989219, 0.064432672830601, 4.297294313174586)
+        (0.2972237371625498, 0.06443267303123411, 4.302533545801584)
     )
 
 
 def test_min_volatilty_semicovariance_L2_reg():
-    # f
     df = get_data()
-
     ef = setup_efficient_frontier()
     ef.cov_matrix = risk_models.semicovariance(df, benchmark=0)
     w = ef.min_volatility()
@@ -490,7 +488,7 @@ def test_min_volatilty_semicovariance_L2_reg():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.20661406122127524, 0.055515981410304394, 3.3567606718215663)
+        (0.20661406151867523, 0.05551598140785206, 3.3614475829527706)
     )
 
 
@@ -505,5 +503,5 @@ def test_efficient_return_semicovariance():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.12000000000871075, 0.06948386214063361, 1.4319423610177537)
+        (0.11999999997948813, 0.06948386215256849, 1.4391830977949114)
     )

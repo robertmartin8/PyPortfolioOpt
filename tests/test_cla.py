@@ -1,8 +1,5 @@
-import warnings
 import numpy as np
-import pandas as pd
 import pytest
-from pypfopt.cla import CLA
 from tests.utilities_for_tests import get_data, setup_cla
 from pypfopt import risk_models
 
@@ -30,7 +27,7 @@ def test_max_sharpe_long_only():
 
     np.testing.assert_allclose(
         cla.portfolio_performance(),
-        (0.3253436657555845, 0.2133353004830236, 1.4281588303044812),
+        (0.3253436663900292, 0.21333530089904357, 1.4312852355106793),
     )
 
 
@@ -42,12 +39,11 @@ def test_min_volatility():
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
     np.testing.assert_allclose(
         cla.portfolio_performance(),
-        (0.1793123248125915, 0.15915084514118688, 0.9981061956268638),
+        (0.1793123248125915, 0.15915084514118688, 1.00101463282373),
     )
 
 
 def test_max_sharpe_semicovariance():
-    # f
     df = get_data()
     cla = setup_cla()
     cla.covar = risk_models.semicovariance(df, benchmark=0)
@@ -57,5 +53,5 @@ def test_max_sharpe_semicovariance():
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
     np.testing.assert_allclose(
         cla.portfolio_performance(),
-        (0.3253436657555845, 0.2133353004830236, 1.4281588303044812),
+        (0.3253436663900292, 0.21333530089904357, 1.4312852355106793),
     )

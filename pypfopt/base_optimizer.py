@@ -120,21 +120,21 @@ def portfolio_performance(
             tickers = list(cov_matrix.columns)
         else:
             tickers = list(range(len(expected_returns)))
-        newweights = np.zeros(len(tickers))
+        new_weights = np.zeros(len(tickers))
         for i, k in enumerate(tickers):
             if k in weights:
-                newweights[i] = weights[k]
-        if newweights.sum() == 0:
+                new_weights[i] = weights[k]
+        if new_weights.sum() == 0:
             raise ValueError("Weights add to zero, or ticker names don't match")
     elif weights is not None:
-        newweights = np.asarray(weights)
+        new_weights = np.asarray(weights)
     else:
         raise ValueError("Weights is None")
-    sigma = np.sqrt(objective_functions.volatility(newweights, cov_matrix))
-    mu = newweights.dot(expected_returns)
+    sigma = np.sqrt(objective_functions.volatility(new_weights, cov_matrix))
+    mu = new_weights.dot(expected_returns)
 
     sharpe = -objective_functions.negative_sharpe(
-        newweights, expected_returns, cov_matrix, risk_free_rate = risk_free_rate
+        new_weights, expected_returns, cov_matrix, risk_free_rate=risk_free_rate
     )
     if verbose:
         print("Expected annual return: {:.1f}%".format(100 * mu))
