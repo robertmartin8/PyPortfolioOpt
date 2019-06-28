@@ -48,7 +48,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "7.0"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Cross-platform colored terminal text."
 marker = "sys_platform == \"win32\""
 name = "colorama"
@@ -130,7 +130,7 @@ python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
 version = "1.16.4"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Core utilities for Python packages"
 name = "packaging"
 optional = false
@@ -142,7 +142,7 @@ pyparsing = ">=2.0.2"
 six = "*"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Object-oriented filesystem paths"
 marker = "python_version < \"3.6\""
 name = "pathlib2"
@@ -212,7 +212,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 version = "2.4.0"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "pytest: simple powerful testing with Python"
 name = "pytest"
 optional = false
@@ -258,7 +258,7 @@ python-versions = "*"
 version = "2019.1"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "scandir, a better directory iterator and faster os.walk()"
 marker = "python_version < \"3.5\""
 name = "scandir"
@@ -304,7 +304,7 @@ python-versions = "*"
 version = "3.7.4"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Measures number of Terminal column cells of wide-character codes"
 name = "wcwidth"
 optional = false
@@ -320,7 +320,7 @@ python-versions = ">=2.7"
 version = "0.5.1"
 
 [metadata]
-content-hash = "835b2602e2adf4eae12a5eb851acd990e8a268af0c8e8a70ad6ebffd85cff627"
+content-hash = "8d162cc7d8a24ea6be266f95d1a381a2adcd7ab8f04f0051ea5fc92c37f40c4b"
 python-versions = "^3.4"
 
 [metadata.hashes]

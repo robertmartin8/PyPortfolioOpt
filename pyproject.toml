@@ -20,6 +20,7 @@ python-dateutil = "^=2.7.3"
 pytz = "^=2018.4"
 scipy = "^=1.1.0"
 six = "^=1.11.0"
+pytest = "^4.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
