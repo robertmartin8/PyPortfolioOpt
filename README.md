@@ -62,6 +62,12 @@ This project is available on PyPI, meaning that you can just:
 pip install PyPortfolioOpt
 ```
 
+However, I have since been converted to `poetry`, so my current recommendation is to get yourself set up with [poetry](https://github.com/sdispater/poetry) then just run
+
+```bash
+poetry add PyPortfolioOpt
+```
+
 Otherwise, clone/download the project and in the project directory run:
 
 ```bash

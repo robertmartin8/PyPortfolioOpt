@@ -40,6 +40,13 @@ Installation should *never* be more difficult than::
 
     pip install PyPortfolioOpt
 
+However, for the sake of best practice, it is good to do this with a dependency manager. I suggest you
+set yourself up with `poetry <https://github.com/sdispater/poetry>`_, then within a new poetry project
+run:
+
+.. code-block:: text
+    poetry add PyPortfolioOpt
+
 The alternative is to clone/download the project, then in the project directory run
 
 .. code-block:: text
