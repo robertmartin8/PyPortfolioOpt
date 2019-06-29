@@ -214,16 +214,76 @@ class CovarianceShrinkage:
         shrunk_cov = delta * F + (1 - delta) * self.S
         return self.format_and_annualise(shrunk_cov)
 
-    def ledoit_wolf(self):
+    def ledoit_wolf(self, shrinkage_target="identity"):
         """
         Calculate the Ledoit-Wolf shrinkage estimate.
+
+        :param shrinkage_target: target matrix to shrink towards
+        :type shrinkage_target: str
+        :return: shrunk sample covariance matrix
+        :rtype: np.ndarray
+        """
+        if shrinkage_target == "identity":
+            X = np.nan_to_num(self.X.values)
+            shrunk_cov, self.delta = covariance.ledoit_wolf(X)
+        elif shrinkage_target == "constant_correlation":
+            shrunk_cov, self.delta = self._ledoit_wolf_constant_correlation()
+        else:
+            raise NotImplementedError
+
+        return self.format_and_annualise(shrunk_cov)
+
+    def _ledoit_wolf_constant_correlation(self):
+        """
+        Calculate the Ledoit-Wolf shrinkage estimate using the constant
+        correlation matrix as the shrinkage target.
 
         :return: shrunk sample covariance matrix
         :rtype: np.ndarray
         """
         X = np.nan_to_num(self.X.values)
-        shrunk_cov, self.delta = covariance.ledoit_wolf(X)
-        return self.format_and_annualise(shrunk_cov)
+        t, n = np.shape(X)
+
+        Xm = X - X.mean(axis=0)
+        S = self.S  # sample cov matrix
+
+        # Constant correlation target
+        var = np.diag(S).reshape(-1, 1)
+        std = np.sqrt(var)
+        _var = np.tile(var, (n,))
+        _std = np.tile(std, (n,))
+        r_bar = (np.sum(S / (_std * _std.T)) - n) / (n * (n - 1))
+        F = r_bar * (_std * _std.T)
+        F[np.eye(n) == 1] = var.reshape(-1)
+
+        # Estimate pi
+        y = Xm ** 2
+        pi_mat = np.dot(y.T, y) / t - 2 * np.dot(Xm.T, Xm) * S / t + S ** 2
+        pi_hat = np.sum(pi_mat)
+
+        # Theta matrix, expanded term by term
+        term1 = np.dot((X ** 3).T, X) / t
+        help_ = np.dot(X.T, X) / t
+        help_diag = np.diag(help_)
+        term2 = np.tile(help_diag, (n, 1)).T * S
+        term3 = help_ * _var
+        term4 = _var * S
+        theta_mat = term1 - term2 - term3 + term4
+        theta_mat[np.eye(n) == 1] = np.zeros(n)
+        rho_hat = sum(np.diag(pi_mat)) + r_bar * np.sum(
+            np.dot((1 / std), std.T) * theta_mat
+        )
+
+        # Estimate gamma
+        gamma_hat = np.linalg.norm(S - F, "fro") ** 2
+
+        # Compute shrinkage constant
+        kappa_hat = (pi_hat - rho_hat) / gamma_hat
+        delta = max(0.0, min(1.0, kappa_hat / t))
+
+        # Compute shrunk covariance matrix
+        shrunk_cov = delta * F + (1 - delta) * self.S
+        return shrunk_cov, delta
 
     def oracle_approximating(self):
         """
@@ -235,77 +295,6 @@ class CovarianceShrinkage:
         X = np.nan_to_num(self.X.values)
         shrunk_cov, self.delta = covariance.oas(X)
         return self.format_and_annualise(shrunk_cov)
-
-
-class ConstantCorrelation(CovarianceShrinkage):
-    """
-    Shrinks towards constant correlation matrix
-    if shrink is specified, then this constant is used for shrinkage
-
-    The notation follows Ledoit and Wolf (2003, 2004) version 04/2014
-    """
-
-    def shrink(self):
-        """
-        Calculate the Constant-Correlation covariance matrix.
-
-        :return: shrunk sample covariance matrix
-        :rtype: np.ndarray
-        """
-        x = np.nan_to_num(self.X.values)
-
-        # de-mean returns
-        t, n = np.shape(x)
-        meanx = x.mean(axis=0)
-        x = x - np.tile(meanx, (t, 1))
-
-        # compute sample covariance matrix
-        sample = (1.0 / t) * np.dot(x.T, x)
-
-        # compute prior
-        var = np.diag(sample).reshape(-1, 1)
-        sqrtvar = np.sqrt(var)
-        _var = np.tile(var, (n,))
-        _sqrtvar = np.tile(sqrtvar, (n,))
-        r_bar = (np.sum(sample / (_sqrtvar * _sqrtvar.T)) - n) / (n * (n - 1))
-        prior = r_bar * (_sqrtvar * _sqrtvar.T)
-        prior[np.eye(n) == 1] = var.reshape(-1)
-
-        # compute shrinkage parameters and constant
-        if self.delta is None:
-
-            # what we call pi-hat
-            y = x ** 2.0
-            phi_mat = np.dot(y.T, y) / t - 2 * np.dot(x.T, x) * sample / t + sample ** 2
-            phi = np.sum(phi_mat)
-
-            # what we call rho-hat
-            term1 = np.dot((x ** 3).T, x) / t
-            help_ = np.dot(x.T, x) / t
-            help_diag = np.diag(help_)
-            term2 = np.tile(help_diag, (n, 1)).T * sample
-            term3 = help_ * _var
-            term4 = _var * sample
-            theta_mat = term1 - term2 - term3 + term4
-            theta_mat[np.eye(n) == 1] = np.zeros(n)
-            rho = sum(np.diag(phi_mat)) + r_bar * np.sum(
-                np.dot((1.0 / sqrtvar), sqrtvar.T) * theta_mat
-            )
-
-            # what we call gamma-hat
-            gamma = np.linalg.norm(sample - prior, "fro") ** 2
-
-            # compute shrinkage constant
-            kappa = (phi - rho) / gamma
-            shrinkage = max(0.0, min(1.0, kappa / t))
-            self.delta = shrinkage
-        else:
-            # use specified constant
-            shrinkage = self.delta
-
-        # compute the estimator
-        sigma = shrinkage * prior + (1 - shrinkage) * sample
-        return self.format_and_annualise(sigma)
 
 
 class SingleIndex(CovarianceShrinkage):

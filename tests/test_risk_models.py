@@ -1,6 +1,7 @@
 import warnings
 import pandas as pd
 import numpy as np
+import pytest
 from pypfopt import risk_models
 from tests.utilities_for_tests import get_data
 
@@ -138,8 +139,7 @@ def test_shrunk_covariance_extreme_delta():
     cs = risk_models.CovarianceShrinkage(df)
     # if delta = 0, no shrinkage occurs
     shrunk_cov = cs.shrunk_covariance(0)
-    np.testing.assert_array_almost_equal(
-        shrunk_cov.values, risk_models.sample_cov(df))
+    np.testing.assert_array_almost_equal(shrunk_cov.values, risk_models.sample_cov(df))
     # if delta = 1, sample cov does not contribute to shrunk cov
     shrunk_cov = cs.shrunk_covariance(1)
     N = df.shape[1]
@@ -157,7 +157,7 @@ def test_shrunk_covariance_frequency():
     np.testing.assert_array_almost_equal(shrunk_cov.values, S)
 
 
-def test_ledoit_wolf():
+def test_ledoit_wolf_default():
     df = get_data()
     cs = risk_models.CovarianceShrinkage(df)
     shrunk_cov = cs.ledoit_wolf()
@@ -168,10 +168,10 @@ def test_ledoit_wolf():
     assert not shrunk_cov.isnull().any().any()
 
 
-def test_oracle_approximating():
+def test_ledoit_wolf_constant_correlation():
     df = get_data()
     cs = risk_models.CovarianceShrinkage(df)
-    shrunk_cov = cs.oracle_approximating()
+    shrunk_cov = cs.ledoit_wolf(shrinkage_target="constant_correlation")
     assert 0 < cs.delta < 1
     assert shrunk_cov.shape == (20, 20)
     assert list(shrunk_cov.index) == list(df.columns)
@@ -179,11 +179,18 @@ def test_oracle_approximating():
     assert not shrunk_cov.isnull().any().any()
 
 
-def test_constant_correlation():
+def test_ledoit_wolf_raises_not_implemented():
     df = get_data()
-    cc = risk_models.ConstantCorrelation(df)
-    shrunk_cov = cc.shrink()
-    assert 0 < cc.delta < 1
+    cs = risk_models.CovarianceShrinkage(df)
+    with pytest.raises(NotImplementedError):
+        cs.ledoit_wolf(shrinkage_target="I have not been implemented!")
+
+
+def test_oracle_approximating():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df)
+    shrunk_cov = cs.oracle_approximating()
+    assert 0 < cs.delta < 1
     assert shrunk_cov.shape == (20, 20)
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
