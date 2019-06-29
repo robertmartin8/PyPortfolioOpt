@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "PyPortfolioOpt"
+version = "0.3.3"
+description = "Financial portfolio optimisation in python"
+license = "MIT"
+authors = ["Robert Andrew Martin <martin.robertandrew@gmail.com>"]
+readme = "README_clean.md"
+repository = "https://github.com/robertmartin8/PyPortfolioOpt"
+documentation = "https://pyportfolioopt.readthedocs.io/en/latest/"
+keywords= ["finance", "portfolio", "optimization", "quant", "investing"]
+classifiers=[
+        "Development Status :: 4 - Beta",
+        "Environment :: Console",
+        "Intended Audience :: Financial and Insurance Industry",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3 :: Only",
+        "Topic :: Office/Business :: Financial",
+        "Topic :: Office/Business :: Financial :: Investment",
+        "Topic :: Scientific/Engineering :: Mathematics",
+    ]
+packages = [ {include = "pypfopt"} ]
+
+[tool.poetry.urls]
+"Issues" = "https://github.com/robertmartin8/PyPortfolioOpt/issues"
+"Personal website" = "https://reasonabledeviations.science"
+
+[tool.poetry.dependencies]
+python = "^3.4"
+atomicwrites = "^=1.1.5"
+attrs = "^=18.1.0"
+more-itertools = "^=4.2.0"
+noisyopt = "^=0.2.2"
+numpy = "^=1.14.3"
+pluggy = "^=0.6.0"
+pulp = "^=1.6.9"
+py = "^=1.5.3"
+python-dateutil = "^=2.7.3"
+pytz = "^=2018.4"
+scipy = "^=1.1.0"
+six = "^=1.11.0"
+pytest = "^4.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^4.6"
+flake8 = "^3.7"
+black = {version = "^18.9b0", python = "^3.6"}
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

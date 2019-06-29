@@ -22,6 +22,12 @@ have any other feature requests, please raise them using GitHub
 - Genetic optimisation methods (tentative)
 - Further support for different risk/return models
 
+0.3.3
+-----
+
+- Migrated the project internally to use the ``poetry`` dependency manager. Will still keep ``setup.py`` and 
+  ``requirements.txt``, but ``poetry`` is now the recommended way to interact with ``PyPortfolioOpt``
+
 0.3.1
 -----
 
