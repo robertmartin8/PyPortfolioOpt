@@ -51,6 +51,7 @@ pytest = "^4.6"
 pytest = "^4.6"
 flake8 = "^3.7"
 black = {version = "^18.9b0", python = "^3.6"}
+rope = "^0.14.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
