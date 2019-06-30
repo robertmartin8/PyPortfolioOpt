@@ -168,6 +168,17 @@ def test_ledoit_wolf_default():
     assert not shrunk_cov.isnull().any().any()
 
 
+def test_ledoit_wolf_single_index():
+    df = get_data()
+    cs = risk_models.CovarianceShrinkage(df)
+    shrunk_cov = cs.ledoit_wolf(shrinkage_target="single_factor")
+    assert 0 < cs.delta < 1
+    assert shrunk_cov.shape == (20, 20)
+    assert list(shrunk_cov.index) == list(df.columns)
+    assert list(shrunk_cov.columns) == list(df.columns)
+    assert not shrunk_cov.isnull().any().any()
+
+
 def test_ledoit_wolf_constant_correlation():
     df = get_data()
     cs = risk_models.CovarianceShrinkage(df)
@@ -191,17 +202,6 @@ def test_oracle_approximating():
     cs = risk_models.CovarianceShrinkage(df)
     shrunk_cov = cs.oracle_approximating()
     assert 0 < cs.delta < 1
-    assert shrunk_cov.shape == (20, 20)
-    assert list(shrunk_cov.index) == list(df.columns)
-    assert list(shrunk_cov.columns) == list(df.columns)
-    assert not shrunk_cov.isnull().any().any()
-
-
-def test_single_index():
-    df = get_data()
-    si = risk_models.SingleIndex(df)
-    shrunk_cov = si.shrink()
-    assert 0 < si.delta < 1
     assert shrunk_cov.shape == (20, 20)
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
