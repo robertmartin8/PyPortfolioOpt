@@ -22,6 +22,11 @@ have any other feature requests, please raise them using GitHub
 - Genetic optimisation methods (tentative)
 - Further support for different risk/return models
 
+0.3.4
+-----
+
+Refactored shrinkage models, including single factor and constant correlation.
+
 0.3.3
 -----
 
