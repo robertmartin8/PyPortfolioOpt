@@ -205,7 +205,7 @@ def portfolio_byvalue(
     :type total_portfolio_value: int/float, optional
     :raises TypeError: if ``weights`` is not a dict
     :return: the number of value of each ticker that should be purchased,
-    along with the amount of funds leftover.
+             along with the amount of funds leftover.
     :rtype: (dict, float)
     """
     import pulp
