@@ -94,7 +94,7 @@ notation used therein. I have written a summary of this article, which is availa
 on my `website <https://reasonabledeviations.science/notes/papers/ledoit_wolf_covariance/>`_.
 A more rigorous reference can be found in Ledoit and Wolf (2001) [6]_.
 
-The essential idea is that the unbiased but often misspecified sample covariance can be
+The essential idea is that the unbiased but often poorly estimated sample covariance can be
 combined with a structured estimator :math:`F`, using the below formula (where
 :math:`\delta` is the shrinkage constant):
 
@@ -103,21 +103,21 @@ combined with a structured estimator :math:`F`, using the below formula (where
 
 It is called shrinkage because it can be thought of as "shrinking" the sample
 covariance matrix towards the other estimator, which is accordingly called the
-**shrinkage target**. There are many possible options for a shrinkage target,
-but popular choices include:
+**shrinkage target**. The shrinkage target may be significantly biased but has little
+esimation error. There are many possible options for the target, and each one will
+result in a different optimal shrinkage constant :math:`\delta`. PyPortfolioOpt offers
+the following shrinkage methods:
 
-- The diagonal matrix with sample variances on the diagonals and zeroes elsewhere,
-  i.e assuming no covariance between assets.
-- Sharpe's single factor (or single-index) model, which basically uses a stock's
-  beta to the market as a risk model.
-- The constant-correlation model, in which all pairwise correlations are set to
-  the average correlation (sample variances are unchanged)
+- Ledoit-Wolf shrinkage:
 
-The optimal shrinkage constant :math:`\delta` depends on the choice of shrinkage
-target, and the actual formula for the constant depends on the implementation.
-PyPortfolioOpt offers two methods for calculating the shrinkage constant:
+    - ``constant_variance`` shrinkage, i.e the target is the diagonal matrix with the mean of
+      asset variances on the diagonals and zeroes elsewhere. This is the shrinkage offered
+      by ``sklearn.LedoitWolf``. 
+    - ``single_factor`` shrinkage. Based on Sharpe's single-index model which effectively uses
+      a stock's beta to the market as a risk model. See Ledoit and Wolf 2001 [6]_. 
+    - ``constant_correlation`` shrinkage, in which all pairwise correlations are set to
+      the average correlation (sample variances are unchanged). See Ledoit and Wolf 2003 [5]_
 
-- Ledoit-Wolf shrinkage, using the formulae in their 2004 paper [7]_.
 - Oracle approximating shrinkage (OAS), invented by Chen et al. (2010) [8]_, which
   has a lower mean-squared error than Ledoit-Wolf shrinkage when samples are
   Gaussian or near-Gaussian.
@@ -127,6 +127,11 @@ PyPortfolioOpt offers two methods for calculating the shrinkage constant:
     For most use cases, I would just go with Ledoit Wolf shrinkage, as recommended by
     `Quantopian <https://www.quantopian.com/>`_ in their lecture series on quantitative
     finance.
+
+
+My implementations have been translated the Matlab code on
+`Michael Wolf's webpage <https://www.econ.uzh.ch/en/people/faculty/wolf/publications.html>`_, with
+the help of `xtuanta <https://github.com/robertmartin8/PyPortfolioOpt/issues/20>`_. 
 
 
 .. autoclass:: CovarianceShrinkage

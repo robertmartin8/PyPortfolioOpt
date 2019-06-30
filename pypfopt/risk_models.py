@@ -214,17 +214,18 @@ class CovarianceShrinkage:
         shrunk_cov = delta * F + (1 - delta) * self.S
         return self.format_and_annualise(shrunk_cov)
 
-    def ledoit_wolf(self, shrinkage_target="identity"):
+    def ledoit_wolf(self, shrinkage_target="constant_variance"):
         """
         Calculate the Ledoit-Wolf shrinkage estimate for a particular
         shrinkage target.
 
-        :param shrinkage_target: choice of shrinkage target
-        :type shrinkage_target: str
+        :param shrinkage_target: choice of shrinkage target, defaults to "constant_variance"
+        :type shrinkage_target: str, optional
+        :raises NotImplementedError: if the shrinkage_target is unrecognised
         :return: shrunk sample covariance matrix
         :rtype: np.ndarray
         """
-        if shrinkage_target == "identity":
+        if shrinkage_target == "constant_variance":
             X = np.nan_to_num(self.X.values)
             shrunk_cov, self.delta = covariance.ledoit_wolf(X)
         elif shrinkage_target == "single_factor":
