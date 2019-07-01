@@ -118,7 +118,7 @@ the following shrinkage methods:
     - ``constant_correlation`` shrinkage, in which all pairwise correlations are set to
       the average correlation (sample variances are unchanged). See Ledoit and Wolf 2003 [5]_
 
-- Oracle approximating shrinkage (OAS), invented by Chen et al. (2010) [8]_, which
+- Oracle approximating shrinkage (OAS), invented by Chen et al. (2010) [7]_, which
   has a lower mean-squared error than Ledoit-Wolf shrinkage when samples are
   Gaussian or near-Gaussian.
 
@@ -149,5 +149,4 @@ References
 .. [4] Rousseeuw, P., J (1999). `A Fast Algorithm for the Minimum Covariance Determinant Estimator <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.45.5870&rep=rep1&type=pdf>`_. The Journal of the American Statistical Association, 41, 212-223.
 .. [5] Ledoit, O., & Wolf, M. (2003). `Honey, I Shrunk the Sample Covariance Matrix <http://www.ledoit.net/honey.pdf>`_ The Journal of Portfolio Management, 30(4), 110–119. https://doi.org/10.3905/jpm.2004.110
 .. [6] Ledoit, O., & Wolf, M. (2001). `Improved estimation of the covariance matrix of stock returns with an application to portfolio selection <http://www.ledoit.net/ole2.pdf>`_, 10, 603–621.
-.. [7] Ledoit, O., & Wolf, M. (2004) `A Well-Conditioned Estimator for Large-Dimensional Covariance Matrices <http://perso.ens-lyon.fr/patrick.flandrin/LedoitWolf_JMA2004.pdf>`_, Journal of Multivariate Analysis, 88(2), 365-411
-.. [8] Chen et al. (2010),  `Shrinkage Algorithms for MMSE Covariance Estimation <https://arxiv.org/pdf/0907.4698.pdf>`_, IEEE Transactions on Signals Processing, 58(10), 5016-5029.
+.. [7] Chen et al. (2010),  `Shrinkage Algorithms for MMSE Covariance Estimation <https://arxiv.org/pdf/0907.4698.pdf>`_, IEEE Transactions on Signals Processing, 58(10), 5016-5029.
