@@ -94,6 +94,7 @@ used to make them larger).
     universes, or if you want more non-negligible weights in the final portfolio,
     increase ``gamma``.
 
+.. _custom-objectives:
 
 Custom objectives
 =================

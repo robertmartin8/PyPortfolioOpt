@@ -5,7 +5,6 @@ optimisers that use the scipy solver.
 Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
 """
-
 import numpy as np
 import pandas as pd
 from . import objective_functions
