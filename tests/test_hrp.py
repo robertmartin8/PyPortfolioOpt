@@ -1,12 +1,17 @@
 import numpy as np
-from pypfopt.hierarchical_risk_parity import hrp_portfolio
+from pypfopt.hierarchical_risk_parity import HRPOpt
 from tests.utilities_for_tests import get_data
 
 
 def test_hrp_portfolio():
     df = get_data()
     returns = df.pct_change().dropna(how="all")
-    w = hrp_portfolio(returns)
+    hrp = HRPOpt(returns)
+    w = hrp.hrp_portfolio()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(df.columns)
     np.testing.assert_almost_equal(sum(w.values()), 1)
+    assert all([i >= 0 for i in w.values()])
+
+
+#  TODO add tests for static methods

@@ -77,11 +77,14 @@ portfolios that perform well out of sample.
 
 .. automodule:: pypfopt.hierarchical_risk_parity
 
-    .. autofunction:: hrp_portfolio
+    .. autoclass:: HRPOpt
+        :members:
+
+        .. automethod:: __init__
 
 .. note::
-    Because the HRP functionality doesn't inherit from ``BaseOptimizer``, you will
-    have to implement pre-processing and post-processing methods on your own.
+    As of v0.4.0, ``HRPOpt`` now inherits from ``BaseOptimizer``, so you no longer have to
+    implement pre-processing and post-processing methods on your own.
 
 References
 ==========
