@@ -18,13 +18,15 @@ import warnings
 import pandas as pd
 
 
-def daily_price_returns(prices):
+def returns_from_prices(prices):
     """
-    Calculate the daily return DataFrame from the prices of the asset.
+    Calculate the (daily) returns given (daily) prices
 
-    :param prices: adjusted closing prices of the asset, each row is a date
-                   and each column is a ticker/id.
+    :param prices: adjusted (daily) closing prices of the asset, each row is a 
+                   date and each column is a ticker/id.
     :type prices: pd.DataFrame
+    :return: (daily) returns
+    :rtype: pd.DataFrame
     """
     return prices.pct_change().dropna(how="all")
 
@@ -45,7 +47,7 @@ def mean_historical_return(prices, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = daily_price_returns(prices)
+    daily_returns = returns_from_prices(prices)
     return daily_returns.mean() * frequency
 
 
@@ -68,5 +70,5 @@ def ema_historical_return(prices, frequency=252, span=500):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = daily_price_returns(prices)
+    daily_returns = returns_from_prices(prices)
     return daily_returns.ewm(span=span).mean().iloc[-1] * frequency

@@ -7,7 +7,7 @@ from tests.utilities_for_tests import get_data
 
 def test_returns_dataframe():
     df = get_data()
-    returns_df = expected_returns.daily_price_returns(df)
+    returns_df = expected_returns.returns_from_prices(df)
     assert isinstance(returns_df, pd.DataFrame)
     assert returns_df.shape[1] == 20
     assert len(returns_df) == 7125
