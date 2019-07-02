@@ -2,7 +2,6 @@
 The ``value_at_risk`` module allows for optimisation with a (conditional)
 value-at-risk (CVaR) objective, which requires Monte Carlo simulation.
 """
-
 import pandas as pd
 from .base_optimizer import BaseScipyOptimizer
 from . import objective_functions
@@ -10,7 +9,6 @@ import noisyopt
 
 
 class CVAROpt(BaseScipyOptimizer):
-
     """
     A CVAROpt object (inheriting from BaseScipyOptimizer) provides a method for
     optimising the CVaR (a.k.a expected shortfall) of a portfolio.
@@ -51,6 +49,18 @@ class CVAROpt(BaseScipyOptimizer):
         tickers = returns.columns
         super().__init__(len(tickers), tickers, weight_bounds)
 
+    @staticmethod
+    def _normalize_weights(raw_weights):
+        """
+        Utility function to make all weights sum to 1
+
+        :param raw_weights: input weights which do not sum to 1
+        :type raw_weights: np.array, pd.Series
+        :return: normalized weights
+        :rtype: np.array, pd.Series
+        """
+        return raw_weights / raw_weights.sum()
+
     def min_cvar(self, s=10000, beta=0.95, random_state=None):
         """
         Find the portfolio weights that minimises the CVaR, via
@@ -74,17 +84,6 @@ class CVAROpt(BaseScipyOptimizer):
             niter=1000,
             paired=False,
         )
-        self.weights = self.normalize_weights(result["x"])
+        self.weights = CVAROpt._normalize_weights(result["x"])
         return dict(zip(self.tickers, self.weights))
 
-    @staticmethod
-    def normalize_weights(raw_weights):
-        """
-        Make all weights sum to 1
-
-        :param raw_weights: input weights which do not sum to 1
-        :type raw_weights: np.array, pd.Series
-        :return: normalized weights
-        :rtype: np.array, pd.Series
-        """
-        return raw_weights / raw_weights.sum()
