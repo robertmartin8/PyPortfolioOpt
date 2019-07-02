@@ -14,4 +14,16 @@ def test_hrp_portfolio():
     assert all([i >= 0 for i in w.values()])
 
 
-#  TODO add tests for static methods
+def test_cluster_var():
+    #  TODO
+    pass
+
+
+def test_quasi_dag():
+    # TODO
+    pass
+
+
+def test_raw_allocation():
+    # TODO
+    pass
