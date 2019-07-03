@@ -10,24 +10,26 @@ likely using portfolio optimisation techniques to generate a
 **portfolio allocation** – a list of tickers and corresponding integer quantities
 that you could go and purchase at a broker.
 
-However, it is not trivial to convert the continuous weights (output by any
-optimisation) into an actionable allocation. In fact, owing to its
-similarity to the `Knapsack Problem <https://en.wikipedia.org/wiki/Knapsack_problem>`_,
-I would guess that finding the optimal discrete allocation is an NP problem.
-
-For example, let us say that we have $10,000 that we
-would like to allocate. If we multiply the weights by this total portfolio
-value, the result will be dollar amounts of each asset. So if the optimal weight
+However, it is not trivial to convert the continuous weights (output by any of our
+optimisation methods) into an actionable allocation. For example, let us say that we
+have $10,000 that we would like to allocate. If we multiply the weights by this total
+portfolio value, the result will be dollar amounts of each asset. So if the optimal weight
 for Apple is 0.15, we need $1500 worth of Apple stock. However, Apple shares come
 in discrete units ($190 at the time of writing), so we will not be able to buy
 exactly $1500 of stock. The best we can do is to buy the number of shares that
 gets us closest to the desired dollar value.
 
-PyPortfolioOpt implements a greedy iterative algorithm, which proceeds in two 'rounds'.
-In the first round, we buy as many shares as we can for each asset. In the Apple
-example, :math:`1500/190 \approx 7.89`, so we buy 7 shares at a cost of $1330. After
-iterating through all of the assets, we will have a lot of money left over (since
-we always rounded down).
+PyPortfolioOpt offers two ways of solving this problem: one using a simple greedy
+algorithm, the other using integer programming.
+
+Greedy algorithm
+================
+
+``DiscreteAllocation.greedy_portfolio()`` proceeds in two 'rounds'.
+In the first round, we buy as many shares as we can for each asset without going over
+the desired weight. In the Apple example, :math:`1500/190 \approx 7.89`, so we buy 7
+shares at a cost of $1330. After iterating through all of the assets, we will have a
+lot of money left over (since we always rounded down).
 
 In the second round, we calculate how far the current weights deviate from the
 existing weights for each asset. We wanted Apple to form 15% of the portfolio
@@ -37,11 +39,68 @@ deviation from the ideal, so we will purchase shares of these first. We then
 repeat the process, always buying shares of the asset whose current weight is
 furthest away from the ideal weight. Though this algorithm will not guarantee
 the optimal solution, I have found that it allows us to generate discrete
-allocations with very little money left over.
+allocations with very little money left over (e.g $12 left on a $10,000 portfolio).
+
+That being said, we can see that on the test dataset (for a standard ``max_sharpe``
+portfolio), the allocation method may deviate rather widely from the desired weights,
+particuarly for companies with a high share price (e.g AMZN).
+
+.. code-block:: text
+    
+    Funds remaining: 12.15
+    MA: allocated 0.242, desired 0.246
+    FB: allocated 0.200, desired 0.199
+    PFE: allocated 0.183, desired 0.184
+    BABA: allocated 0.088, desired 0.096
+    AAPL: allocated 0.086, desired 0.092
+    AMZN: allocated 0.000, desired 0.072
+    BBY: allocated 0.064, desired 0.061
+    SBUX: allocated 0.036, desired 0.038
+    GOOG: allocated 0.102, desired 0.013
+    Allocation has RMSE: 0.038
 
 
-.. warning::
-    This does not support portfolios with short selling.
+Integer programming
+===================
+
+This method (credit to `Dingyuan Wang <https://github.com/gumblex>`_ for the implementation)
+treats the discrete allocation as an integer programming problem. In effect, the integer
+programming approach searches the space of possible allocations to find the one that is
+closest to our desired weights.
+
+Unfortunately, ``scipy``
+does not support integer programming so we must instead use the
+`PuLP library <https://pythonhosted.org/PuLP/>`_. I'm not a huge fan of their API, for example
+using ``opt += a <= b`` to add a constraint to the optimisation problem, but overall it is a
+simple library to get up and running with.
+
+.. caution::
+
+    Though ``lp_portfolio()`` produces allocations with a lower RMSE, some testing
+    shows that it is between 100 and 1000 times slower than ``greedy_portfolio()``.
+    This doesn't matter for small portfolios (it should still take less than a second),
+    but the runtime for integer programs grows exponentially as the number of stocks, so
+    for large portfolios you may have to use ``greedy_portfolio()``.
+
+Dealing with shorts
+===================
+
+As of v0.4.0, ``DiscreteAllocation`` automatically deals with shorts by finding separate discrete
+allocations for the long-only and short-only portions. If your portfolio has shorts,
+you should pass a short ratio. The default is 0.30, corresponding to a 130/30 long-short balance.
+Practically, this means that you would go long $10,000 of some stocks, short $3000 of some other
+stocks, then use the proceeds from the shorts to go long another $3000.
+Thus the total value of the resulting portfolio would be $13,000. 
+
+Usage
+=====
 
 .. automodule:: pypfopt.discrete_allocation
-    :members:
+
+    .. autoclass:: DiscreteAllocation
+        :members:
+        :private-members:
+
+        .. automethod:: __init__
+
+

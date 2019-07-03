@@ -12,15 +12,26 @@ These are some of the things that I am thinking of adding in the near future. If
 have any other feature requests, please raise them using GitHub
 `issues <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_
 
-- Custom utility functions, including risk aversion
+- More objective functions, e.g risk-averse utility functions.
+- Optimising for higher moments (i.e skew and kurtosis)
+- Factor modelling: doable but not sure if it fits within the API.
 - Plotting the efficient frontier
-- Different optimisation objectives
+- Proper CVaR optimisation – remove NoisyOpt and use proper linear programming
 - Monte Carlo optimisation with custom distributions
 - Black-Litterman portfolio selection
 - Open-source backtests using either `Backtrader <https://www.backtrader.com/>`_ or
   `Zipline <https://github.com/quantopian/zipline>`_.
-- Genetic optimisation methods (tentative)
 - Further support for different risk/return models
+
+0.4.0
+=====
+
+- Major improvements to ``discrete_allocation``. Added functionality to allocate shorts;
+  modified the linear programming method suggested by `Dingyuan Wang <https://github.com/gumblex>`_;
+  added postprocessing section to User Guide.
+- Further refactoring and docs for ``HRPOpt``.
+- Major documentation update, e.g to support custom optimisers
+
 
 0.3.4
 -----

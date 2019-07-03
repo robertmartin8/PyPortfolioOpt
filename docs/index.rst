@@ -10,7 +10,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v0.3.4-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v0.4.0-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
@@ -55,7 +55,7 @@ The alternative is to clone/download the project, then in the project directory 
     python setup.py install
 
 .. note::
-    If either of these methods doesn't work, please `raise an issue
+    If any of these methods doesn't work, please `raise an issue
     <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_  on GitHub
 
 
@@ -85,9 +85,7 @@ This section contains a quick look at what PyPortfolioOpt can do. For a full tou
 please check out the :ref:`user-guide`.
 
 If you already have expected returns ``mu`` and a risk model ``S`` for your set of
-assets, generating an optimal portfolio is as easy as:
-
-.. code:: python
+assets, generating an optimal portfolio is as easy as::
 
     from pypfopt.efficient_frontier import EfficientFrontier
 
@@ -96,9 +94,7 @@ assets, generating an optimal portfolio is as easy as:
 
 However, if you would like to use PyPortfolioOpt's built-in methods for
 calculating the expected returns and covariance matrix from historical data,
-that's fine too.
-
-.. code:: python
+that's fine too::
 
     import pandas as pd
     from pypfopt.efficient_frontier import EfficientFrontier

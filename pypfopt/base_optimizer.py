@@ -1,11 +1,10 @@
 """
-The ``base_optimizer`` module houses the parent classes ``BaseOptimizer`` and 
+The ``base_optimizer`` module houses the parent classes ``BaseOptimizer`` and
 ``BaseScipyOptimizer``, from which all optimisers will inherit. The later is for
 optimisers that use the scipy solver.
 Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
 """
-
 import numpy as np
 import pandas as pd
 from . import objective_functions
@@ -28,11 +27,17 @@ class BaseOptimizer:
         self.weights = None
 
     def set_weights(self, weights):
+        """
+        Utility function to set weights.
+
+        :param weights: {ticker: weight} dictionary
+        :type weights: dict
+        """
         if self.weights is None:
             self.weights = [0] * self.n_assets
-        for i, k in enumerate(self.tickers):
-            if k in weights:
-                self.weights[i] = weights[k]
+        for i, ticker in enumerate(self.tickers):
+            if ticker in weights:
+                self.weights[i] = weights[ticker]
 
     def clean_weights(self, cutoff=1e-4, rounding=5):
         """

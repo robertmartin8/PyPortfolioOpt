@@ -11,7 +11,7 @@ def test_init_cvar():
     assert list(vr.tickers) == list(df.columns)
 
     # Inheritance
-    assert vr.bounds == ((0, 1), ) * len(df.columns)
+    assert vr.bounds == ((0, 1),) * len(df.columns)
     assert vr.clean_weights
     assert isinstance(vr.initial_guess, np.ndarray)
     assert isinstance(vr.constraints, list)
@@ -44,8 +44,10 @@ def test_cvar_weights():
 
 
 def test_cvar_bounds():
+    # TODO
     pass
 
 
 def test_cvar_beta():
+    # TODO
     pass

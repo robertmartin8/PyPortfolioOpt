@@ -47,6 +47,7 @@ def test_max_sharpe_long_only():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -84,6 +85,7 @@ def test_max_sharpe_L2_reg():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -189,6 +191,7 @@ def test_min_volatility():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.1791557243114251, 0.15915426422116669, 1.0000091740567905),
@@ -225,6 +228,7 @@ def test_min_volatility_L2_reg():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -254,6 +258,7 @@ def test_efficient_risk():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.2857747021087114, 0.19, 1.3988133092245933), atol=1e-6
     )
@@ -299,6 +304,7 @@ def test_efficient_risk_L2_reg():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -364,6 +370,7 @@ def test_efficient_return():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.25, 0.1738877891235972, 1.3226920714748545), atol=1e-6
     )
@@ -374,6 +381,7 @@ def test_efficient_return_many_values():
     for target_return in np.arange(0.19, 0.30, 0.01):
         ef.efficient_return(target_return)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
+        assert all([i >= 0 for i in ef.weights])
         mean_return = ef.portfolio_performance()[0]
         assert abs(target_return - mean_return) < 0.05
 
@@ -407,7 +415,7 @@ def test_efficient_return_L2_reg():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-
+    assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.25, 0.20032972845476912, 1.1481071819692497)
     )
@@ -422,6 +430,7 @@ def test_efficient_return_L2_reg_many_values():
         ef.gamma = a
         ef.efficient_return(0.25)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
+        assert all([i >= 0 for i in ef.weights])
         new_number = sum(ef.weights > 0.01)
         # Higher gamma should reduce the number of small weights
         assert new_number >= initial_number
@@ -443,7 +452,6 @@ def test_efficient_return_market_neutral():
         (0.25, 0.20567621957479246, 1.1182624830289896)
     )
     sharpe = ef.portfolio_performance()[2]
-
     ef_long_only = setup_efficient_frontier()
     ef_long_only.efficient_return(0.25)
     long_only_sharpe = ef_long_only.portfolio_performance()[2]
@@ -471,6 +479,7 @@ def test_max_sharpe_semicovariance():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.2972237371625498, 0.06443267303123411, 4.302533545801584)
@@ -486,6 +495,7 @@ def test_min_volatilty_semicovariance_L2_reg():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.20661406151867523, 0.05551598140785206, 3.3614475829527706)
@@ -501,6 +511,7 @@ def test_efficient_return_semicovariance():
     assert set(w.keys()) == set(ef.tickers)
     assert set(w.keys()) == set(ef.expected_returns.index)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.11999999997948813, 0.06948386215256849, 1.4391830977949114)

@@ -6,7 +6,14 @@ Other Optimisers
 
 In addition to optimisers that rely on the covariance matrix in the style of
 Markowitz, recent developments in portfolio optimisation have seen a number
-of alternative optimisation schemes.
+of alternative optimisation schemes. PyPortfolioOpt implements some of these,
+though please note that the implementations may be slightly unstable.
+
+.. note::
+    As of v0.4.0, these other optimisers now inherits from ``BaseOptimizer`` or
+    ``BaseScipyOptimizer``, so you no longer have to implement pre-processing and
+    post-processing methods on your own. You can thus easily swap out, say,
+    ``EfficientFrontier`` for ``HRPOpt``.
 
 Value-at-Risk
 =============
@@ -77,11 +84,37 @@ portfolios that perform well out of sample.
 
 .. automodule:: pypfopt.hierarchical_risk_parity
 
-    .. autofunction:: hrp_portfolio
+    .. autoclass:: HRPOpt
+        :members:
 
-.. note::
-    Because the HRP functionality doesn't inherit from ``BaseOptimizer``, you will
-    have to implement pre-processing and post-processing methods on your own.
+        .. automethod:: __init__
+
+Implementing your own optimiser
+===============================
+
+Please note that this is quite different to implementing :ref:`custom-objectives`, because in
+that case we are still using the same quadratic optimiser. However, HRP and CVaR optimisation
+have a fundamentally different optimisation method. In general, these are much more difficult
+to code up compared to custom objective functions.
+
+To implement a custom optimiser that is compatible with the rest of PyPortfolioOpt, just
+extend ``BaseOptimizer`` (or ``BaseScipyOptimizer`` if you want to use scipy.optimize),
+both of which can be found in ``base_optimizer.py``. This gives you access to utility
+methods like ``clean_weights()``, as well as making sure that any output is compatible
+with ``portfolio_performance()`` and post-processing methods.
+
+.. automodule:: pypfopt.base_optimizer
+
+    .. autoclass:: BaseOptimizer
+        :members:
+
+        .. automethod:: __init__
+
+    .. autoclass:: BaseScipyOptimizer
+        :members:
+        :private-members:
+
+        .. automethod:: __init__
 
 References
 ==========

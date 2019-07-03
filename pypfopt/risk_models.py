@@ -21,8 +21,8 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 import warnings
 import numpy as np
 import pandas as pd
-from sklearn import covariance
-from .expected_returns import daily_price_returns
+import sklearn.covariance
+from .expected_returns import returns_from_prices
 
 
 def sample_cov(prices, frequency=252):
@@ -41,7 +41,7 @@ def sample_cov(prices, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = daily_price_returns(prices)
+    daily_returns = returns_from_prices(prices)
     return daily_returns.cov() * frequency
 
 
@@ -66,7 +66,7 @@ def semicovariance(prices, benchmark=0, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = daily_price_returns(prices)
+    daily_returns = returns_from_prices(prices)
     drops = np.fmin(daily_returns - benchmark, 0)
     return drops.cov() * frequency
 
@@ -111,7 +111,7 @@ def exp_cov(prices, span=180, frequency=252):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
     assets = prices.columns
-    daily_returns = daily_price_returns(prices)
+    daily_returns = returns_from_prices(prices)
     N = len(assets)
 
     # Loop over matrix, filling entries with the pairwise exp cov
@@ -146,7 +146,7 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     assets = prices.columns
     X = prices.pct_change().dropna(how="all")
     X = np.nan_to_num(X.values)
-    raw_cov_array = covariance.fast_mcd(X, random_state=random_state)[1]
+    raw_cov_array = sklearn.covariance.fast_mcd(X, random_state=random_state)[1]
     return pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
 
 
@@ -227,7 +227,7 @@ class CovarianceShrinkage:
         """
         if shrinkage_target == "constant_variance":
             X = np.nan_to_num(self.X.values)
-            shrunk_cov, self.delta = covariance.ledoit_wolf(X)
+            shrunk_cov, self.delta = sklearn.covariance.ledoit_wolf(X)
         elif shrinkage_target == "single_factor":
             shrunk_cov, self.delta = self._ledoit_wolf_single_factor()
         elif shrinkage_target == "constant_correlation":
@@ -353,5 +353,5 @@ class CovarianceShrinkage:
         :rtype: np.ndarray
         """
         X = np.nan_to_num(self.X.values)
-        shrunk_cov, self.delta = covariance.oas(X)
+        shrunk_cov, self.delta = sklearn.covariance.oas(X)
         return self.format_and_annualise(shrunk_cov)
