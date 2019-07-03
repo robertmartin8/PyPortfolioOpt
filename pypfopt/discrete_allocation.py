@@ -37,7 +37,7 @@ class DiscreteAllocation:
         - ``total_portfolio_value``
         - ``short_ratio``
 
-    - Output: ``allocation`` {ticker: number} dict
+    - Output: ``allocation``
 
     Public methods:
 

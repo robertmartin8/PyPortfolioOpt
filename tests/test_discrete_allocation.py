@@ -24,9 +24,9 @@ def test_get_latest_prices_error():
 
 def test_greedy_portfolio_allocation():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov)
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S)
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -52,9 +52,9 @@ def test_greedy_portfolio_allocation():
 
 def test_greedy_allocation_rmse_error():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov)
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S)
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -65,9 +65,9 @@ def test_greedy_allocation_rmse_error():
 
 def test_greedy_portfolio_allocation_short():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov, weight_bounds=(-1, 1))
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -105,9 +105,9 @@ def test_greedy_portfolio_allocation_short():
 
 def test_greedy_allocation_rmse_error_short():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov, weight_bounds=(-1, 1))
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -118,9 +118,9 @@ def test_greedy_allocation_rmse_error_short():
 
 def test_greedy_portfolio_allocation_short_different_params():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov, weight_bounds=(-1, 1))
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -163,9 +163,9 @@ def test_greedy_portfolio_allocation_short_different_params():
 
 def test_lp_portfolio_allocation():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov)
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S)
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -191,9 +191,9 @@ def test_lp_portfolio_allocation():
 
 def test_lp_allocation_rmse_error():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov)
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S)
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -206,9 +206,9 @@ def test_lp_allocation_rmse_error():
 
 def test_lp_portfolio_allocation_short():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov, weight_bounds=(-1, 1))
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -246,9 +246,9 @@ def test_lp_portfolio_allocation_short():
 
 def test_lp_allocation_rmse_error_short():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov, weight_bounds=(-1, 1))
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -259,9 +259,9 @@ def test_lp_allocation_rmse_error_short():
 
 def test_lp_portfolio_allocation_different_params():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov)
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S)
     w = ef.max_sharpe()
 
     latest_prices = get_latest_prices(df)
@@ -294,9 +294,9 @@ def test_lp_portfolio_allocation_different_params():
 def test_rmse_decreases_with_value():
     # As total_portfolio_value increases, rmse should decrease.
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov)
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S)
     w = ef.max_sharpe()
     latest_prices = get_latest_prices(df)
 
@@ -319,9 +319,9 @@ def test_rmse_decreases_with_value():
 
 def test_allocation_errors():
     df = get_data()
-    e_ret = mean_historical_return(df)
-    cov = sample_cov(df)
-    ef = EfficientFrontier(e_ret, cov)
+    mu = mean_historical_return(df)
+    S = sample_cov(df)
+    ef = EfficientFrontier(mu, S)
     w = ef.max_sharpe()
     latest_prices = get_latest_prices(df)
 
