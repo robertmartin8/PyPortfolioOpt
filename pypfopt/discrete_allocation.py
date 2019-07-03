@@ -177,7 +177,8 @@ class DiscreteAllocation:
             short_alloc = {t: -w for t, w in short_alloc.items()}
 
             # Combine and return
-            self.allocation = {**long_alloc, **short_alloc}
+            self.allocation = long_alloc.copy()
+            self.allocation.update(short_alloc)
             return self.allocation, long_leftover + short_leftover
 
         # Otherwise, portfolio is long only and we proceed with greedy algo
@@ -290,7 +291,8 @@ class DiscreteAllocation:
             short_alloc = {t: -w for t, w in short_alloc.items()}
 
             # Combine and return
-            self.allocation = {**long_alloc, **short_alloc}
+            self.allocation = long_alloc.copy()
+            self.allocation.update(short_alloc)
             return self.allocation, long_leftover + short_leftover
 
         opt = pulp.LpProblem("PfAlloc", pulp.LpMinimize)
