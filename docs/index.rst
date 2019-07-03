@@ -94,7 +94,7 @@ assets, generating an optimal portfolio is as easy as::
 
 However, if you would like to use PyPortfolioOpt's built-in methods for
 calculating the expected returns and covariance matrix from historical data,
-that's fine too
+that's fine too::
 
     import pandas as pd
     from pypfopt.efficient_frontier import EfficientFrontier
