@@ -110,19 +110,14 @@ optimising your own objective function.
 The first step is to define the objective function, which must take an array
 of weights as input (with optional additional arguments), and return a single
 float corresponding to the cost. As an example, we will pretend that L2
-regularisation is not built-in and re-implement it below:
-
-
-.. code:: python
+regularisation is not built-in and re-implement it below::
 
     def my_objective_function(weights, cov_matrix, k):
         variance = np.dot(weights.T, np.dot(cov_matrix, weights))
         return variance + k * (weights ** 2).sum()
 
 Next, we instantiate the ``EfficientFrontier`` object, and pass the objectives
-function (and all required arguments) into ``custom_objective()``,
-
-.. code:: python
+function (and all required arguments) into ``custom_objective()``::
 
     ef = EfficientFrontier(mu, S)
     weights = ef.custom_objective(my_objective_function, ef.cov_matrix, 0.3)
