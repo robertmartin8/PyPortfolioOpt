@@ -129,11 +129,13 @@ class DiscreteAllocation:
         print("Allocation has RMSE: {:.3f}".format(rmse))
         return rmse
 
-    def greedy_portfolio(self):
+    def greedy_portfolio(self, verbose=False):
         """
-        Convert the continuous weights into a discrete portfolio allocation
+        Convert continuous weights into a discrete portfolio allocation
         using a greedy iterative approach.
 
+        :param verbose: print error analysis?
+        :type verbose: bool
         :return: the number of shares of each ticker that should be purchased,
                  along with the amount of funds leftover.
         :rtype: (dict, float)
@@ -141,7 +143,6 @@ class DiscreteAllocation:
         # Sort in descending order of weight
         self.weights.sort(key=lambda x: x[1], reverse=True)
 
-        # TODO figure out shorts
         # If portfolio contains shorts
         if self.weights[-1][1] < 0:
             longs = {t: w for t, w in self.weights if w >= 0}
@@ -174,8 +175,10 @@ class DiscreteAllocation:
             )
             short_alloc, short_leftover = da2.greedy_portfolio()
             short_alloc = {t: -w for t, w in short_alloc.items()}
+
             # Combine and return
-            return {**long_alloc, **short_alloc}, long_leftover + short_leftover
+            self.allocation = {**long_alloc, **short_alloc}
+            return self.allocation, long_leftover + short_leftover
 
         # Otherwise, portfolio is long only and we proceed with greedy algo
         available_funds = self.total_portfolio_value
@@ -228,47 +231,94 @@ class DiscreteAllocation:
                 counter += 1
 
             if deficit[idx] <= 0 or counter == 10:
-                # See https://stackoverflow.com/questions/189645/
+                # Dirty solution to break out of both loops
                 break
 
             # Buy one share at a time
             shares_bought[idx] += 1
             available_funds -= price
 
-        print("Funds remaining: {:.2f}".format(available_funds))
-
         self.allocation = dict(zip([i[0] for i in self.weights], shares_bought))
-        self._allocation_rmse_error()
+
+        if verbose:
+            print("Funds remaining: {:.2f}".format(available_funds))
+            self._allocation_rmse_error(verbose)
         return self.allocation, available_funds
 
+    def lp_portfolio(self, verbose=False):
+        """
+        Convert continuous weights into a discrete portfolio allocation
+        using integer programming.
 
-def lp_portfolio(
-    weights, latest_prices, min_allocation=0.01, total_portfolio_value=10000
-):
-    """
-    For a long only portfolio, convert the continuous weights to a discrete allocation
-    using Mixed Integer Linear Programming. This can be thought of as a clever way to round
-    the continuous weights to an integer number of shares
+        :param verbose: print error analysis?
+        :type verbose: bool
+        :return: the number of shares of each ticker that should be purchased, along with the amount
+                of funds leftover.
+        :rtype: (dict, float)
+        """
 
-    :return: the number of shares of each ticker that should be purchased, along with the amount
-            of funds leftover.
-    :rtype: (dict, float)
-    """
-    m = pulp.LpProblem("PfAlloc", pulp.LpMinimize)
-    vals = {}
-    realvals = {}
-    etas = {}
-    abss = {}
-    remaining = pulp.LpVariable("remaining", 0)
-    for k, w in weights.items():
-        vals[k] = pulp.LpVariable("x_%s" % k, 0, cat="Integer")
-        realvals[k] = latest_prices[k] * vals[k]
-        etas[k] = w * total_portfolio_value - realvals[k]
-        abss[k] = pulp.LpVariable("u_%s" % k, 0)
-        m += etas[k] <= abss[k]
-        m += -etas[k] <= abss[k]
-    m += remaining == total_portfolio_value - pulp.lpSum(realvals.values())
-    m += pulp.lpSum(abss.values()) + remaining
-    m.solve()
-    results = {k: val.varValue for k, val in vals.items()}
-    return results, remaining.varValue
+        if any([w < 0 for _, w in self.weights]):
+            longs = {t: w for t, w in self.weights if w >= 0}
+            shorts = {t: -w for t, w in self.weights if w < 0}
+
+            # Make them sum to one
+            long_total_weight = sum(longs.values())
+            short_total_weight = sum(shorts.values())
+            longs = {t: w / long_total_weight for t, w in longs.items()}
+            shorts = {t: w / short_total_weight for t, w in shorts.items()}
+
+            # Construct long-only discrete allocations for each
+            short_val = self.total_portfolio_value * self.short_ratio
+
+            print("\nAllocating long sub-portfolio:")
+            da1 = DiscreteAllocation(
+                longs,
+                self.latest_prices[longs.keys()],
+                min_allocation=0,
+                total_portfolio_value=self.total_portfolio_value,
+            )
+            long_alloc, long_leftover = da1.lp_portfolio()
+
+            print("\nAllocating short sub-portfolio:")
+            da2 = DiscreteAllocation(
+                shorts,
+                self.latest_prices[shorts.keys()],
+                min_allocation=0,
+                total_portfolio_value=short_val,
+            )
+            short_alloc, short_leftover = da2.lp_portfolio()
+            short_alloc = {t: -w for t, w in short_alloc.items()}
+
+            # Combine and return
+            self.allocation = {**long_alloc, **short_alloc}
+            return self.allocation, long_leftover + short_leftover
+
+        opt = pulp.LpProblem("PfAlloc", pulp.LpMinimize)
+        vals = {}
+        realvals = {}
+        etas = {}
+        abss = {}
+        remaining = pulp.LpVariable("remaining", 0)
+        for k, w in self.weights:
+            # Each ticker is an optimisation variable
+            vals[k] = pulp.LpVariable("x_" + k, 0, cat="Integer")
+            # Allocated weights
+            realvals[k] = self.latest_prices[k] * vals[k]
+            # Deviation between allocated and ideal weights
+            etas[k] = w * self.total_portfolio_value - realvals[k]
+            abss[k] = pulp.LpVariable("u_" + k, 0)
+            # Constraints
+            opt += etas[k] <= abss[k]
+            opt += -etas[k] <= abss[k]
+
+        # Constraint: fixed total value
+        opt += remaining + pulp.lpSum(realvals.values()) == self.total_portfolio_value
+
+        # Objective function: leftover + sum of abs errors
+        opt += pulp.lpSum(abss.values()) + remaining
+        opt.solve()
+        self.allocation = {k: int(val.varValue) for k, val in vals.items()}
+        if verbose:
+            print("Funds remaining: {:.2f}".format(remaining.varValue))
+            self._allocation_rmse_error()
+        return self.allocation, remaining.varValue
