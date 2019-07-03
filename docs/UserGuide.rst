@@ -58,9 +58,7 @@ between the available methods for estimating expected returns and the covariance
 Sensible defaults are :py:func:`expected_returns.mean_historical_return()` and
 the Ledoit Wolf shrinkage estimate of the covariance matrix found in
 :py:class:`risk_models.CovarianceShrinkage`. It is simply a matter of applying the
-relevant functions to the price dataset:
-
-.. code:: python
+relevant functions to the price dataset::
 
     from pypfopt.expected_returns import mean_historical_return
     from pypfopt.risk_models import CovarianceShrinkage
@@ -135,10 +133,7 @@ risk. So in practice, rather than trying to minimise volatility for a given targ
 return (as per Markowitz 1952), it often makes more sense to just find the portfolio
 that maximises the Sharpe ratio. This is implemented as the :py:meth:`max_sharpe`
 method in the  :py:class:`EfficientFrontier` class. Using the series ``mu`` and
-dataframe ``S`` from before:
-
-
-.. code:: python
+dataframe ``S`` from before::
 
     from pypfopt.efficient_frontier import EfficientFrontier
 
@@ -148,9 +143,7 @@ dataframe ``S`` from before:
 If you print these weights, you will get quite an ugly result, because they will
 be the raw output from the optimiser. As such, it is recommended that you use
 the :py:meth:`clean_weights` method, which truncates tiny weights to zero
-and rounds the rest.
-
-.. code:: python
+and rounds the rest::
 
     cleaned_weights = ef.clean_weights()
     print(cleaned_weights)
@@ -180,9 +173,7 @@ This prints::
 
 
 If we want to know the expected performance of the portfolio with optimal
-weights ``w``, we can use the :py:meth:`portfolio_performance` method:
-
-.. code:: python
+weights ``w``, we can use the :py:meth:`portfolio_performance` method::
 
     ef.portfolio_performance(verbose=True)
 
@@ -252,9 +243,35 @@ The result of this has far fewer negligible weights than before::
     'JPM': 0.0,
     'SBUX': 0.05489}
 
+Post-processing weights
+-----------------------
+
 In practice, we then need to convert these weights into an actual allocation,
 telling you how many shares of each asset you should purchase. This is discussed
-in :ref:`post-processing`.
+further in :ref:`post-processing`, but we provide an example below::
+
+    from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
+
+    latest_prices = get_latest_prices(df)
+    da = DiscreteAllocation(w, latest_prices, total_portfolio_value=20000)
+    allocation, leftover = da.lp_portfolio()
+    print(allocation)
+
+These are the quantitites of shares that should be bought to have a $20,000 portfolio::
+
+    {'GOOG': 1,
+     'AAPL': 10,
+     'FB': 19,
+     'BABA': 11,
+     'AMZN': 1,
+     'WMT': 9,
+     'T': 13,
+     'XOM': 13,
+     'BBY': 19,
+     'MA': 19,
+     'PFE': 76,
+     'SBUX': 19}
+
 
 Improving performance
 ---------------------
