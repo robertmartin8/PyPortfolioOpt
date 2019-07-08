@@ -486,9 +486,27 @@ def test_max_sharpe_semicovariance():
     )
 
 
+def test_max_sharpe_short_semicovariance():
+    df = get_data()
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    ef.cov_matrix = risk_models.semicovariance(df, benchmark=0)
+    w = ef.max_sharpe()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    assert set(w.keys()) == set(ef.expected_returns.index)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.3564654865246848, 0.07202031837368413, 4.671813373260894)
+    )
+
+
 def test_min_volatilty_semicovariance_L2_reg():
     df = get_data()
     ef = setup_efficient_frontier()
+    ef.gamma = 1
     ef.cov_matrix = risk_models.semicovariance(df, benchmark=0)
     w = ef.min_volatility()
     assert isinstance(w, dict)
@@ -498,7 +516,7 @@ def test_min_volatilty_semicovariance_L2_reg():
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.20661406151867523, 0.05551598140785206, 3.3614475829527706)
+        (0.23803779483710888, 0.0962263031034166, 2.265885603053655)
     )
 
 
@@ -515,4 +533,56 @@ def test_efficient_return_semicovariance():
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.11999999997948813, 0.06948386215256849, 1.4391830977949114)
+    )
+
+
+def test_max_sharpe_exp_cov():
+    df = get_data()
+    ef = setup_efficient_frontier()
+    ef.cov_matrix = risk_models.exp_cov(df)
+    w = ef.max_sharpe()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    assert set(w.keys()) == set(ef.expected_returns.index)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.3678835305574766, 0.17534146043561463, 1.9840346355802103)
+    )
+
+
+def test_min_volatility_exp_cov_L2_reg():
+    df = get_data()
+    ef = setup_efficient_frontier()
+    ef.gamma = 1
+    ef.cov_matrix = risk_models.exp_cov(df)
+    w = ef.min_volatility()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    assert set(w.keys()) == set(ef.expected_returns.index)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.24340406492258035, 0.17835396894670616, 1.2525881326999546)
+    )
+
+
+def test_efficient_risk_exp_cov_market_neutral():
+    df = get_data()
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    ef.cov_matrix = risk_models.exp_cov(df)
+    w = ef.efficient_risk(0.19, market_neutral=True)
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    assert set(w.keys()) == set(ef.expected_returns.index)
+    np.testing.assert_almost_equal(ef.weights.sum(), 0)
+    assert (ef.weights < 1).all() and (ef.weights > -1).all()
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.39089308906686077, 0.19, 1.9520670176494717),
+        atol=1e-6
     )
