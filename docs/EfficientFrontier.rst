@@ -28,6 +28,10 @@ enough to justify the lack of explained examples. Because they are both based on
 differ significantly, but if it transpires that cvxopt is faster by an order of
 magnitude, I will definitely consider switching.
 
+.. tip::
+
+    If you would like to plot the efficient frontier, take a look at the :ref:`cla`.  
+
 
 .. automodule:: pypfopt.efficient_frontier
 

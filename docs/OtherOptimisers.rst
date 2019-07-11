@@ -10,7 +10,7 @@ of alternative optimisation schemes. PyPortfolioOpt implements some of these,
 though please note that the implementations may be slightly unstable.
 
 .. note::
-    As of v0.4.0, these other optimisers now inherits from ``BaseOptimizer`` or
+    As of v0.4, these other optimisers now inherits from ``BaseOptimizer`` or
     ``BaseScipyOptimizer``, so you no longer have to implement pre-processing and
     post-processing methods on your own. You can thus easily swap out, say,
     ``EfficientFrontier`` for ``HRPOpt``.
@@ -89,6 +89,33 @@ portfolios that perform well out of sample.
 
         .. automethod:: __init__
 
+.. _cla:
+
+The Critical Line Algorithm
+===========================
+
+This is a robust alternative to the quadratic solver used to find mean-variance optimal portfolios,
+that is especially advantageous when we apply linear inequalities. Unlike generic quadratic optimisers, 
+the CLA is specially designed for portfolio optimisation. It is guaranteed to converge after a certain
+number of iterations, and can efficiently derive the entire efficient frontier.
+
+.. tip:: 
+
+    In general, unless you have specific requirements e.g you would like to efficiently compute the entire
+    efficient frontier for plotting, I would go with the standard ``EfficientFrontier`` optimiser.
+
+I am most grateful to Marcos López de Prado and David Bailey for providing the implementation [3]_.
+Permission for its distribution has been received by email. It has been modified such that it has
+the same API, though as of v0.5.0 we only support ``max_sharpe()`` and ``min_volatility()``.
+
+
+.. automodule:: pypfopt.cla
+
+    .. autoclass:: CLA
+        :members:
+
+        .. automethod:: __init__
+
 Implementing your own optimiser
 ===============================
 
@@ -121,3 +148,4 @@ References
 
 .. [1] Rockafellar and Uryasev (2011) `Optimization of conditional value-at-risk <http://www.ise.ufl.edu/uryasev/files/2011/11/CVaR1_JOR.pdf>`_.
 .. [2] López de Prado, M. (2016). `Building Diversified Portfolios that Outperform Out of Sample <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2708678>`_. The Journal of Portfolio Management, 42(4), 59–69.
+.. [3] Bailey and Loópez de Prado (2013). `An Open-Source Implementation of the Critical-Line Algorithm for Portfolio Optimization <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2197616>`_ 

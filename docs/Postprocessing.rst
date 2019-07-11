@@ -85,7 +85,7 @@ simple library to get up and running with.
 Dealing with shorts
 ===================
 
-As of v0.4.0, ``DiscreteAllocation`` automatically deals with shorts by finding separate discrete
+As of v0.4, ``DiscreteAllocation`` automatically deals with shorts by finding separate discrete
 allocations for the long-only and short-only portions. If your portfolio has shorts,
 you should pass a short ratio. The default is 0.30, corresponding to a 130/30 long-short balance.
 Practically, this means that you would go long $10,000 of some stocks, short $3000 of some other
