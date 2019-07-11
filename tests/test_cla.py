@@ -103,3 +103,16 @@ def test_cla_min_volatility_exp_cov_short():
         cla.portfolio_performance(),
         (0.2634735528776959, 0.13259590618253303, 1.8362071642131053),
     )
+
+
+def test_cla_efficient_frontier():
+    cla = setup_cla()
+    with pytest.raises(ValueError):
+        cla.efficient_frontier()
+
+    cla.max_sharpe()
+    mu, sigma, weights = cla.efficient_frontier()
+    assert len(mu) == len(sigma) and len(sigma) == len(weights)
+    # higher return = higher risk
+    assert sigma[-1] < sigma[0] and mu[-1] < mu[0]
+    assert weights[0].shape == (20, 1)

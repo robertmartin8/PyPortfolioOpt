@@ -54,75 +54,7 @@ class CLA(base_optimizer.BaseOptimizer):
             tickers = list(range(len(self.mean)))
         super().__init__(len(tickers), tickers)
 
-    def solve(self):
-        # Compute the turning points,free sets and weights
-        f, w = self.init_algo()
-        self.w.append(np.copy(w))  # store solution
-        self.ls.append(None)
-        self.g.append(None)
-        self.f.append(f[:])
-        while True:
-            # 1) case a): Bound one free weight
-            l_in = None
-            if len(f) > 1:
-                covarF, covarFB, meanF, wB = self.get_matrices(f)
-                covarF_inv = np.linalg.inv(covarF)
-                j = 0
-                for i in f:
-                    l, bi = self.compute_lambda(
-                        covarF_inv, covarFB, meanF, wB, j, [self.lB[i], self.uB[i]]
-                    )
-                    if _infnone(l) > _infnone(l_in):
-                        l_in, i_in, bi_in = l, i, bi
-                    j += 1
-            # 2) case b): Free one bounded weight
-            l_out = None
-            if len(f) < self.mean.shape[0]:
-                b = self.get_b(f)
-                for i in b:
-                    covarF, covarFB, meanF, wB = self.get_matrices(f + [i])
-                    covarF_inv = np.linalg.inv(covarF)
-                    l, bi = self.compute_lambda(
-                        covarF_inv,
-                        covarFB,
-                        meanF,
-                        wB,
-                        meanF.shape[0] - 1,
-                        self.w[-1][i],
-                    )
-                    if (self.ls[-1] is None or l < self.ls[-1]) and l > _infnone(l_out):
-                        l_out, i_out = l, i
-            if (l_in is None or l_in < 0) and (l_out is None or l_out < 0):
-                # 3) compute minimum variance solution
-                self.ls.append(0)
-                covarF, covarFB, meanF, wB = self.get_matrices(f)
-                covarF_inv = np.linalg.inv(covarF)
-                meanF = np.zeros(meanF.shape)
-            else:
-                # 4) decide lambda
-                if _infnone(l_in) > _infnone(l_out):
-                    self.ls.append(l_in)
-                    f.remove(i_in)
-                    w[i_in] = bi_in  # set value at the correct boundary
-                else:
-                    self.ls.append(l_out)
-                    f.append(i_out)
-                covarF, covarFB, meanF, wB = self.get_matrices(f)
-                covarF_inv = np.linalg.inv(covarF)
-            # 5) compute solution vector
-            wF, g = self.compute_w(covarF_inv, covarFB, meanF, wB)
-            for i in range(len(f)):
-                w[f[i]] = wF[i]
-            self.w.append(np.copy(w))  # store solution
-            self.g.append(g)
-            self.f.append(f[:])
-            if self.ls[-1] == 0:
-                break
-        # 6) Purge turning points
-        self.purge_num_err(10e-10)
-        self.purge_excess()
-
-    def init_algo(self):
+    def _init_algo(self):
         # Initialize the algo
         # 1) Form structured array
         a = np.zeros((self.mean.shape[0]), dtype=[("id", int), ("mu", float)])
@@ -139,14 +71,14 @@ class CLA(base_optimizer.BaseOptimizer):
         w[b[i][0]] += 1 - sum(w)
         return [b[i][0]], w
 
-    def compute_bi(self, c, bi):
+    def _compute_bi(self, c, bi):
         if c > 0:
             bi = bi[1][0]
         if c < 0:
             bi = bi[0][0]
         return bi
 
-    def compute_w(self, covarF_inv, covarFB, meanF, wB):
+    def _compute_w(self, covarF_inv, covarFB, meanF, wB):
         # 1) compute gamma
         onesF = np.ones(meanF.shape)
         g1 = np.dot(np.dot(onesF.T, covarF_inv), meanF)
@@ -165,7 +97,7 @@ class CLA(base_optimizer.BaseOptimizer):
         w3 = np.dot(covarF_inv, meanF)
         return -w1 + g * w2 + self.ls[-1] * w3, g
 
-    def compute_lambda(self, covarF_inv, covarFB, meanF, wB, i, bi):
+    def _compute_lambda(self, covarF_inv, covarFB, meanF, wB, i, bi):
         # 1) C
         onesF = np.ones(meanF.shape)
         c1 = np.dot(np.dot(onesF.T, covarF_inv), onesF)
@@ -177,7 +109,7 @@ class CLA(base_optimizer.BaseOptimizer):
             return None, None
         # 2) bi
         if type(bi) == list:
-            bi = self.compute_bi(c, bi)
+            bi = self._compute_bi(c, bi)
         # 3) Lambda
         if wB is None:
             # All free assets
@@ -190,22 +122,24 @@ class CLA(base_optimizer.BaseOptimizer):
             l2 = np.dot(onesF.T, l3)
             return float(((1 - l1 + l2) * c4[i] - c1 * (bi + l3[i])) / c), bi
 
-    def get_matrices(self, f):
+    def _get_matrices(self, f):
         # Slice covarF,covarFB,covarB,meanF,meanB,wF,wB
-        covarF = self.reduce_matrix(self.cov_matrix, f, f)
-        meanF = self.reduce_matrix(self.mean, f, [0])
-        b = self.get_b(f)
-        covarFB = self.reduce_matrix(self.cov_matrix, f, b)
-        wB = self.reduce_matrix(self.w[-1], b, [0])
+        covarF = self._reduce_matrix(self.cov_matrix, f, f)
+        meanF = self._reduce_matrix(self.mean, f, [0])
+        b = self._get_b(f)
+        covarFB = self._reduce_matrix(self.cov_matrix, f, b)
+        wB = self._reduce_matrix(self.w[-1], b, [0])
         return covarF, covarFB, meanF, wB
 
-    def get_b(self, f):
-        return self.diff_lists(list(range(self.mean.shape[0])), f)
+    def _get_b(self, f):
+        return self._diff_lists(list(range(self.mean.shape[0])), f)
 
-    def diff_lists(self, list1, list2):
+    @staticmethod
+    def _diff_lists(list1, list2):
         return list(set(list1) - set(list2))
 
-    def reduce_matrix(self, matrix, listX, listY):
+    @staticmethod
+    def _reduce_matrix(matrix, listX, listY):
         # Reduce a matrix to the provided list of rows and columns
         if len(listX) == 0 or len(listY) == 0:
             return
@@ -219,8 +153,8 @@ class CLA(base_optimizer.BaseOptimizer):
             matrix__ = np.append(matrix__, a, 0)
         return matrix__
 
-    def purge_num_err(self, tol):
-        # Purge violations of inequality constraints (associated with ill-conditioned covar matrix)
+    def _purge_num_err(self, tol):
+        # Purge violations of inequality constraints (associated with ill-conditioned cov matrix)
         i = 0
         while True:
             flag = False
@@ -244,7 +178,7 @@ class CLA(base_optimizer.BaseOptimizer):
             else:
                 i += 1
 
-    def purge_excess(self):
+    def _purge_excess(self):
         # Remove violations of the convex hull
         i, repeat = 0, False
         while True:
@@ -270,45 +204,8 @@ class CLA(base_optimizer.BaseOptimizer):
                 else:
                     j += 1
 
-    def min_volatility(self):
-        """Get the minimum variance solution"""
-        if not self.w:
-            self.solve()
-        var = []
-        for w in self.w:
-            a = np.dot(np.dot(w.T, self.cov_matrix), w)
-            var.append(a)
-        # return min(var)**.5, self.w[var.index(min(var))]
-        self.weights = self.w[var.index(min(var))].reshape((self.n_assets,))
-        return dict(zip(self.tickers, self.weights))
-
-    def max_sharpe(self):
-        """Get the max Sharpe ratio portfolio"""
-        if not self.w:
-            self.solve()
-        # 1) Compute the local max SR portfolio between any two neighbor turning points
-        w_sr, sr = [], []
-        for i in range(len(self.w) - 1):
-            w0 = np.copy(self.w[i])
-            w1 = np.copy(self.w[i + 1])
-            kargs = {"minimum": False, "args": (w0, w1)}
-            a, b = self.golden_section(self.eval_sr, 0, 1, **kargs)
-            w_sr.append(a * w0 + (1 - a) * w1)
-            sr.append(b)
-        # return max(sr), w_sr[sr.index(max(sr))]
-        self.weights = w_sr[sr.index(max(sr))].reshape((self.n_assets,))
-        return dict(zip(self.tickers, self.weights))
-
-    def eval_sr(self, a, w0, w1):
-        # Evaluate SR of the portfolio within the convex combination
-        w = a * w0 + (1 - a) * w1
-        b = np.dot(w.T, self.mean)[0, 0]
-        c = np.dot(np.dot(w.T, self.cov_matrix), w)[0, 0] ** 0.5
-        return b / c
-
-    def golden_section(self, obj, a, b, **kargs):
+    def _golden_section(self, obj, a, b, **kargs):
         # Golden section method. Maximum if kargs['minimum']==False is passed
-
         tol, sign, args = 1.0e-9, 1, None
         if "minimum" in kargs and kargs["minimum"] is False:
             sign = -1
@@ -341,17 +238,132 @@ class CLA(base_optimizer.BaseOptimizer):
         else:
             return x2, sign * f2
 
-    def efficient_frontier(self, points):
-        """Get the efficient frontier"""
+    def _eval_sr(self, a, w0, w1):
+        # Evaluate SR of the portfolio within the convex combination
+        w = a * w0 + (1 - a) * w1
+        b = np.dot(w.T, self.mean)[0, 0]
+        c = np.dot(np.dot(w.T, self.cov_matrix), w)[0, 0] ** 0.5
+        return b / c
+
+    def _solve(self):
+        # Compute the turning points,free sets and weights
+        f, w = self._init_algo()
+        self.w.append(np.copy(w))  # store solution
+        self.ls.append(None)
+        self.g.append(None)
+        self.f.append(f[:])
+        while True:
+            # 1) case a): Bound one free weight
+            l_in = None
+            if len(f) > 1:
+                covarF, covarFB, meanF, wB = self._get_matrices(f)
+                covarF_inv = np.linalg.inv(covarF)
+                j = 0
+                for i in f:
+                    l, bi = self._compute_lambda(
+                        covarF_inv, covarFB, meanF, wB, j, [self.lB[i], self.uB[i]]
+                    )
+                    if _infnone(l) > _infnone(l_in):
+                        l_in, i_in, bi_in = l, i, bi
+                    j += 1
+            # 2) case b): Free one bounded weight
+            l_out = None
+            if len(f) < self.mean.shape[0]:
+                b = self._get_b(f)
+                for i in b:
+                    covarF, covarFB, meanF, wB = self._get_matrices(f + [i])
+                    covarF_inv = np.linalg.inv(covarF)
+                    l, bi = self._compute_lambda(
+                        covarF_inv,
+                        covarFB,
+                        meanF,
+                        wB,
+                        meanF.shape[0] - 1,
+                        self.w[-1][i],
+                    )
+                    if (self.ls[-1] is None or l < self.ls[-1]) and l > _infnone(l_out):
+                        l_out, i_out = l, i
+            if (l_in is None or l_in < 0) and (l_out is None or l_out < 0):
+                # 3) compute minimum variance solution
+                self.ls.append(0)
+                covarF, covarFB, meanF, wB = self._get_matrices(f)
+                covarF_inv = np.linalg.inv(covarF)
+                meanF = np.zeros(meanF.shape)
+            else:
+                # 4) decide lambda
+                if _infnone(l_in) > _infnone(l_out):
+                    self.ls.append(l_in)
+                    f.remove(i_in)
+                    w[i_in] = bi_in  # set value at the correct boundary
+                else:
+                    self.ls.append(l_out)
+                    f.append(i_out)
+                covarF, covarFB, meanF, wB = self._get_matrices(f)
+                covarF_inv = np.linalg.inv(covarF)
+            # 5) compute solution vector
+            wF, g = self._compute_w(covarF_inv, covarFB, meanF, wB)
+            for i in range(len(f)):
+                w[f[i]] = wF[i]
+            self.w.append(np.copy(w))  # store solution
+            self.g.append(g)
+            self.f.append(f[:])
+            if self.ls[-1] == 0:
+                break
+        # 6) Purge turning points
+        self._purge_num_err(10e-10)
+        self._purge_excess()
+
+    def max_sharpe(self):
+        """Get the max Sharpe ratio portfolio"""
+        if not self.w:
+            self._solve()
+        # 1) Compute the local max SR portfolio between any two neighbor turning points
+        w_sr, sr = [], []
+        for i in range(len(self.w) - 1):
+            w0 = np.copy(self.w[i])
+            w1 = np.copy(self.w[i + 1])
+            kargs = {"minimum": False, "args": (w0, w1)}
+            a, b = self._golden_section(self._eval_sr, 0, 1, **kargs)
+            w_sr.append(a * w0 + (1 - a) * w1)
+            sr.append(b)
+        # return max(sr), w_sr[sr.index(max(sr))]
+        self.weights = w_sr[sr.index(max(sr))].reshape((self.n_assets,))
+        return dict(zip(self.tickers, self.weights))
+
+    def min_volatility(self):
+        """Get the minimum variance solution"""
+        if not self.w:
+            self._solve()
+        var = []
+        for w in self.w:
+            a = np.dot(np.dot(w.T, self.cov_matrix), w)
+            var.append(a)
+        # return min(var)**.5, self.w[var.index(min(var))]
+        self.weights = self.w[var.index(min(var))].reshape((self.n_assets,))
+        return dict(zip(self.tickers, self.weights))
+
+    def efficient_frontier(self, points=100):
+        """
+        Efficiently compute the entire efficient frontier
+
+        :param points: rough number of points to evaluate, defaults to 100
+        :type points: int, optional
+        :raises ValueError: if weights have not been computed
+        :return: return list, std list, weight list
+        :rtype: (float list, float list, np.ndarray list)
+        """
+        if not self.w:
+            raise ValueError("Weights not yet computed")
+
         mu, sigma, weights = [], [], []
         # remove the 1, to avoid duplications
-        a = np.linspace(0, 1, points / len(self.w))[:-1]
+        a = np.linspace(0, 1, points // len(self.w))[:-1]
         b = list(range(len(self.w) - 1))
         for i in b:
             w0, w1 = self.w[i], self.w[i + 1]
             if i == b[-1]:
                 # include the 1 in the last iteration
-                a = np.linspace(0, 1, points / len(self.w))
+                a = np.linspace(0, 1, points // len(self.w))
             for j in a:
                 w = w1 * j + (1 - j) * w0
                 weights.append(np.copy(w))
