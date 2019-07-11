@@ -10,7 +10,7 @@ of alternative optimisation schemes. PyPortfolioOpt implements some of these,
 though please note that the implementations may be slightly unstable.
 
 .. note::
-    As of v0.4.0, these other optimisers now inherits from ``BaseOptimizer`` or
+    As of v0.4, these other optimisers now inherits from ``BaseOptimizer`` or
     ``BaseScipyOptimizer``, so you no longer have to implement pre-processing and
     post-processing methods on your own. You can thus easily swap out, say,
     ``EfficientFrontier`` for ``HRPOpt``.
