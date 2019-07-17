@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from unittest import mock
 from pypfopt.efficient_frontier import EfficientFrontier
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
+
 
 def test_custom_upper_bound():
     ef = EfficientFrontier(
@@ -84,24 +84,15 @@ def test_clean_weights_error():
         ef.clean_weights(rounding=0)
     assert ef.clean_weights(rounding=3)
 
+
 def test_clean_weights_no_rounding():
     ef = setup_efficient_frontier()
     ef.max_sharpe()
     # ensure the call does not fail
     # in previous commits, this call would raise a ValueError
-    assert ef.clean_weights(rounding=None)
-
-    # ensure the call does not round
-    with mock.patch('pypfopt.efficient_frontier.np.round') as rounding_method:
-        # rather than check the weights before and after for rounding, which
-        # could probably have floating point issues, ensure the rounding method,
-        # `np.round` is not called
-        ef.clean_weights(rounding=None)
-        assert rounding_method.call_count == 0
-
-        # sanity check to ensure the mock has been created correctly
-        ef.clean_weights(rounding=1)
-        assert rounding_method.call_count == 1
+    cleaned = ef.clean_weights(rounding=None, cutoff=0)
+    assert cleaned
+    np.testing.assert_array_almost_equal(ef.weights, list(cleaned.values()))
 
 
 def test_efficient_frontier_init_errors():
