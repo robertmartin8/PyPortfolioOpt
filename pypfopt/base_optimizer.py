@@ -52,11 +52,11 @@ class BaseOptimizer:
         :return: asset weights
         :rtype: dict
         """
-        if not isinstance(rounding, int) or rounding < 1:
-            raise ValueError("rounding must be a positive integer")
         clean_weights = self.weights.copy()
         clean_weights[np.abs(clean_weights) < cutoff] = 0
         if rounding is not None:
+            if not isinstance(rounding, int) or rounding < 1:
+                raise ValueError("rounding must be a positive integer")
             clean_weights = np.round(clean_weights, rounding)
         return dict(zip(self.tickers, clean_weights))
 

@@ -23,6 +23,12 @@ have any other feature requests, please raise them using GitHub
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Further support for different risk/return models
 
+0.4.1
+-----
+
+- Added CLA back in after getting permission from Dr Marcos López de Prado
+- Added more tests for different risk models.
+
 0.4.0
 =====
 

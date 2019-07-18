@@ -85,6 +85,16 @@ def test_clean_weights_error():
     assert ef.clean_weights(rounding=3)
 
 
+def test_clean_weights_no_rounding():
+    ef = setup_efficient_frontier()
+    ef.max_sharpe()
+    # ensure the call does not fail
+    # in previous commits, this call would raise a ValueError
+    cleaned = ef.clean_weights(rounding=None, cutoff=0)
+    assert cleaned
+    np.testing.assert_array_almost_equal(np.sort(ef.weights), np.sort(list(cleaned.values())))
+
+
 def test_efficient_frontier_init_errors():
     df = get_data()
     mean_returns = df.pct_change().dropna(how="all").mean()
