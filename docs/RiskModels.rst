@@ -57,15 +57,15 @@ covariance.
     .. autofunction:: semicovariance
 
         The semivariance is the variance of all returns which are below some benchmark *B*
-        (typically the mean) – it is a common measure of downside risk. There are multiple
+        (typically the risk-free rate) – it is a common measure of downside risk. There are multiple
         possible ways of defining a semicovariance matrix, the main differences lying in
         the 'pairwise' nature, i.e whether we should sum over :math:`\min(r_i,B)\min(r_j,B)`
         or :math:`\min(r_ir_j, B)`. In this implementation, we have followed the advice of
         Estrada 2007 [2]_, preferring:
 
         .. math::
-            \frac{1}{n}\sum_{i = 1}^n {\sum_{j = 1}^n {\min \left( {{r_i},0} \right)} }
-            \min \left( {{r_j},0} \right)
+            \frac{1}{n}\sum_{i = 1}^n {\sum_{j = 1}^n {\min \left( {{r_i},B} \right)} }
+            \min \left( {{r_j},B} \right)
 
     .. autofunction:: exp_cov
 
