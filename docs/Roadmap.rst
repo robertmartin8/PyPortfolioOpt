@@ -23,6 +23,13 @@ have any other feature requests, please raise them using GitHub
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Further support for different risk/return models
 
+0.4.2
+-----
+
+- Minor fix for ``clean_weights``
+- Removed official support for python 3.4.
+- Minor improvement to semicovariance, thanks to `Felipe Schneider <https://github.com/schneiderfelipe>`_.
+
 0.4.1
 -----
 

@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v0.4.1-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v0.4.2-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -38,21 +38,21 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
 
 ## Table of contents
 
-- [Table of contents](#Table-of-contents)
-- [Getting started](#Getting-started)
-  - [For development](#For-development)
-- [A quick example](#A-quick-example)
-- [An overview of classical portfolio optimisation methods](#An-overview-of-classical-portfolio-optimisation-methods)
-- [Features](#Features)
-  - [Expected returns](#Expected-returns)
-  - [Risk models (covariance)](#Risk-models-covariance)
-  - [Objective functions](#Objective-functions)
-  - [Optional parameters](#Optional-parameters)
-- [Advantages over existing implementations](#Advantages-over-existing-implementations)
-- [Project principles and design decisions](#Project-principles-and-design-decisions)
-- [Roadmap](#Roadmap)
-- [Testing](#Testing)
-- [Contributing](#Contributing)
+- [Table of contents](#table-of-contents)
+- [Getting started](#getting-started)
+  - [For development](#for-development)
+- [A quick example](#a-quick-example)
+- [An overview of classical portfolio optimisation methods](#an-overview-of-classical-portfolio-optimisation-methods)
+- [Features](#features)
+  - [Expected returns](#expected-returns)
+  - [Risk models (covariance)](#risk-models-covariance)
+  - [Objective functions](#objective-functions)
+  - [Optional parameters](#optional-parameters)
+- [Advantages over existing implementations](#advantages-over-existing-implementations)
+- [Project principles and design decisions](#project-principles-and-design-decisions)
+- [Roadmap](#roadmap)
+- [Testing](#testing)
+- [Contributing](#contributing)
 
 ## Getting started
 
