@@ -45,7 +45,7 @@ def sample_cov(prices, frequency=252):
     return daily_returns.cov() * frequency
 
 
-def semicovariance(prices, benchmark=0.02, frequency=252):
+def semicovariance(prices, benchmark=0.000079, frequency=252):
     """
     Estimate the semicovariance matrix, i.e the covariance given that
     the returns are less than the benchmark.
@@ -55,10 +55,12 @@ def semicovariance(prices, benchmark=0.02, frequency=252):
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
-    :param benchmark: the benchmark return, defaults to the risk-free rate.
+    :param benchmark: the benchmark return, defaults to the daily risk-free rate, i.e
+                      :math:`1.02^{(1/252)} -1`.
     :type benchmark: float
     :param frequency: number of time periods in a year, defaults to 252 (the number
-                      of trading days in a year)
+                      of trading days in a year). Ensure that you use the appropriate
+                      benchmark, e.g if ``frequency=12`` use the monthly risk-free rate.
     :type frequency: int, optional
     :return: semicovariance matrix
     :rtype: pd.DataFrame
