@@ -89,7 +89,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         as it is the tangent to the efficient frontier curve that intercepts the risk-free
         rate.
 
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                               The period of the risk-free rate should correspond to the
+                               frequency of expected returns.
         :type risk_free_rate: float, optional
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the Sharpe-maximising portfolio
@@ -158,7 +160,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
         :param target_risk: the desired volatility of the resulting portfolio.
         :type target_risk: float
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                               The period of the risk-free rate should correspond to the
+                               frequency of expected returns.
         :type risk_free_rate: float, optional
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
@@ -261,7 +265,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                               The period of the risk-free rate should correspond to the
+                               frequency of expected returns.
         :type risk_free_rate: float, optional
         :raises ValueError: if weights have not been calcualted yet
         :return: expected return, volatility, Sharpe ratio.

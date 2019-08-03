@@ -50,7 +50,9 @@ def negative_sharpe(
     :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                     non-negligible weights
     :type gamma: float, optional
-    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                           The period of the risk-free rate should correspond to the
+                           frequency of expected returns.
     :type risk_free_rate: float, optional
     :return: negative Sharpe ratio
     :rtype: float
