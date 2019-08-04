@@ -83,13 +83,14 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             warnings.warn("in most cases, gamma should be positive", UserWarning)
         self.gamma = gamma
 
-    def max_sharpe(self, risk_free_rate=0.02):
+    def max_sharpe(self, risk_free_rate=0.000079):
         """
         Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
         as it is the tangent to the efficient frontier curve that intercepts the risk-free
         rate.
 
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults 0.000079, equivalent
+                               to a yearly rate of 0.02 (:math:`(1 + 0.02)^{(1/252)} - 1`).
         :type risk_free_rate: float, optional
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the Sharpe-maximising portfolio
