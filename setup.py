@@ -43,6 +43,6 @@ setup(
     project_urls={
         "Documentation": "https://pyportfolioopt.readthedocs.io/en/latest/",
         "Issues": "https://github.com/robertmartin8/PyPortfolioOpt/issues",
-        "Personal website": "https://reasonabledeviations.science",
+        "Personal website": "https://reasonabledeviations.com",
     },
 )

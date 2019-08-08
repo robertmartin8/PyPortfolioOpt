@@ -29,7 +29,7 @@ packages = [ {include = "pypfopt"} ]
 
 [tool.poetry.urls]
 "Issues" = "https://github.com/robertmartin8/PyPortfolioOpt/issues"
-"Personal website" = "https://reasonabledeviations.science"
+"Personal website" = "https://reasonabledeviations.com"
 
 [tool.poetry.dependencies]
 python = "^3.4"

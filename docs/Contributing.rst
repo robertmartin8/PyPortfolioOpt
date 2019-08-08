@@ -66,7 +66,7 @@ If you have any questions related to the project, it is probably best to
 I will tag it as a question.
 
 If you have questions *unrelated* to the project, drop me an email - contact
-details can be found on my `website <https://reasonabledeviations.science/about/>`_.
+details can be found on my `website <https://reasonabledeviations.com/about/>`_.
 
 Bugs/issues
 ===========
