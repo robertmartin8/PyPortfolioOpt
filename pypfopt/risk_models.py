@@ -17,6 +17,8 @@ The format of the data input is the same as that in :ref:`expected-returns`.
     - manual shrinkage
     - Ledoit Wolf shrinkage
     - Oracle Approximating shrinkage
+
+- covariance to correlation matrix
 """
 import warnings
 import numpy as np
@@ -150,6 +152,24 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     X = np.nan_to_num(X.values)
     raw_cov_array = sklearn.covariance.fast_mcd(X, random_state=random_state)[1]
     return pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
+
+
+def cov_to_corr(cov_matrix):
+    """
+    Convert a covariance matrix to a correlation matrix.
+
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: pd.DataFrame
+    :return: correlation matrix
+    :rtype: pd.DataFrame
+    """
+    if not isinstance(cov_matrix, pd.DataFrame):
+        warnings.warn("cov_matrix is not a dataframe", RuntimeWarning)
+        cov_matrix = pd.DataFrame(cov_matrix)
+
+    Dinv = np.diag(1 / np.sqrt(np.diag(cov_matrix)))
+    corr = np.dot(Dinv, np.dot(cov_matrix, Dinv))
+    return pd.DataFrame(corr, index=cov_matrix.index, columns=cov_matrix.index)
 
 
 class CovarianceShrinkage:

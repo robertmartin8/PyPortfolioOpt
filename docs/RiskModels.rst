@@ -83,6 +83,13 @@ covariance.
         :py:mod:`sklearn.covariance` module, which is based on the algorithm presented in
         Rousseeuw 1999 [4]_.
 
+    .. autofunction:: cov_to_corr
+
+        .. note::
+
+            This is especially useful when it comes to visualise the 'correlation matrices' that
+            are associated with (shrunk) covariance matrices, using Matplotlib's ``imshow`` or
+            Seaborn's ``heatmap``.
 
 Shrinkage estimators
 ====================
