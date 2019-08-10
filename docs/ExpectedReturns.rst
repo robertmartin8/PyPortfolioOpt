@@ -42,3 +42,7 @@ superior models and feed them into the optimiser.
         Generally, I would err on the side of a higher span – in the limit, this tends towards
         the mean historical return. However, if you plan on rebalancing much more frequently,
         there is a case to be made for lowering the span in order to capture recent trends.
+
+    .. autofunction:: returns_from_prices
+
+    .. autofunction:: prices_from_returns
