@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v0.4.2-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v0.4.3-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -48,11 +48,13 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
   - [Risk models (covariance)](#risk-models-covariance)
   - [Objective functions](#objective-functions)
   - [Optional parameters](#optional-parameters)
+  - [Other optimisers](#other-optimisers)
 - [Advantages over existing implementations](#advantages-over-existing-implementations)
 - [Project principles and design decisions](#project-principles-and-design-decisions)
 - [Roadmap](#roadmap)
 - [Testing](#testing)
 - [Contributing](#contributing)
+- [Getting in touch](#getting-in-touch)
 
 ## Getting started
 
@@ -145,19 +147,22 @@ Sharpe Ratio: 1.43
 Instead of just stopping here, PyPortfolioOpt provides a method which allows you to convert the above continuous weights to an actual allocation that you could buy. Just enter the most recent prices, and the desired portfolio size ($10000 in this example):
 
 ```python
-from pypfopt import discrete_allocation
+from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
 
-latest_prices = discrete_allocation.get_latest_prices(df)
-allocation, leftover = discrete_allocation.portfolio(
-    weights, latest_prices, total_portfolio_value=10000
-)
-print(allocation)
+
+latest_prices = get_latest_prices(df)
+
+da = DiscreteAllocation(weights, latest_prices, total_portfolio_value=10000)
+allocation, leftover = da.lp_portfolio()
+print("Discrete allocation:", allocation)
 print("Funds remaining: ${:.2f}".format(leftover))
 ```
 
 ```txt
-{'MA': 14, 'FB': 12, 'PFE': 51, 'BABA': 5, 'AAPL': 5, 'AMZN': 0, 'BBY': 9, 'SBUX': 6, 'GOOG': 1}
-Funds remaining: $12.15
+11 out of 20 tickers were removed
+Discrete allocation: {'GOOG': 0, 'AAPL': 5, 'FB': 11, 'BABA': 5, 'AMZN': 1,
+                      'BBY': 7, 'MA': 14, 'PFE': 50, 'SBUX': 5}
+Funds remaining: $8.42
 ```
 
 *Disclaimer: nothing about this project constitues investment advice, and the author bears no responsibiltiy for your subsequent investment decisions. Please refer to the [license](https://github.com/robertmartin8/PyPortfolioOpt/blob/master/LICENSE.txt) for more information.*
@@ -177,7 +182,7 @@ Thus this project provides four major sets of functionality (though of course th
 
 ## Features
 
-In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. Full examples are offered in `examples.py`.
+In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. More examples are offered in `examples.py`.
 
 A far more comprehensive version of this can be found on [ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/), as well as possible extensions for more advanced users.
 
@@ -203,7 +208,7 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
 - Exponential covariance: an improvement over sample covariance that gives more weight to recent data
 - Covariance shrinkage: techniques that involve combining the sample covariance matrix with a structured estimator, in order to reduce the effect of erroneous weights. PyPortfolioOpt provides wrappers around the efficient vectorised implementations provided by `sklearn.covariance`.
     - manual shrinkage
-    - Ledoit Wolf shrinkage, which chooses an optimal shrinkage parameter
+    - Ledoit Wolf shrinkage, which chooses an optimal shrinkage parameter. We offer three shrinkage targets: `constant_variance`, `single_factor`, and `constant_correlation`.
     - Oracle Approximating Shrinkage
 - Minimum Covariance Determinant:
     - a robust estimate of the covariance
@@ -245,6 +250,15 @@ ef = EfficientFrontier(mu, S, gamma=1)
 ef.max_sharpe()
 ```
 
+### Other optimisers
+
+The features above mostly pertain to efficient frontier optimisation via quadratic programming. However, we offer different optimisers as well:
+
+- Hierarchical Risk Parity, using clustering algorithms to choose uncorrelated assets
+- Markowitz's critical line algorithm (CLA)
+
+Please refer to the [documentation](https://pyportfolioopt.readthedocs.io/en/latest/OtherOptimisers.html) for more.
+
 ## Advantages over existing implementations
 
 - Includes both classical methods (Markowitz 1952), suggested best practices
@@ -278,9 +292,7 @@ Feel free to raise an issue requesting any new features – here are some of the
 - More optimisation goals, including the Calmar Ratio, Sortino Ratio, etc.
 - Monte Carlo optimisation with custom distributions
 - Black-Litterman portfolio selection
-- Open-source backtests using either [Backtrader](https://www.backtrader.com/) or [Zipline](https://github.com/quantopian/zipline).
-- Genetic optimisation methods
-- Further support for different risk/return models, including constant correlation shrinkage.
+- Improved CVaR optimisation using linear programming.
 
 ## Testing
 
@@ -306,3 +318,7 @@ been tested to work as intended.
 ## Contributing
 
 Contributions are *most welcome*. Have a look at the [Contribution Guide](https://github.com/robertmartin8/PyPortfolioOpt/blob/master/CONTRIBUTING.md) for more.
+
+## Getting in touch
+
+If you would like to reach out for any reason, be it consulting opportunities or just for a chat, please do so via the [form](https://reasonabledeviations.com/about/) on my website.

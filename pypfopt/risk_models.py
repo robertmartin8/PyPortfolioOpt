@@ -17,6 +17,8 @@ The format of the data input is the same as that in :ref:`expected-returns`.
     - manual shrinkage
     - Ledoit Wolf shrinkage
     - Oracle Approximating shrinkage
+
+- covariance to correlation matrix
 """
 import warnings
 import numpy as np
@@ -152,6 +154,24 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     return pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
 
 
+def cov_to_corr(cov_matrix):
+    """
+    Convert a covariance matrix to a correlation matrix.
+
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: pd.DataFrame
+    :return: correlation matrix
+    :rtype: pd.DataFrame
+    """
+    if not isinstance(cov_matrix, pd.DataFrame):
+        warnings.warn("cov_matrix is not a dataframe", RuntimeWarning)
+        cov_matrix = pd.DataFrame(cov_matrix)
+
+    Dinv = np.diag(1 / np.sqrt(np.diag(cov_matrix)))
+    corr = np.dot(Dinv, np.dot(cov_matrix, Dinv))
+    return pd.DataFrame(corr, index=cov_matrix.index, columns=cov_matrix.index)
+
+
 class CovarianceShrinkage:
     """
     Provide methods for computing shrinkage estimates of the covariance matrix, using the
@@ -221,7 +241,9 @@ class CovarianceShrinkage:
         Calculate the Ledoit-Wolf shrinkage estimate for a particular
         shrinkage target.
 
-        :param shrinkage_target: choice of shrinkage target, defaults to "constant_variance"
+        :param shrinkage_target: choice of shrinkage target, either ``constant_variance``,
+                                 ``single_factor`` or ``constant_correlation``. Defaults to
+                                 ``constant_variance``.
         :type shrinkage_target: str, optional
         :raises NotImplementedError: if the shrinkage_target is unrecognised
         :return: shrunk sample covariance matrix

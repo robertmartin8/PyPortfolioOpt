@@ -30,7 +30,7 @@ I would appreciate if changes are accompanied by relevant documentation – it d
 
 If you have any questions related to the project, it is probably easiest to [raise an issue](https://github.com/robertmartin8/PyPortfolioOpt/issues), and I will tag it as a question.
 
-If you have questions unrelated to the project, drop me an email – contact details can be found on my [website](https://reasonabledeviations.science/about/)
+If you have questions unrelated to the project, drop me an email – contact details can be found on my [website](https://reasonabledeviations.com/about/)
 
 ## Bugs/issues
 

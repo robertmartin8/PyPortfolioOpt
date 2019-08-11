@@ -116,6 +116,20 @@ def test_min_cov_det():
     pd.testing.assert_frame_equal(S / 126, S2)
 
 
+def test_cov_to_corr():
+    df = get_data()
+    rets = risk_models.returns_from_prices(df).dropna()
+    test_corr = risk_models.cov_to_corr(rets.cov())
+    pd.testing.assert_frame_equal(test_corr, rets.corr())
+
+    with warnings.catch_warnings(record=True) as w:
+        test_corr_numpy = risk_models.cov_to_corr(rets.cov().values)
+        assert len(w) == 1
+        assert issubclass(w[0].category, RuntimeWarning)
+        assert str(w[0].message) == "cov_matrix is not a dataframe"
+        np.testing.assert_array_almost_equal(test_corr_numpy, rets.corr().values)
+
+
 def test_covariance_shrinkage_init():
     df = get_data()
     cs = risk_models.CovarianceShrinkage(df)

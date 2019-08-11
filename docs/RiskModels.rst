@@ -73,7 +73,7 @@ covariance.
         recent data when calculating covariance, in the same way that the exponential
         moving average price is often preferred to the simple average price. For a full
         explanation of how this estimator works, please refer to the
-        `blog post <http://reasonabledeviations.science/2018/08/15/exponential-covariance/>`_
+        `blog post <http://reasonabledeviations.com/2018/08/15/exponential-covariance/>`_
         on my academic website.
 
     .. autofunction:: min_cov_determinant
@@ -83,6 +83,13 @@ covariance.
         :py:mod:`sklearn.covariance` module, which is based on the algorithm presented in
         Rousseeuw 1999 [4]_.
 
+    .. autofunction:: cov_to_corr
+
+        .. note::
+
+            This is especially useful when it comes to visualise the 'correlation matrices' that
+            are associated with (shrunk) covariance matrices, using Matplotlib's ``imshow`` or
+            Seaborn's ``heatmap``.
 
 Shrinkage estimators
 ====================
@@ -91,7 +98,7 @@ A great starting point for those interested in understanding shrinkage estimator
 *Honey, I Shrunk the Sample Covariance Matrix* [5]_ by Ledoit and Wolf, which does a
 good job at capturing the intuition behind them – we will adopt the
 notation used therein. I have written a summary of this article, which is available
-on my `website <https://reasonabledeviations.science/notes/papers/ledoit_wolf_covariance/>`_.
+on my `website <https://reasonabledeviations.com/notes/papers/ledoit_wolf_covariance/>`_.
 A more rigorous reference can be found in Ledoit and Wolf (2001) [6]_.
 
 The essential idea is that the unbiased but often poorly estimated sample covariance can be

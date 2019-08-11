@@ -3,14 +3,15 @@ import numpy as np
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt import risk_models
 from pypfopt import expected_returns
-from pypfopt.hierarchical_risk_parity import hrp_portfolio
 from pypfopt.value_at_risk import CVAROpt
-from pypfopt import discrete_allocation
+from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
+from pypfopt.hierarchical_risk_parity import HRPOpt
+from pypfopt.cla import CLA
 
 
 # Reading in the data; preparing expected returns and a risk model
 df = pd.read_csv("tests/stock_prices.csv", parse_dates=True, index_col="date")
-returns = df.pct_change().dropna(how="all")
+returns = df.pct_change().dropna()
 mu = expected_returns.mean_historical_return(df)
 S = risk_models.sample_cov(df)
 
@@ -18,8 +19,10 @@ S = risk_models.sample_cov(df)
 ef = EfficientFrontier(mu, S)
 weights = ef.max_sharpe()
 ef.portfolio_performance(verbose=True)
-latest_prices = discrete_allocation.get_latest_prices(df)
-allocation, leftover = discrete_allocation.portfolio(weights, latest_prices)
+latest_prices = get_latest_prices(df)
+
+da = DiscreteAllocation(weights, latest_prices)
+allocation, leftover = da.lp_portfolio()
 print("Discrete allocation:", allocation)
 print("Funds remaining: ${:.2f}".format(leftover))
 
@@ -28,9 +31,10 @@ Expected annual return: 33.0%
 Annual volatility: 21.7%
 Sharpe Ratio: 1.43
 
-Discrete allocation: {'MA': 14, 'FB': 12, 'PFE': 51, 'BABA': 5, 'AAPL': 5,
-                      'AMZN': 0, 'BBY': 9, 'SBUX': 6, 'GOOG': 1}
-Funds remaining: $12.15
+11 out of 20 tickers were removed
+Discrete allocation: {'GOOG': 0, 'AAPL': 5, 'FB': 11, 'BABA': 5, 'AMZN': 1,
+                      'BBY': 7, 'MA': 14, 'PFE': 50, 'SBUX': 5}
+Funds remaining: $8.42
 """
 
 # Long-only minimum volatility portfolio, with a weight cap and regularisation
@@ -121,7 +125,7 @@ Annual volatility: 24.7%
 Sharpe Ratio: 1.39
 """
 
-# CVaR optimisation
+# CVaR optimisation - very buggy
 vr = CVAROpt(returns)
 vr.min_cvar()
 print(vr.clean_weights())
@@ -151,7 +155,8 @@ print(vr.clean_weights())
 
 
 # Hierarchical risk parity
-weights = hrp_portfolio(returns)
+hrp = HRPOpt(returns)
+weights = hrp.hrp_portfolio()
 print(weights)
 
 """
@@ -175,4 +180,37 @@ print(weights)
  'UAA': 0.02711590957075009,
  'WMT': 0.10569551148587905,
  'XOM': 0.11175337115721229}
+"""
+
+
+# Crticial Line Algorithm
+cla = CLA(mu, S)
+print(cla.max_sharpe())
+cla.portfolio_performance(verbose=True)
+
+"""
+{'GOOG': 0.020889868669945022,
+ 'AAPL': 0.08867994115132602,
+ 'FB': 0.19417572932251745,
+ 'BABA': 0.10492386821217001,
+ 'AMZN': 0.0644908140418782,
+ 'GE': 0.0,
+ 'AMD': 0.0,
+ 'WMT': 0.0034898157701416382,
+ 'BAC': 0.0,
+ 'GM': 0.0,
+ 'T': 2.4138966206946562e-19,
+ 'UAA': 0.0,
+ 'SHLD': 0.0,
+ 'XOM': 0.0005100736411646903,
+ 'RRC': 0.0,
+ 'BBY': 0.05967818998203106,
+ 'MA': 0.23089949598834422,
+ 'PFE': 0.19125123325029705,
+ 'JPM': 0.0,
+ 'SBUX': 0.041010969970184656}
+
+Expected annual return: 32.5%
+Annual volatility: 21.3%
+Sharpe Ratio: 1.43
 """

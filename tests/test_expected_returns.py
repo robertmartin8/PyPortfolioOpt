@@ -15,6 +15,19 @@ def test_returns_dataframe():
     assert not ((returns_df > 1) & returns_df.notnull()).any().any()
 
 
+def test_prices_from_returns():
+    df = get_data()
+    returns_df = df.pct_change()  # keep NaN row
+
+    # convert pseudo-price to price
+    pseudo_prices = expected_returns.prices_from_returns(returns_df)
+    initial_prices = df.bfill().iloc[0]
+    test_prices = pseudo_prices * initial_prices
+
+    # check equality, robust to floating point issues
+    assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-10).all().all()
+
+
 def test_mean_historical_returns_dummy():
     data = pd.DataFrame(
         [
