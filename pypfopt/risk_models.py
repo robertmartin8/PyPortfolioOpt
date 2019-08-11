@@ -241,7 +241,9 @@ class CovarianceShrinkage:
         Calculate the Ledoit-Wolf shrinkage estimate for a particular
         shrinkage target.
 
-        :param shrinkage_target: choice of shrinkage target, defaults to "constant_variance"
+        :param shrinkage_target: choice of shrinkage target, either ``constant_variance``,
+                                 ``single_factor`` or ``constant_correlation``. Defaults to
+                                 ``constant_variance``.
         :type shrinkage_target: str, optional
         :raises NotImplementedError: if the shrinkage_target is unrecognised
         :return: shrunk sample covariance matrix

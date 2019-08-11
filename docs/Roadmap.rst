@@ -23,6 +23,13 @@ have any other feature requests, please raise them using GitHub
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Further support for different risk/return models
 
+0.4.3
+-----
+
+- Added ``prices_from_returns`` utility function and provided better docs for ``returns_from_prices``.
+- Added ``cov_to_corr`` method to produce correlation matrices from covariance matrices.
+- Fixed readme examples.
+
 0.4.2
 -----
 

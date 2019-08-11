@@ -290,7 +290,8 @@ should you try?
 
 This concludes the guided tour. Head over to the appropriate sections
 in the sidebar to learn more about the parameters and theoretical details of the
-different functionality offered by PyPortfolioOpt.
+different functionality offered by PyPortfolioOpt. If you have any questions, please
+raise an issue on GitHub and I will try to respond promptly.
 
 
 References
