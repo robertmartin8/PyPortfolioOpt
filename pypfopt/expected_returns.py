@@ -18,6 +18,7 @@ Additionally, we provide utility functions to convert from returns to prices and
 """
 
 import warnings
+import numpy as np
 import pandas as pd
 
 
@@ -91,3 +92,39 @@ def ema_historical_return(prices, frequency=252, span=500):
         prices = pd.DataFrame(prices)
     daily_returns = returns_from_prices(prices)
     return daily_returns.ewm(span=span).mean().iloc[-1] * frequency
+
+
+def black_litterman_return(Pi, Sigma, Q, Omega=None, P=None, tau=0.05):
+    r"""
+    Calculate the expected return according to the Black-Litterman model.
+
+    This function receives a previous estimate of the implied equilibrum return for each asset.
+
+    :param Pi: the implied equilibrum return for each asset
+    :type Pi: pd.Series
+    :param Sigma: the (symmetric) covariance matrix estimate
+    :type Sigma: pd.DataFrame
+    :param Q: the estimated return vector for every different view
+    :type Q: pd.Series
+    :param Omega: a (diagonal) matrix that identifies the uncertainty in the views (default is the diagonal of :math:`\tau P \Sigma P^T`)
+    :type Omega: pd.DataFrame, optional
+    :param P: the matrix that identifies the asset involved in the different views (default is identity)
+    :type P: pd.DataFrame, optional
+    :param tau: the weight-on-views scalar (default is 0.05)
+    :type tau: float, optional
+    :return: the new combined return for each asset
+    :rtype: pd.Series
+    """
+    if P is None:
+        P = np.eye(Sigma.shape[0])
+    if Omega is None:
+        Omega = np.diag(np.diag(tau * P @ Sigma @ P.T))
+
+    Omega_inv = np.diag(1.0 / np.diag(Omega))
+    P_Omega_inv = P.T @ Omega_inv
+    tau_Sigma_inv = np.linalg.inv(tau * Sigma)
+
+    A = tau_Sigma_inv + P_Omega_inv @ P
+    b = tau_Sigma_inv.dot(Pi) + P_Omega_inv.dot(Q)
+    x = np.linalg.solve(A, b)
+    return pd.Series(x, index=Pi.index)

@@ -220,3 +220,13 @@ def test_oracle_approximating():
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
     assert not shrunk_cov.isnull().any().any()
+
+
+def test_black_litterman_cov_default():
+    df = get_data()
+    Sigma = risk_models.CovarianceShrinkage(df).ledoit_wolf()
+    S = risk_models.black_litterman_cov(Sigma)
+    assert S.shape == (20, 20)
+    assert S.index.equals(df.columns)
+    assert S.index.equals(S.columns)
+    assert S.notnull().all().all()

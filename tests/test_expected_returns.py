@@ -1,7 +1,7 @@
 import warnings
 import pandas as pd
 import numpy as np
-from pypfopt import expected_returns
+from pypfopt import expected_returns, risk_models
 from tests.utilities_for_tests import get_data
 
 
@@ -118,3 +118,15 @@ def test_ema_historical_return_limit():
     sma = expected_returns.mean_historical_return(df)
     ema = expected_returns.ema_historical_return(df, span=1e10)
     np.testing.assert_array_almost_equal(ema.values, sma.values)
+
+
+def test_black_litterman_return_default():
+    df = get_data()
+    Pi = expected_returns.ema_historical_return(df)
+    Sigma = risk_models.CovarianceShrinkage(df).ledoit_wolf()
+    Q = pd.Series(0.1, index=Pi.index)
+    mean = expected_returns.black_litterman_return(Pi, Sigma, Q)
+    assert isinstance(mean, pd.Series)
+    assert list(mean.index) == list(df.columns)
+    assert mean.notnull().all()
+    assert mean.dtype == "float64"
