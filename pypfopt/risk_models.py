@@ -154,42 +154,6 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     return pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
 
 
-def black_litterman_cov(Sigma, Omega=None, P=None, tau=0.05):
-    """
-    Calculate the expected posterior covariance matrix according to the Black-Litterman model.
-
-    This function receives a previous estimate of the covariance matrix.
-
-    :param Sigma: the (symmetric) covariance matrix estimate
-    :type Sigma: pd.DataFrame
-    :param Omega: a (diagonal) matrix that identifies the uncertainty in the views (default is the diagonal of :math:`\tau P \Sigma P^T`)
-    :type Omega: pd.DataFrame, optional
-    :param P: the matrix that identifies the asset involved in the different views (default is identity)
-    :type P: pd.DataFrame, optional
-    :param tau: the weight-on-views scalar (default is 0.05)
-    :type tau: float, optional
-    :return: the expected posterior covariance matrix
-    :rtype: pd.DataFrame
-    """
-    if P is None:
-        P = np.eye(Sigma.shape[0])
-    if Omega is None:
-        Omega = np.diag(np.diag(tau * P @ Sigma @ P.T))
-
-    Omega_inv = np.diag(1.0 / np.diag(Omega))
-    P_Omega_inv = P.T @ Omega_inv
-    tau_Sigma_inv = np.linalg.inv(tau * Sigma)
-
-    # # Older method
-    # b = P @ Sigma
-    # A = tau * b @ P.T + Omega
-    # B = b.T @ np.linalg.solve(A, b)
-    # return (1.0 + tau) * Sigma - tau**2 * B
-
-    M = np.linalg.inv(tau_Sigma_inv + P_Omega_inv @ P)
-    return Sigma + M
-
-
 def cov_to_corr(cov_matrix):
     """
     Convert a covariance matrix to a correlation matrix.
