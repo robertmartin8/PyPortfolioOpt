@@ -38,6 +38,12 @@ covariance.
 
 .. automodule:: pypfopt.risk_models
 
+    .. note::
+
+        If you only have returns (no prices), fear not. The ``expected_returns`` module contains
+        a helper function called ``prices_from_returns`` that computes 'pseudoprices' which
+        work with these methods.
+
     .. autofunction:: sample_cov
 
         This is the textbook default approach. The
