@@ -10,61 +10,16 @@ of alternative optimisation schemes. PyPortfolioOpt implements some of these,
 though please note that the implementations may be slightly unstable.
 
 .. note::
-    As of v0.4, these other optimisers now inherits from ``BaseOptimizer`` or
+    As of v0.4, these other optimisers now inherit from ``BaseOptimizer`` or
     ``BaseScipyOptimizer``, so you no longer have to implement pre-processing and
     post-processing methods on your own. You can thus easily swap out, say,
     ``EfficientFrontier`` for ``HRPOpt``.
-
-Value-at-Risk
-=============
-
-The value-at-risk is a measure of tail risk that estimates how much a portfolio
-will lose in a day with a given probability. Alternatively, it is the maximum
-loss with a confidence of beta. In fact, a more useful measure is the
-**expected shortfall**, or **conditional value-at-risk** (CVaR), which is the
-mean of all losses so severe that they only occur with a probability
-:math:`1-\beta`.
-
-.. math::
-    CVaR_\beta = \frac{1}{1-\beta} \int_0^{1-\beta} VaR_\gamma(X) d\gamma
-
-To approximate the CVaR for a portfolio, we will follow these steps:
-
-1. Generate the portfolio returns, i.e the weighted sum of individual asset returns.
-2. Fit a Gaussian KDE to these returns, then resample.
-3. Compute the value-at-risk as the :math:`1-\beta` quantile of sampled returns.
-4. Calculate the mean of all the sample returns that are below the value-at-risk.
-
-Though CVaR optimisation can be transformed into a linear programming problem [1]_, I
-have opted to keep things simple using the `NoisyOpt <https://noisyopt.readthedocs.io/en/latest/>`_
-library, which is suited for optimising noisy functions.
-
-.. warning::
-    Caveat emptor: this functionality is still experimental. Although I have
-    used the CVaR optimisation, I've noticed that it is very inconsistent
-    (which to some extent is expected because of its stochastic nature).
-    However, the optimiser doesn't always find a minimum, and it fails
-    silently. Additionally, the weight bounds are not treated as hard bounds.
-
-
-.. automodule:: pypfopt.value_at_risk
-
-    .. autoclass:: CVAROpt
-        :members:
-
-        .. automethod:: __init__
-
-    .. caution::
-        Currently, we have not implemented any performance function. If you
-        would like to calculate the actual CVaR of the resulting portfolio,
-        please import the function from `objective_functions`.
-
 
 Hierarchical Risk Parity (HRP)
 ==============================
 
 Hierarchical Risk Parity is a novel portfolio optimisation method developed by
-Marcos Lopez de Prado [2]_. Though a detailed explanation can be found in the
+Marcos Lopez de Prado [1]_. Though a detailed explanation can be found in the
 linked paper, here is a rough overview of how HRP works:
 
 
@@ -104,7 +59,7 @@ number of iterations, and can efficiently derive the entire efficient frontier.
     In general, unless you have specific requirements e.g you would like to efficiently compute the entire
     efficient frontier for plotting, I would go with the standard ``EfficientFrontier`` optimiser.
 
-I am most grateful to Marcos López de Prado and David Bailey for providing the implementation [3]_.
+I am most grateful to Marcos López de Prado and David Bailey for providing the implementation [2]_.
 Permission for its distribution has been received by email. It has been modified such that it has
 the same API, though as of v0.5.0 we only support ``max_sharpe()`` and ``min_volatility()``.
 
@@ -143,9 +98,57 @@ with ``portfolio_performance()`` and post-processing methods.
 
         .. automethod:: __init__
 
+Value-at-Risk
+=============
+
+.. warning::
+    Caveat emptor: this functionality is still experimental. Although I have
+    used the CVaR optimisation, I've noticed that it is very inconsistent
+    (which to some extent is expected because of its stochastic nature).
+    However, the optimiser doesn't always find a minimum, and it fails
+    silently. Additionally, the weight bounds are not treated as hard bounds.
+
+
+The value-at-risk is a measure of tail risk that estimates how much a portfolio
+will lose in a day with a given probability. Alternatively, it is the maximum
+loss with a confidence of beta. In fact, a more useful measure is the
+**expected shortfall**, or **conditional value-at-risk** (CVaR), which is the
+mean of all losses so severe that they only occur with a probability
+:math:`1-\beta`.
+
+.. math::
+    CVaR_\beta = \frac{1}{1-\beta} \int_0^{1-\beta} VaR_\gamma(X) d\gamma
+
+To approximate the CVaR for a portfolio, we will follow these steps:
+
+1. Generate the portfolio returns, i.e the weighted sum of individual asset returns.
+2. Fit a Gaussian KDE to these returns, then resample.
+3. Compute the value-at-risk as the :math:`1-\beta` quantile of sampled returns.
+4. Calculate the mean of all the sample returns that are below the value-at-risk.
+
+Though CVaR optimisation can be transformed into a linear programming problem [3]_, I
+have opted to keep things simple using the `NoisyOpt <https://noisyopt.readthedocs.io/en/latest/>`_
+library, which is suited for optimising noisy functions.
+
+
+.. automodule:: pypfopt.value_at_risk
+
+    .. autoclass:: CVAROpt
+        :members:
+
+        .. automethod:: __init__
+
+    .. caution::
+        Currently, we have not implemented any performance function. If you
+        would like to calculate the actual CVaR of the resulting portfolio,
+        please import the function from `objective_functions`.
+
+
+
+
 References
 ==========
 
-.. [1] Rockafellar and Uryasev (2011) `Optimization of conditional value-at-risk <http://www.ise.ufl.edu/uryasev/files/2011/11/CVaR1_JOR.pdf>`_.
-.. [2] López de Prado, M. (2016). `Building Diversified Portfolios that Outperform Out of Sample <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2708678>`_. The Journal of Portfolio Management, 42(4), 59–69.
-.. [3] Bailey and Loópez de Prado (2013). `An Open-Source Implementation of the Critical-Line Algorithm for Portfolio Optimization <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2197616>`_ 
+.. [1] López de Prado, M. (2016). `Building Diversified Portfolios that Outperform Out of Sample <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2708678>`_. The Journal of Portfolio Management, 42(4), 59–69.
+.. [2] Bailey and Loópez de Prado (2013). `An Open-Source Implementation of the Critical-Line Algorithm for Portfolio Optimization <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2197616>`_ 
+.. [3] Rockafellar and Uryasev (2011) `Optimization of conditional value-at-risk <http://www.ise.ufl.edu/uryasev/files/2011/11/CVaR1_JOR.pdf>`_.

@@ -7,7 +7,7 @@ in a broad range of quantitative topics, including physics, statistics, finance 
 computer science (and the intersection between them). For more about me, please head
 over to my `website <https://reasonabledeviations.com>`_.
 
-I learn fastest when making real projects. A few months back I began seriously trying
+I learn fastest when making real projects. In early 2018 I began seriously trying
 to self-educate on certain topics in quantitative finance, and mean-variance
 optimisation is one of the cornerstones of this field. I read quite a few journal
 articles and explanations but ultimately felt that a real proof of understanding would

@@ -26,9 +26,16 @@
 
 <!-- content -->
 
-PyPortfolioOpt is a library that implements widely-used classical portfolio optimisation techniques, with a number of experimental features. It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious practitioner.
+PyPortfolioOpt is a library that implements portfolio optimisation methods, including
+classical efficient frontier techniques and Black-Litterman allocation, as well as more
+recent developments in the field like shrinkage and Hierarchical Risk Parity, along with
+some novel experimental features like exponentially-weighted covariance matrices.
 
-Whether you are a fundamentals-oriented investor who has identified a handful of undervalued picks, or an algorithmic trader who has a basket of interesting signals, PyPortfolioOpt can help you combine your alpha-generators in a risk-efficient way.
+It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious
+practitioner. Whether you are a fundamentals-oriented investor who has identified a
+handful of undervalued picks, or an algorithmic trader who has a basket of
+interesting signals, PyPortfolioOpt can help you combine your alpha-generators
+in a risk-efficient way.
 
 Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/) to get an in-depth look at the project, or continue below to check out some examples.
 
@@ -47,7 +54,8 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
   - [Expected returns](#expected-returns)
   - [Risk models (covariance)](#risk-models-covariance)
   - [Objective functions](#objective-functions)
-  - [Optional parameters](#optional-parameters)
+  - [Efficient Frontier hyperparameters](#efficient-frontier-hyperparameters)
+  - [Black-Litterman allocation](#black-litterman-allocation)
   - [Other optimisers](#other-optimisers)
 - [Advantages over existing implementations](#advantages-over-existing-implementations)
 - [Project principles and design decisions](#project-principles-and-design-decisions)
@@ -92,7 +100,7 @@ pip install -e git+https://github.com/robertmartin8/PyPortfolioOpt.git
 
 ## A quick example
 
-Here is an example on real life stock data, demonstrating how easy it is to find the long-only portfolio that maximises the Sharpe ratio (a measure of risk adjusted returns).
+Here is an example on real life stock data, demonstrating how easy it is to find the long-only portfolio that maximises the Sharpe ratio (a measure of risk-adjusted returns).
 
 ```python
 import pandas as pd
@@ -182,7 +190,8 @@ Thus this project provides four major sets of functionality (though of course th
 
 ## Features
 
-In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. More examples are offered in `examples.py`.
+In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. More examples are offered in `examples.py`, but in my opinion the best resource
+to understand PyPortfolioOpt is the [tests](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests).
 
 A far more comprehensive version of this can be found on [ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/), as well as possible extensions for more advanced users.
 
@@ -220,9 +229,9 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
 - Minimum volatility. This may be useful if you're trying to get an idea of how low the volatility *could* be, but in practice it makes a lot more sense to me to use the portfolio that maximises the Sharpe ratio.
 - Efficient return, a.k.a. the Markowitz portfolio, which minimises risk for a given target return – this was the main focus of Markowitz 1952
 - Efficient risk: the Sharpe-maximising portfolio for a given target risk.
-- Condiitional value-at-risk: a measure of tail loss
+- Conditional value-at-risk: a measure of tail loss
 
-### Optional parameters
+### Efficient Frontier hyperparameters
 
 - Long/short: by default all of the mean-variance optimisation methods in PyPortfolioOpt are long-only, but they can be initialised to allow for short positions by changing the weight bounds:
 
@@ -250,6 +259,21 @@ ef = EfficientFrontier(mu, S, gamma=1)
 ef.max_sharpe()
 ```
 
+### Black-Litterman allocation
+
+As of v0.5.0, we now support Black-Litterman asset allocation, which allows you to combine
+a prior estimate of returns (e.g the market-implied returns) with your own views to form a
+posterior estimate. This results in much better estimates of expected returns than just using
+the mean historical return. Check out the [docs](https://pyportfolioopt.readthedocs.io/en/latest/BlackLitterman.html) for a discussion of the theory, as well as advice
+on formatting inputs.
+
+```python
+S = risk_models.sample_cov(df)
+viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
+bl = BlackLittermanModel(S, absolute_views=viewdict)
+rets = bl.bl_returns()
+```
+
 ### Other optimisers
 
 The features above mostly pertain to efficient frontier optimisation via quadratic programming. However, we offer different optimisers as well:
@@ -266,7 +290,7 @@ Please refer to the [documentation](https://pyportfolioopt.readthedocs.io/en/lat
   features, like L2 regularisation, shrunk covariance, hierarchical risk parity.
 - Native support for pandas dataframes: easily input your daily prices data.
 - Extensive practical tests, which use real-life data.
-- Easy to combine with your own proprietary strategies and models.
+- Easy to combine with your proprietary strategies and models.
 - Robust to missing data, and price-series of different lengths (e.g FB data
   only goes back to 2012 whereas AAPL data goes back to 1980).
 
