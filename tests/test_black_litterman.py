@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from pypfopt import black_litterman
 from pypfopt.black_litterman import BlackLittermanModel
 from pypfopt import risk_models, expected_returns
 from tests.utilities_for_tests import get_data
@@ -153,7 +154,27 @@ def test_bl_returns_all_views():
     )
 
 
-def test_black_litterman_cov_default():
+def test_bl_relative_views():
+    df = get_data()
+    S = risk_models.CovarianceShrinkage(df).ledoit_wolf()
+
+    # 1. SBUX will drop by 20%
+    # 2. GOOG outperforms FB by 10%
+    # 3. BAC and JPM will outperform T and GE by 15%
+    views = np.array([-0.20, 0.10, 0.15]).reshape(-1, 1)
+    picking = np.array([
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, -0.5, 0, 0, 0.5, 0, -0.5, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
+        ])
+    bl = BlackLittermanModel(S, Q=views, P=picking)
+    rets = bl.bl_returns()
+    assert rets["SBUX"] < 0
+    assert rets["GOOG"] > rets["FB"]
+    assert (rets["BAC"] > rets["T"]) and (rets["JPM"] > rets["GE"])
+
+
+def test_bl_cov_default():
     df = get_data()
     cov_matrix = risk_models.CovarianceShrinkage(df).ledoit_wolf()
     viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
@@ -165,6 +186,147 @@ def test_black_litterman_cov_default():
     assert S.notnull().all().all()
 
 
+def test_market_risk_aversion():
+    prices = pd.read_csv(
+        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
+    )
+    delta = black_litterman.market_implied_risk_aversion(prices)
+    assert np.round(delta, 5) == 2.68549
+
+    # check it works for df
+    prices = pd.read_csv("tests/spy_prices.csv", parse_dates=True, index_col=0)
+    delta = black_litterman.market_implied_risk_aversion(prices)
+    assert np.round(delta.iloc[0], 5) == 2.68549
+
+
+def test_bl_weights():
+    df = get_data()
+    S = risk_models.sample_cov(df)
+
+    viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
+    bl = BlackLittermanModel(S, absolute_views=viewdict)
+
+    prices = pd.read_csv(
+        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
+    )
+    delta = black_litterman.market_implied_risk_aversion(prices)
+    bl.bl_weights(delta)
+    w = bl.clean_weights()
+    assert abs(sum(w.values()) - 1) < 1e-5
+    # check weights are allocated in same direction as views
+    # (in absence of priors)
+    assert all(viewdict[t] * w[t] >= 0 for t in viewdict)
+
+
+def test_market_implied_prior():
+    df = get_data()
+    S = risk_models.sample_cov(df)
+
+    prices = pd.read_csv(
+        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
+    )
+    delta = black_litterman.market_implied_risk_aversion(prices)
+
+    mcaps = {
+        "GOOG": 927e9,
+        "AAPL": 1.19e12,
+        "FB": 574e9,
+        "BABA": 533e9,
+        "AMZN": 867e9,
+        "GE": 96e9,
+        "AMD": 43e9,
+        "WMT": 339e9,
+        "BAC": 301e9,
+        "GM": 51e9,
+        "T": 61e9,
+        "UAA": 78e9,
+        "SHLD": 0,
+        "XOM": 295e9,
+        "RRC": 1e9,
+        "BBY": 22e9,
+        "MA": 288e9,
+        "PFE": 212e9,
+        "JPM": 422e9,
+        "SBUX": 102e9,
+    }
+    pi = black_litterman.market_implied_prior_returns(mcaps, delta, S)
+
+    assert isinstance(pi, pd.Series)
+    assert list(pi.index) == list(df.columns)
+    assert pi.notnull().all()
+    assert pi.dtype == "float64"
+    np.testing.assert_array_almost_equal(
+        pi.values,
+        np.array(
+            [
+                0.12933293,
+                0.1968623,
+                0.09219185,
+                0.08362374,
+                0.26416295,
+                0.10196098,
+                0.17036819,
+                0.06860159,
+                0.15724273,
+                0.06779627,
+                0.0591797,
+                0.14460474,
+                0.10854665,
+                0.06657863,
+                0.09230036,
+                0.11875465,
+                0.13017163,
+                0.07066484,
+                0.1496369,
+                0.11270213,
+            ]
+        ),
+    )
+
+    mcaps = pd.Series(mcaps)
+    pi2 = black_litterman.market_implied_prior_returns(mcaps, delta, S)
+    pd.testing.assert_series_equal(pi, pi2, check_exact=False)
+
+
 def test_black_litterman_market_prior():
-    # proper test of BL, making sure weights deviate expectedly.
-    pass
+    df = get_data()
+    S = risk_models.sample_cov(df)
+
+    prices = pd.read_csv(
+        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
+    )
+    delta = black_litterman.market_implied_risk_aversion(prices)
+
+    mcaps = {
+        "GOOG": 927e9,
+        "AAPL": 1.19e12,
+        "FB": 574e9,
+        "BABA": 533e9,
+        "AMZN": 867e9,
+        "GE": 96e9,
+        "AMD": 43e9,
+        "WMT": 339e9,
+        "BAC": 301e9,
+        "GM": 51e9,
+        "T": 61e9,
+        "UAA": 78e9,
+        "SHLD": 0,
+        "XOM": 295e9,
+        "RRC": 1e9,
+        "BBY": 22e9,
+        "MA": 288e9,
+        "PFE": 212e9,
+        "JPM": 422e9,
+        "SBUX": 102e9,
+    }
+    prior = black_litterman.market_implied_prior_returns(mcaps, delta, S)
+
+    viewdict = {"GOOG": 0.20, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
+    bl = BlackLittermanModel(S, pi=prior, absolute_views=viewdict)
+    rets = bl.bl_returns()
+
+    # compare posterior with prior
+    for v in viewdict:
+        assert (prior[v] <= rets[v] <= viewdict[v]) or (
+            viewdict[v] <= rets[v] <= prior[v]
+        )

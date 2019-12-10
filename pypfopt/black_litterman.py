@@ -1,6 +1,10 @@
 """
-Module docstring
+The ``black_litterman`` module houses the BlackLittermanModel class, which
+generates posterior estimates of expected returns given a prior estimate and user-supplied
+views. In addition, two utility functions are defined, which calculate:
 
+- market-implied prior estimate of returns
+- market-implied risk-aversion parameter
 """
 import warnings
 import numpy as np
@@ -9,22 +13,90 @@ import pandas as pd
 from . import base_optimizer
 
 
-def market_implied_prior_returns():
-    pass
+def market_implied_prior_returns(market_caps, risk_aversion, cov_matrix):
+    r"""
+    Compute the prior estimate of returns implied by the market weights.
+    In other words, given each asset's contribution to the risk of the market
+    portfolio, how much are we expecting to be compensated?
+
+    .. math::
+
+        \Pi = \delta \Sigma w_{mkt}
+
+    :param market_caps: market capitalisations of all assets
+    :type market_caps: {ticker: cap} dict or pd.Series
+    :param risk_aversion: risk aversion parameter
+    :type risk_aversion: positive float
+    :param cov_matrix: covariance matrix of asset returns
+    :type cov_matrix: pd.DataFrame or np.ndarray
+    :return: prior estimate of returns as implied by the market caps
+    :rtype: pd.Series
+    """
+    mcaps = pd.Series(market_caps)
+    mkt_weights = mcaps / mcaps.sum()
+    return risk_aversion * cov_matrix @ mkt_weights
 
 
-def market_implied_risk_aversion():
-    pass
+def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.02):
+    r"""
+    Calculate the market-implied risk-aversion parameter (i.e market price of risk)
+    based on market prices. For example, if the market has excess returns of 10% a year
+    with 5% variance, the risk-aversion parameter is 2, i.e you have to be compensated 2x
+    the variance.
+
+    .. math::
+
+        \delta = \frac{r - r_f}{\sigma^2}
+
+    :param market_prices: the (daily) prices of the market portfolio, e.g SPY.
+    :type market_prices: pd.Series with DatetimeIndex.
+    :param frequency: number of time periods in a year, defaults to 252 (the number
+                      of trading days in a year)
+    :type frequency: int, optional
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                            The period of the risk-free rate should correspond to the
+                            frequency of expected returns.
+    :type risk_free_rate: float, optional
+    :raises TypeError: if market_prices cannot be parsed
+    """
+    if not isinstance(market_prices, (pd.Series, pd.DataFrame)):
+        raise TypeError("Please format market_prices as a pd.Series")
+    rets = market_prices.pct_change().dropna()
+    r = rets.mean() * frequency
+    var = rets.var() * frequency
+    return (r - risk_free_rate) / var
 
 
 class BlackLittermanModel(base_optimizer.BaseOptimizer):
 
     """
+    An BlackLittermanModel object (inheriting from BaseOptimizer) contains requires
+    a specific input format, specifying the prior, the views, the uncertainty in views,
+    and a picking matrix to map views to the asset universe. We can then compute
+    posterior estimates of returns and covariance. Helper methods have been provided
+    to supply defaults where possible.
+
     Instance variables:
 
-    - ``n_assets``
-    - ``tickers``
-    - ``weights``
+    - Inputs:
+
+        - ``cov_matrix`` - pd.DataFrame
+        - ``n_assets`` - int
+        - ``tickers`` - str list
+        - ``Q`` - np.ndarray
+        - ``P`` - np.ndarray
+        - ``pi`` - np.ndarray
+        - ``omega`` - np.ndarray
+        - ``tau`` - float
+
+    - Output: ``weights`` - {str: float} dict
+
+
+    Public methods:
+
+    - ``bl_returns()`` - posterior estimate of returns
+    - ``bl_cov()`` - posterior estimate of covariance
+    - ``bl_weights()`` - weights implied by posterior returns
     """
 
     def __init__(
@@ -200,5 +272,22 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         posterior_cov = self.cov_matrix + M
         return pd.DataFrame(posterior_cov, index=self.tickers, columns=self.tickers)
 
-    def bl_weights(self):
-        pass
+    def bl_weights(self, risk_aversion):
+        """
+        Compute the weights implied by the posterior returns, given the
+        market price of risk. Technically this can be applied to any
+        estimate of the expected returns, and is in fact a special case
+        of efficient frontier optimisaton.
+
+        .. math::
+
+            w = (\delta \Sigma)^{-1} E(R)
+
+        :param risk_aversion: risk aversion parameter
+        :type risk_aversion: positive float
+        :return: asset weights implied by returns
+        :rtype: dict
+        """
+        raw_weights = np.linalg.inv(risk_aversion * self.cov_matrix) @ self.bl_returns()
+        self.weights = raw_weights / raw_weights.sum()
+        return dict(zip(self.tickers, self.weights))
