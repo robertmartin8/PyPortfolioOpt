@@ -80,20 +80,20 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                 self.P = np.eye(self.n_assets)
             else:
                 raise TypeError("P must be an array or dataframe")
-        print(self.P)
 
         if pi is None:
             warnings.warn("Running Black-Litterman with no prior.")
             self.pi = np.zeros((self.n_assets, 1))
         else:
             if isinstance(pi, (pd.Series, pd.DataFrame)):
-                self.pi = pi.values
+                self.pi = pi.values.reshape(-1, 1)
             elif isinstance(pi, np.ndarray):
-                self.pi = pi
+                self.pi = pi.reshape(-1, 1)
             else:
                 raise TypeError("pi must be an array or series")
-            self.pi = pi
 
+        if tau <= 0 or tau > 1:
+            raise ValueError("tau should be between 0 and 1")
         self.tau = tau
 
         if omega is None:
@@ -106,7 +106,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             elif isinstance(omega, np.ndarray):
                 self.omega = omega
             else:
-                raise TypeError("Omega must be a square array or dataframe")
+                raise TypeError("self.omega must be a square array or dataframe")
 
         # Make sure all dimensions work
         self._check_attribute_dimensions()
@@ -122,6 +122,8 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param absolute_views: absolute views on asset performances
         :type absolute_views: dict, pd.Series
         """
+        if not isinstance(absolute_views, (dict, pd.Series)):
+            raise TypeError("views should be a dict or pd.Series")
         # Coerce to series
         views = pd.Series(absolute_views)
         # Q is easy to construct
@@ -151,7 +153,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
     def _check_attribute_dimensions(self):
         """
         Helper method to ensure that all of the attributes created by the initialiser
-        have the correct dimensions, to avoid linear algebra errors later on
+        have the correct dimensions, to avoid linear algebra errors later on.
 
         :raises ValueError: if there are incorrect dimensions.
         """
@@ -166,6 +168,13 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             raise ValueError("Some of the inputs have incorrect dimensions.")
 
     def bl_returns(self):
+        """
+        Calculate the posterior estimate of the returns vector,
+        given views on some assets.
+
+        :return: posterior returns vector
+        :rtype: pd.Series
+        """
         omega_inv = np.diag(1 / np.diag(self.omega))
         P_omega_inv = self.P.T @ omega_inv
         tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
@@ -176,71 +185,20 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         x = np.linalg.solve(A, b)
         return pd.Series(x.flatten(), index=self.tickers)
 
-    def bl_old(self):
-        """
-        Calculate the Black-Litterman expected returns.
-
-        (all types assumed to be np.ndarray)
-        :param P: picking matrix (K x N)
-        :param Q: views vector (K x 1)
-        :param sigma: cov matrix of excess asset returns (N x N)
-        :param omega: diagonal cov matrix of view errors (K x K)
-        :param pi: prior vector of expected returns (N x 1)
-        :param tau: tuning parameter (scalar constant)
-        :type tau: float, optional
-        :param index: the desired index of the output returns (i.e a list of tickers),
-                      defaults to None
-        :type index: str list, optional
-        :return: BL expected returns for the N assets.
-        :rtype: pd.Series
-        """
-        tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
-        omega_inv = np.diag(
-            1 / np.diag(self.omega)
-        )  # efficient inverse of diagonal matrix
-        p_omega_inv = self.P.T.dot(omega_inv)
-        term1 = np.linalg.inv(tau_sigma_inv + p_omega_inv.dot(self.P))
-        rets = term1.dot(tau_sigma_inv.dot(self.pi) + p_omega_inv.dot(self.Q))
-        return rets
-
     def bl_cov(self):
-        pass
+        """
+        Calculate the posterior estimate of the covariance matrix,
+        given views on some assets. Based on He and Litterman (2002).
+
+        :return: posterior covariance matrix
+        :rtype: pd.DataFrame
+        """
+        omega_inv = np.diag(1.0 / np.diag(self.omega))
+        P_omega_inv = self.P.T @ omega_inv
+        tau_cov_matrix_inv = np.linalg.inv(self.tau * self.cov_matrix)
+        M = np.linalg.inv(tau_cov_matrix_inv + P_omega_inv @ self.P)
+        posterior_cov = self.cov_matrix + M
+        return pd.DataFrame(posterior_cov, index=self.tickers, columns=self.tickers)
 
     def bl_weights(self):
         pass
-
-
-def black_litterman_cov(Sigma, Omega=None, P=None, tau=0.05):
-    r"""
-    Calculate the expected posterior covariance matrix according to the Black-Litterman model.
-
-    This function receives a previous estimate of the covariance matrix.
-
-    :param Sigma: the (symmetric) covariance matrix estimate
-    :type Sigma: pd.DataFrame
-    :param Omega: a (diagonal) matrix that identifies the uncertainty in the views (default is the diagonal of :math:`\tau P \Sigma P^T`)
-    :type Omega: pd.DataFrame, optional
-    :param P: the matrix that identifies the asset involved in the different views (default is identity)
-    :type P: pd.DataFrame, optional
-    :param tau: the weight-on-views scalar (default is 0.05)
-    :type tau: float, optional
-    :return: the expected posterior covariance matrix
-    :rtype: pd.DataFrame
-    """
-    if P is None:
-        P = np.eye(Sigma.shape[0])
-    if Omega is None:
-        Omega = np.diag(np.diag(tau * P @ Sigma @ P.T))
-
-    Omega_inv = np.diag(1.0 / np.diag(Omega))
-    P_Omega_inv = P.T @ Omega_inv
-    tau_Sigma_inv = np.linalg.inv(tau * Sigma)
-
-    # # Older method
-    # b = P @ Sigma
-    # A = tau * b @ P.T + Omega
-    # B = b.T @ np.linalg.solve(A, b)
-    # return (1.0 + tau) * Sigma - tau**2 * B
-
-    M = np.linalg.inv(tau_Sigma_inv + P_Omega_inv @ P)
-    return Sigma + M
