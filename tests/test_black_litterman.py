@@ -333,5 +333,8 @@ def test_black_litterman_market_prior():
             viewdict[v] <= rets[v] <= prior[v]
         )
 
+    with pytest.raises(ValueError):
+        bl.portfolio_performance()
+
     bl.bl_weights(delta)
     assert bl.portfolio_performance()
