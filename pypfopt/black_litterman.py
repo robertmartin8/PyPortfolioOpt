@@ -6,10 +6,10 @@ views. In addition, two utility functions are defined, which calculate:
 - market-implied prior estimate of returns
 - market-implied risk-aversion parameter
 """
+
 import warnings
 import numpy as np
 import pandas as pd
-
 from . import base_optimizer
 
 
@@ -89,14 +89,15 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         - ``omega`` - np.ndarray
         - ``tau`` - float
 
-    - Output: ``weights`` - {str: float} dict
-
+    - Output: ``weights`` - np.ndarray
 
     Public methods:
 
     - ``bl_returns()`` - posterior estimate of returns
     - ``bl_cov()`` - posterior estimate of covariance
     - ``bl_weights()`` - weights implied by posterior returns
+    - ``portfolio_performance()`` calculates the expected return, volatility
+      and Sharpe ratio for the allocated portfolio.
     """
 
     def __init__(
@@ -288,6 +289,30 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :return: asset weights implied by returns
         :rtype: dict
         """
-        raw_weights = np.linalg.inv(risk_aversion * self.cov_matrix) @ self.bl_returns()
+        self.posterior_rets = self.bl_returns()
+        raw_weights = np.linalg.inv(risk_aversion * self.cov_matrix) @ self.posterior_rets
         self.weights = raw_weights / raw_weights.sum()
         return dict(zip(self.tickers, self.weights))
+
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+        """
+        After optimising, calculate (and optionally print) the performance of the optimal
+        portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
+
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                               The period of the risk-free rate should correspond to the
+                               frequency of expected returns.
+        :type risk_free_rate: float, optional
+        :raises ValueError: if weights have not been calcualted yet
+        :return: expected return, volatility, Sharpe ratio.
+        :rtype: (float, float, float)
+        """
+        return base_optimizer.portfolio_performance(
+            self.posterior_rets,
+            self.cov_matrix,
+            self.weights,
+            verbose,
+            risk_free_rate,
+        )

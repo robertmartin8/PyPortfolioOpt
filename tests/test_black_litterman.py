@@ -332,3 +332,6 @@ def test_black_litterman_market_prior():
         assert (prior[v] <= rets[v] <= viewdict[v]) or (
             viewdict[v] <= rets[v] <= prior[v]
         )
+
+    bl.bl_weights(delta)
+    assert bl.portfolio_performance()
