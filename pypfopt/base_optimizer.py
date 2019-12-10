@@ -80,16 +80,17 @@ class BaseScipyOptimizer(BaseOptimizer):
     - ``n_assets`` - int
     - ``tickers`` - str list
     - ``weights`` - np.ndarray
-    - ``bounds`` - (float tuple) list
+    - ``bounds`` - float tuple OR (float tuple) list
     - ``initial_guess`` - nnp.ndarray
     - ``constraints`` - dict list
     """
 
     def __init__(self, n_assets, tickers=None, weight_bounds=(0, 1)):
         """
-        :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1).
-                              Must be changed to (-1, 1) for portfolios with shorting.
-        :type weight_bounds: tuple, optional
+        :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
+                              if all identical, defaults to (0, 1). Must be changed to (-1, 1)
+                              for portfolios with shorting.
+        :type weight_bounds: tuple OR tuple list, optional
         """
         super().__init__(n_assets, tickers)
         self.bounds = self._make_valid_bounds(weight_bounds)
@@ -102,21 +103,36 @@ class BaseScipyOptimizer(BaseOptimizer):
         Private method: process input bounds into a form acceptable by scipy.optimize,
         and check the validity of said bounds.
 
-        :param test_bounds: minimum and maximum weight of an asset
-        :type test_bounds: tuple
-        :raises ValueError: if ``test_bounds`` is not a tuple of length two.
+        :param test_bounds: minimum and maximum weight of each asset OR single min/max pair
+                              if all identical, defaults to (0, 1).
+        :type test_bounds: tuple OR list/tuple of tuples.
+        :raises ValueError: if ``test_bounds`` is not a tuple of length two OR a collection
+                            of pairs.
         :raises ValueError: if the lower bound is too high
         :return: a tuple of bounds, e.g ((0, 1), (0, 1), (0, 1) ...)
         :rtype: tuple of tuples
         """
-        if len(test_bounds) != 2 or not isinstance(test_bounds, tuple):
+        # If it is a collection with the right length, assume they are all bounds.
+        print(test_bounds)
+        if len(test_bounds) == self.n_assets and not isinstance(
+            test_bounds[0], (float, int)
+        ):
+            bounds = test_bounds
+        else:
+            if len(test_bounds) != 2 or not isinstance(test_bounds, tuple):
+                raise ValueError(
+                    "test_bounds must be a tuple of (lower bound, upper bound) "
+                    "OR collection of bounds for each asset"
+                )
+            bounds = (test_bounds,) * self.n_assets
+
+        # Ensure lower bound is not too high
+        if sum((0 if b[0] is None else b[0]) for b in bounds) > 1:
             raise ValueError(
-                "test_bounds must be a tuple of (lower bound, upper bound)"
+                "Lower bound is too high. Impossible to construct valid portfolio"
             )
-        if test_bounds[0] is not None:
-            if test_bounds[0] * self.n_assets > 1:
-                raise ValueError("Lower bound is too high")
-        return (test_bounds,) * self.n_assets
+
+        return bounds
 
 
 def portfolio_performance(

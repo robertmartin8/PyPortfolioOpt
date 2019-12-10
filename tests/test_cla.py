@@ -51,6 +51,19 @@ def test_cla_max_sharpe_short():
     assert sharpe > long_only_sharpe
 
 
+def test_cla_custom_bounds():
+    bounds = [(0.01, 0.13), (0.02, 0.11)] * 10
+    cla = CLA(*setup_cla(data_only=True), weight_bounds=bounds)
+    df = get_data()
+    cla.cov_matrix = risk_models.exp_cov(df).values
+    w = cla.min_volatility()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(cla.tickers)
+    np.testing.assert_almost_equal(cla.weights.sum(), 1)
+    assert (0.01 <= cla.weights[::2]).all() and (cla.weights[::2] <= 0.13).all()
+    assert (0.02 <= cla.weights[1::2]).all() and (cla.weights[1::2] <= 0.11).all()
+
+
 def test_cla_min_volatility():
     cla = setup_cla()
     w = cla.min_volatility()

@@ -67,14 +67,21 @@ class CLA(base_optimizer.BaseOptimizer):
             self.mean[-1, 0] += 1e-5
         self.expected_returns = self.mean.reshape((len(self.mean),))
         self.cov_matrix = np.asarray(cov_matrix)
-        if isinstance(weight_bounds[0], numbers.Real):
-            self.lB = np.ones(self.mean.shape) * weight_bounds[0]
+
+        # Bounds
+        if len(weight_bounds) == len(self.mean):
+            self.lB = np.array([b[0] for b in weight_bounds]).reshape(-1, 1)
+            self.uB = np.array([b[1] for b in weight_bounds]).reshape(-1, 1)
         else:
-            self.lB = np.array(weight_bounds[0]).reshape(self.mean.shape)
-        if isinstance(weight_bounds[0], numbers.Real):
-            self.uB = np.ones(self.mean.shape) * weight_bounds[1]
-        else:
-            self.uB = np.array(weight_bounds[1]).reshape(self.mean.shape)
+            if isinstance(weight_bounds[0], numbers.Real):
+                self.lB = np.ones(self.mean.shape) * weight_bounds[0]
+            else:
+                self.lB = np.array(weight_bounds[0]).reshape(self.mean.shape)
+            if isinstance(weight_bounds[0], numbers.Real):
+                self.uB = np.ones(self.mean.shape) * weight_bounds[1]
+            else:
+                self.uB = np.array(weight_bounds[1]).reshape(self.mean.shape)
+
         self.w = []  # solution
         self.ls = []  # lambdas
         self.g = []  # gammas

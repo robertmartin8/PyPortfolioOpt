@@ -23,7 +23,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
         - ``n_assets`` - int
         - ``tickers`` - str list
-        - ``bounds`` - (float tuple) list
+        - ``bounds`` - float tuple OR (float tuple) list
         - ``cov_matrix`` - pd.DataFrame
         - ``expected_returns`` - pd.Series
 
@@ -52,9 +52,10 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         :type expected_returns: pd.Series, list, np.ndarray
         :param cov_matrix: covariance of returns for each asset
         :type cov_matrix: pd.DataFrame or np.array
-        :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1).
-                              Must be changed to (-1, 1) for portfolios with shorting.
-        :type weight_bounds: tuple, optional
+        :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
+                              if all identical, defaults to (0, 1). Must be changed to (-1, 1)
+                              for portfolios with shorting.
+        :type weight_bounds: tuple OR tuple list, optional
         :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                       non-negligible weights
         :type gamma: float, optional

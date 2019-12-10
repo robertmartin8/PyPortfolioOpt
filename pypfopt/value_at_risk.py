@@ -21,7 +21,7 @@ class CVAROpt(base_optimizer.BaseScipyOptimizer):
 
         - ``tickers`` - str list
         - ``returns`` - pd.DataFrame
-        - ``bounds`` - (double tuple) list
+        - ``bounds`` - float tuple OR (float tuple) list
 
     - Optimisation parameters:
 
@@ -40,10 +40,10 @@ class CVAROpt(base_optimizer.BaseScipyOptimizer):
         """
         :param returns: asset historical returns
         :type returns: pd.DataFrame
-        :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1).
-                              Must be changed to (-1, 1) for portfolios with shorting.
-                              For CVaR opt, this is not a hard boundary.
-        :type weight_bounds: tuple, optional
+        :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
+                              if all identical, defaults to (0, 1). Must be changed to (-1, 1)
+                              for portfolios with shorting.
+        :type weight_bounds: tuple OR tuple list, optional
         :raises TypeError: if ``returns`` is not a dataframe
         """
         if not isinstance(returns, pd.DataFrame):
