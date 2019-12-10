@@ -89,7 +89,10 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         - ``omega`` - np.ndarray
         - ``tau`` - float
 
-    - Output: ``weights`` - np.ndarray
+    - Output:
+    
+        - ``posterior_rets`` - pd.Series
+        - ``weights`` - np.ndarray
 
     Public methods:
 
@@ -181,6 +184,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             else:
                 raise TypeError("self.omega must be a square array or dataframe")
 
+        self.posterior_rets = None
         # Make sure all dimensions work
         self._check_attribute_dimensions()
 
@@ -290,7 +294,9 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :rtype: dict
         """
         self.posterior_rets = self.bl_returns()
-        raw_weights = np.linalg.inv(risk_aversion * self.cov_matrix) @ self.posterior_rets
+        raw_weights = (
+            np.linalg.inv(risk_aversion * self.cov_matrix) @ self.posterior_rets
+        )
         self.weights = raw_weights / raw_weights.sum()
         return dict(zip(self.tickers, self.weights))
 
@@ -310,9 +316,5 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :rtype: (float, float, float)
         """
         return base_optimizer.portfolio_performance(
-            self.posterior_rets,
-            self.cov_matrix,
-            self.weights,
-            verbose,
-            risk_free_rate,
+            self.posterior_rets, self.cov_matrix, self.weights, verbose, risk_free_rate
         )

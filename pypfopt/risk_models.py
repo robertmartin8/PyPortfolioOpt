@@ -20,6 +20,7 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 
 - covariance to correlation matrix
 """
+
 import warnings
 import numpy as np
 import pandas as pd
@@ -181,9 +182,10 @@ class CovarianceShrinkage:
 
     Instance variables:
 
-    - ``X`` (returns)
-    - ``S`` (sample covariance matrix)
-    - ``delta`` (shrinkage constant)
+    - ``X`` - pd.DataFrame (returns)
+    - ``S`` - np.ndarray (sample covariance matrix)
+    - ``delta`` - float (shrinkage constant)
+    - ``frequency`` - int
     """
 
     def __init__(self, prices, frequency=252):

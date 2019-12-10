@@ -21,10 +21,11 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
     - Inputs:
 
-        - ``cov_matrix``
-        - ``n_assets``
-        - ``tickers``
-        - ``bounds``
+        - ``n_assets`` - int
+        - ``tickers`` - str list
+        - ``bounds`` - (float tuple) list
+        - ``cov_matrix`` - pd.DataFrame
+        - ``expected_returns`` - pd.Series
 
     - Optimisation parameters:
 

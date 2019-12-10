@@ -2,15 +2,26 @@
 The ``base_optimizer`` module houses the parent classes ``BaseOptimizer`` and
 ``BaseScipyOptimizer``, from which all optimisers will inherit. The later is for
 optimisers that use the scipy solver.
+
 Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
 """
+
 import numpy as np
 import pandas as pd
 from . import objective_functions
 
 
 class BaseOptimizer:
+
+    """
+    Instance variables:
+
+    - ``n_assets`` - int
+    - ``tickers`` - str list
+    - ``weights`` - np.ndarray
+    """
+
     def __init__(self, n_assets, tickers=None):
         """
         :param n_assets: number of assets
@@ -62,6 +73,18 @@ class BaseOptimizer:
 
 
 class BaseScipyOptimizer(BaseOptimizer):
+
+    """
+    Instance variables:
+
+    - ``n_assets`` - int
+    - ``tickers`` - str list
+    - ``weights`` - np.ndarray
+    - ``bounds`` - (float tuple) list
+    - ``initial_guess`` - nnp.ndarray
+    - ``constraints`` - dict list
+    """
+
     def __init__(self, n_assets, tickers=None, weight_bounds=(0, 1)):
         """
         :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1).

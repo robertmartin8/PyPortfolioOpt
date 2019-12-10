@@ -4,18 +4,50 @@ generates optimal portfolios using the Critical Line Algorithm as implemented
 by Marcos Lopez de Prado and David Bailey.
 """
 
+from math import log, ceil
 import numbers
 import numpy as np
 import pandas as pd
 from . import base_optimizer
-from math import log, ceil
 
 
 def _infnone(x):
+    """
+    Helper method to map None to float infinity.
+    
+    :param x: argument
+    :type x: float
+    :return: infinity if the argmument was None otherwise x
+    :rtype: float
+    """
     return float("-inf") if x is None else x
 
 
 class CLA(base_optimizer.BaseOptimizer):
+
+    """
+    Instance variables:
+
+    - Inputs:
+
+        - ``n_assets`` - int
+        - ``tickers`` - str list
+        - ``mean`` - np.ndarray
+        - ``cov_matrix`` - pd.DataFrame
+        - ``expected_returns`` - pd.Series
+        - ``lb`` - np.ndarray
+        - ``ub`` - np.ndarray
+
+    - Optimisation parameters:
+
+        - ``w`` - np.ndarray list
+        - ``ls`` - float list
+        - ``g`` - float list
+        - ``f`` - float list list
+
+    - Outputs: ``weights`` - np.ndarray
+    """
+
     def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1)):
         """
         :param expected_returns: expected returns for each asset. Set to None if

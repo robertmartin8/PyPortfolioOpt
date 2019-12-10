@@ -2,13 +2,15 @@
 The ``value_at_risk`` module allows for optimisation with a (conditional)
 value-at-risk (CVaR) objective, which requires Monte Carlo simulation.
 """
+
 import pandas as pd
-from .base_optimizer import BaseScipyOptimizer
-from . import objective_functions
 import noisyopt
+from . import base_optimizer
+from . import objective_functions
 
 
-class CVAROpt(BaseScipyOptimizer):
+class CVAROpt(base_optimizer.BaseScipyOptimizer):
+
     """
     A CVAROpt object (inheriting from BaseScipyOptimizer) provides a method for
     optimising the CVaR (a.k.a expected shortfall) of a portfolio.
@@ -16,16 +18,17 @@ class CVAROpt(BaseScipyOptimizer):
     Instance variables:
 
     - Inputs
-        - ``tickers``
-        - ``returns``
-        - ``bounds``
+
+        - ``tickers`` - str list
+        - ``returns`` - pd.DataFrame
+        - ``bounds`` - (double tuple) list
 
     - Optimisation parameters:
 
-        - ``s``: the number of Monte Carlo simulations
-        - ``beta``: the critical value
+        - ``s`` - int (the number of Monte Carlo simulations)
+        - ``beta`` - float (the critical value)
 
-    - Output: ``weights``
+    - Output: ``weights`` - np.ndarray
 
     Public methods:
 
@@ -86,4 +89,3 @@ class CVAROpt(BaseScipyOptimizer):
         )
         self.weights = CVAROpt._normalize_weights(result["x"])
         return dict(zip(self.tickers, self.weights))
-

@@ -14,7 +14,7 @@ Currently implemented:
 - negative mean return
 - (regularised) negative Sharpe ratio
 - (regularised) volatility
-- CVaR (expected shortfall)
+- negative CVaR (expected shortfall). Caveat emptor: this is very buggy.
 """
 
 import numpy as np

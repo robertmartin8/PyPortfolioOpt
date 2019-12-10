@@ -1,7 +1,8 @@
 """
 The ``discrete_allocation`` module contains the ``DiscreteAllocation`` class, which
-offers multile methods to generate a discrete portfolio allocation from continuous weights.
+offers multiple methods to generate a discrete portfolio allocation from continuous weights.
 """
+
 import numpy as np
 import pandas as pd
 import pulp
@@ -31,18 +32,18 @@ class DiscreteAllocation:
 
     - Inputs:
 
-        - ``weights``
-        - ``latest_prices``
-        - ``min_allocation``
-        - ``total_portfolio_value``
-        - ``short_ratio``
+        - ``weights`` - dict
+        - ``latest_prices`` - pd.Series or dict
+        - ``min_allocation`` - float
+        - ``total_portfolio_value`` - int/float
+        - ``short_ratio``- float
 
-    - Output: ``allocation``
+    - Output: ``allocation`` - dict
 
     Public methods:
 
-    - ``greedy_portfolio()``
-    - ``lp_portfolio()``
+    - ``greedy_portfolio()`` - uses a greedy algorithm
+    - ``lp_portfolio()`` - uses linear programming
     """
 
     def __init__(
