@@ -46,7 +46,7 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
 
     .. math::
 
-        \delta = \frac{r - r_f}{\sigma^2}
+        \delta = \frac{R - R_f}{\sigma^2}
 
     :param market_prices: the (daily) prices of the market portfolio, e.g SPY.
     :type market_prices: pd.Series with DatetimeIndex.
@@ -70,7 +70,7 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
 class BlackLittermanModel(base_optimizer.BaseOptimizer):
 
     """
-    An BlackLittermanModel object (inheriting from BaseOptimizer) contains requires
+    A BlackLittermanModel object (inheriting from BaseOptimizer) contains requires
     a specific input format, specifying the prior, the views, the uncertainty in views,
     and a picking matrix to map views to the asset universe. We can then compute
     posterior estimates of returns and covariance. Helper methods have been provided
@@ -267,17 +267,17 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         """
         omega_inv = np.diag(1.0 / np.diag(self.omega))
         P_omega_inv = self.P.T @ omega_inv
-        tau_cov_matrix_inv = np.linalg.inv(self.tau * self.cov_matrix)
-        M = np.linalg.inv(tau_cov_matrix_inv + P_omega_inv @ self.P)
+        tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
+        M = np.linalg.inv(tau_sigma_inv + P_omega_inv @ self.P)
         posterior_cov = self.cov_matrix + M
         return pd.DataFrame(posterior_cov, index=self.tickers, columns=self.tickers)
 
     def bl_weights(self, risk_aversion):
-        """
+        r"""
         Compute the weights implied by the posterior returns, given the
         market price of risk. Technically this can be applied to any
         estimate of the expected returns, and is in fact a special case
-        of efficient frontier optimisaton.
+        of efficient frontier optimisation.
 
         .. math::
 

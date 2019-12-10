@@ -162,11 +162,13 @@ def test_bl_relative_views():
     # 2. GOOG outperforms FB by 10%
     # 3. BAC and JPM will outperform T and GE by 15%
     views = np.array([-0.20, 0.10, 0.15]).reshape(-1, 1)
-    picking = np.array([
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, -0.5, 0, 0, 0.5, 0, -0.5, 0, 0, 0, 0, 0, 0, 0, 0.5, 0]
-        ])
+    picking = np.array(
+        [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, -0.5, 0, 0, 0.5, 0, -0.5, 0, 0, 0, 0, 0, 0, 0, 0.5, 0],
+        ]
+    )
     bl = BlackLittermanModel(S, Q=views, P=picking)
     rets = bl.bl_returns()
     assert rets["SBUX"] < 0
