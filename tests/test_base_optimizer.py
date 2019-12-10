@@ -1,3 +1,5 @@
+import json
+import os
 import numpy as np
 import pytest
 from pypfopt.efficient_frontier import EfficientFrontier
@@ -100,6 +102,8 @@ def test_clean_weights_short():
 
 def test_clean_weights_error():
     ef = setup_efficient_frontier()
+    with pytest.raises(AttributeError):
+        ef.clean_weights()
     ef.max_sharpe()
     with pytest.raises(ValueError):
         ef.clean_weights(rounding=1.3)
@@ -128,3 +132,30 @@ def test_efficient_frontier_init_errors():
 
     with pytest.raises(TypeError):
         EfficientFrontier(mean_returns, mean_returns)
+
+
+def test_set_weights():
+    ef = setup_efficient_frontier()
+    w1 = ef.max_sharpe()
+    test_weights = ef.weights
+    ef.min_volatility()
+    ef.set_weights(w1)
+    np.testing.assert_array_almost_equal(test_weights, ef.weights)
+
+
+def test_save_weights_to_file():
+    ef = setup_efficient_frontier()
+    ef.max_sharpe()
+    ef.save_weights_to_file("tests/test.txt")
+    with open("tests/test.txt", "r") as f:
+        file = f.read()
+    parsed = json.loads(file.replace("'", '"'))
+    assert ef.clean_weights() == parsed
+
+    ef.save_weights_to_file("tests/test.json")
+    with open("tests/test.json", "r") as f:
+        parsed = json.load(f)
+    assert ef.clean_weights() == parsed
+
+    os.remove("tests/test.txt")
+    os.remove("tests/test.json")
