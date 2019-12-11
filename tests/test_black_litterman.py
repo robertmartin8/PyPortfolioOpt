@@ -19,9 +19,6 @@ def test_input_errors():
 
     assert BlackLittermanModel(S, Q=views)
 
-    with pytest.raises(TypeError):
-        BlackLittermanModel(S)
-
     with pytest.raises(ValueError):
         BlackLittermanModel(S, Q=views, tau=-0.1)
 
@@ -31,6 +28,7 @@ def test_input_errors():
         # This doesn't raise the error from the expected place!
         # Because default_omega uses matrix mult on P
         BlackLittermanModel(S, Q=views, P=P)
+
     with pytest.raises(ValueError):
         BlackLittermanModel(S, Q=views, P=P, omega=np.eye(len(views)))
 
@@ -50,6 +48,7 @@ def test_parse_views():
         bl = BlackLittermanModel(S, absolute_views=viewlist)
     with pytest.raises(ValueError):
         bl = BlackLittermanModel(S, absolute_views=viewdict)
+
     del viewdict["fail"]
     bl = BlackLittermanModel(S, absolute_views=viewdict)
 
@@ -102,6 +101,7 @@ def test_default_omega():
 def test_bl_returns_no_prior():
     df = get_data()
     S = risk_models.sample_cov(df)
+
     viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
     bl = BlackLittermanModel(S, absolute_views=viewdict)
     rets = bl.bl_returns()
@@ -125,6 +125,7 @@ def test_bl_returns_all_views():
     assert list(posterior_rets.index) == list(df.columns)
     assert posterior_rets.notnull().all()
     assert posterior_rets.dtype == "float64"
+
     np.testing.assert_array_almost_equal(
         posterior_rets,
         np.array(
@@ -169,6 +170,7 @@ def test_bl_relative_views():
             [0, 0, 0, 0, 0, -0.5, 0, 0, 0.5, 0, -0.5, 0, 0, 0, 0, 0, 0, 0, 0.5, 0],
         ]
     )
+
     bl = BlackLittermanModel(S, Q=views, P=picking)
     rets = bl.bl_returns()
     assert rets["SBUX"] < 0
@@ -215,6 +217,7 @@ def test_bl_weights():
     bl.bl_weights(delta)
     w = bl.clean_weights()
     assert abs(sum(w.values()) - 1) < 1e-5
+
     # check weights are allocated in same direction as views
     # (in absence of priors)
     assert all(viewdict[t] * w[t] >= 0 for t in viewdict)
