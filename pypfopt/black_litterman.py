@@ -94,6 +94,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         - ``P`` - np.ndarray
         - ``pi`` - np.ndarray
         - ``omega`` - np.ndarray
+        - ``omega_inv`` - np.ndarray
         - ``tau`` - float
 
     - Output:
@@ -191,6 +192,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                 self.omega = omega
             else:
                 raise TypeError("self.omega must be a square array or dataframe")
+        self.omega_inv = None
 
         self.posterior_rets = None
         self.posterior_cov = None
@@ -256,12 +258,18 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
     def bl_returns(self):
         """
         Calculate the posterior estimate of the returns vector,
-        given views on some assets.
+        given views on some assets. It is assumed that omega is
+        diagonal. If this is not the case, please manually set
+        omega_inv.
 
         :return: posterior returns vector
         :rtype: pd.Series
         """
-        omega_inv = np.diag(1 / np.diag(self.omega))
+        if self.omega_inv is None:
+            # Assume diagonal
+            omega_inv = np.diag(1 / np.diag(self.omega))
+        else:
+            omega_inv = self.omega_inv
         P_omega_inv = self.P.T @ omega_inv
         tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
 
@@ -275,11 +283,17 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         """
         Calculate the posterior estimate of the covariance matrix,
         given views on some assets. Based on He and Litterman (2002).
+        It is assumed that omega is diagonal. If this is not the case,
+        please manually set omega_inv.
 
         :return: posterior covariance matrix
         :rtype: pd.DataFrame
         """
-        omega_inv = np.diag(1.0 / np.diag(self.omega))
+        if self.omega_inv is None:
+            # Assume diagonal
+            omega_inv = np.diag(1 / np.diag(self.omega))
+        else:
+            omega_inv = self.omega_inv
         P_omega_inv = self.P.T @ omega_inv
         tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
         M = np.linalg.inv(tau_sigma_inv + P_omega_inv @ self.P)
