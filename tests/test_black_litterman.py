@@ -222,6 +222,28 @@ def test_bl_weights():
     # (in absence of priors)
     assert all(viewdict[t] * w[t] >= 0 for t in viewdict)
 
+    # numerical check
+    assert w == {'GOOG': 0.0,
+                 'AAPL': 1.40675,
+                 'FB': 0.0,
+                 'BABA': 0.0,
+                 'AMZN': 0.0,
+                 'GE': 0.0,
+                 'AMD': 0.0,
+                 'WMT': 0.0,
+                 'BAC': 0.02651,
+                 'GM': 0.0,
+                 'T': 2.81117,
+                 'UAA': 0.0,
+                 'SHLD': 0.0,
+                 'XOM': 0.0,
+                 'RRC': 0.0,
+                 'BBY': -1.44667,
+                 'MA': 0.0,
+                 'PFE': 0.0,
+                 'JPM': 0.0,
+                 'SBUX': -1.79776}
+
 
 def test_market_implied_prior():
     df = get_data()
@@ -345,4 +367,4 @@ def test_black_litterman_market_prior():
         (0.21872992622219192, 0.30659668044707905, 0.6481802931864888),
     )
     # Check that bl.cov() has been called and used
-    assert bl.posterior_cov
+    assert bl.posterior_cov is not None

@@ -296,9 +296,9 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :rtype: dict
         """
         self.posterior_rets = self.bl_returns()
-        raw_weights = (
-            np.linalg.inv(risk_aversion * self.cov_matrix) @ self.posterior_rets
-        )
+        A = risk_aversion * self.cov_matrix
+        b = self.posterior_rets
+        raw_weights = np.linalg.solve(A, b)
         self.weights = raw_weights / raw_weights.sum()
         return dict(zip(self.tickers, self.weights))
 
