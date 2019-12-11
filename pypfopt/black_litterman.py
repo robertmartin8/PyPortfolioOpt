@@ -13,7 +13,9 @@ import pandas as pd
 from . import base_optimizer
 
 
-def market_implied_prior_returns(market_caps, risk_aversion, cov_matrix):
+def market_implied_prior_returns(
+    market_caps, risk_aversion, cov_matrix, risk_free_rate=0.02
+):
     r"""
     Compute the prior estimate of returns implied by the market weights.
     In other words, given each asset's contribution to the risk of the market
@@ -29,12 +31,17 @@ def market_implied_prior_returns(market_caps, risk_aversion, cov_matrix):
     :type risk_aversion: positive float
     :param cov_matrix: covariance matrix of asset returns
     :type cov_matrix: pd.DataFrame or np.ndarray
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                           You should use the appropriate time period, corresponding
+                           to the covariance matrix.
+    :type risk_free_rate: float, optional
     :return: prior estimate of returns as implied by the market caps
     :rtype: pd.Series
     """
     mcaps = pd.Series(market_caps)
     mkt_weights = mcaps / mcaps.sum()
-    return risk_aversion * cov_matrix @ mkt_weights
+    # Pi is excess returns so must add risk_free_rate to get return.
+    return risk_aversion * cov_matrix @ mkt_weights + risk_free_rate
 
 
 def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.02):

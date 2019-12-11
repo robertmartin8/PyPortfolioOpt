@@ -223,26 +223,28 @@ def test_bl_weights():
     assert all(viewdict[t] * w[t] >= 0 for t in viewdict)
 
     # numerical check
-    assert w == {'GOOG': 0.0,
-                 'AAPL': 1.40675,
-                 'FB': 0.0,
-                 'BABA': 0.0,
-                 'AMZN': 0.0,
-                 'GE': 0.0,
-                 'AMD': 0.0,
-                 'WMT': 0.0,
-                 'BAC': 0.02651,
-                 'GM': 0.0,
-                 'T': 2.81117,
-                 'UAA': 0.0,
-                 'SHLD': 0.0,
-                 'XOM': 0.0,
-                 'RRC': 0.0,
-                 'BBY': -1.44667,
-                 'MA': 0.0,
-                 'PFE': 0.0,
-                 'JPM': 0.0,
-                 'SBUX': -1.79776}
+    assert w == {
+        "GOOG": 0.0,
+        "AAPL": 1.40675,
+        "FB": 0.0,
+        "BABA": 0.0,
+        "AMZN": 0.0,
+        "GE": 0.0,
+        "AMD": 0.0,
+        "WMT": 0.0,
+        "BAC": 0.02651,
+        "GM": 0.0,
+        "T": 2.81117,
+        "UAA": 0.0,
+        "SHLD": 0.0,
+        "XOM": 0.0,
+        "RRC": 0.0,
+        "BBY": -1.44667,
+        "MA": 0.0,
+        "PFE": 0.0,
+        "JPM": 0.0,
+        "SBUX": -1.79776,
+    }
 
 
 def test_market_implied_prior():
@@ -286,26 +288,26 @@ def test_market_implied_prior():
         pi.values,
         np.array(
             [
-                0.12933293,
-                0.1968623,
-                0.09219185,
-                0.08362374,
-                0.26416295,
-                0.10196098,
-                0.17036819,
-                0.06860159,
-                0.15724273,
-                0.06779627,
-                0.0591797,
-                0.14460474,
-                0.10854665,
-                0.06657863,
-                0.09230036,
-                0.11875465,
-                0.13017163,
-                0.07066484,
-                0.1496369,
-                0.11270213,
+                0.14933293,
+                0.2168623,
+                0.11219185,
+                0.10362374,
+                0.28416295,
+                0.12196098,
+                0.19036819,
+                0.08860159,
+                0.17724273,
+                0.08779627,
+                0.0791797,
+                0.16460474,
+                0.12854665,
+                0.08657863,
+                0.11230036,
+                0.13875465,
+                0.15017163,
+                0.09066484,
+                0.1696369,
+                0.13270213,
             ]
         ),
     )
@@ -348,7 +350,7 @@ def test_black_litterman_market_prior():
     }
     prior = black_litterman.market_implied_prior_returns(mcaps, delta, S)
 
-    viewdict = {"GOOG": 0.20, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
+    viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
     bl = BlackLittermanModel(S, pi=prior, absolute_views=viewdict)
     rets = bl.bl_returns()
 
@@ -364,7 +366,7 @@ def test_black_litterman_market_prior():
     bl.bl_weights(delta)
     np.testing.assert_allclose(
         bl.portfolio_performance(),
-        (0.21872992622219192, 0.30659668044707905, 0.6481802931864888),
+        (0.2580693114409672, 0.265445955488424, 0.8968654692926723),
     )
     # Check that bl.cov() has been called and used
     assert bl.posterior_cov is not None
