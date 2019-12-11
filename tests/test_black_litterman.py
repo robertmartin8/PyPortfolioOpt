@@ -340,4 +340,9 @@ def test_black_litterman_market_prior():
         bl.portfolio_performance()
 
     bl.bl_weights(delta)
-    assert bl.portfolio_performance()
+    np.testing.assert_allclose(
+        bl.portfolio_performance(),
+        (0.21872992622219192, 0.30659668044707905, 0.6481802931864888),
+    )
+    # Check that bl.cov() has been called and used
+    assert bl.posterior_cov

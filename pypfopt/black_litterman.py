@@ -90,8 +90,9 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         - ``tau`` - float
 
     - Output:
-    
+
         - ``posterior_rets`` - pd.Series
+        - ``posterior_cov`` - pd.DataFrame
         - ``weights`` - np.ndarray
 
     Public methods:
@@ -185,6 +186,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                 raise TypeError("self.omega must be a square array or dataframe")
 
         self.posterior_rets = None
+        self.posterior_cov = None
         # Make sure all dimensions work
         self._check_attribute_dimensions()
 
@@ -304,6 +306,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
+        This method uses the BL posterior returns and covariance matrix.
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
@@ -315,6 +318,12 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """
+        if self.posterior_cov is None:
+            self.posterior_cov = self.bl_cov()
         return base_optimizer.portfolio_performance(
-            self.posterior_rets, self.cov_matrix, self.weights, verbose, risk_free_rate
+            self.posterior_rets,
+            self.posterior_cov,
+            self.weights,
+            verbose,
+            risk_free_rate,
         )
