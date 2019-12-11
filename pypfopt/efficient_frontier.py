@@ -29,10 +29,10 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
     - Optimisation parameters:
 
-        - ``initial_guess``
-        - ``constraints``
+        - ``initial_guess`` - np.ndarray
+        - ``constraints`` - dict list
 
-    - Output: ``weights``
+    - Output: ``weights`` - np.ndarray
 
     Public methods:
 
@@ -188,7 +188,8 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
         if market_neutral:
-            if self.bounds[0][0] is not None and self.bounds[0][0] >= 0:
+            portfolio_possible = any(b[0] < 0 for b in self.bounds if b[0] is not None)
+            if not portfolio_possible:
                 warnings.warn(
                     "Market neutrality requires shorting - bounds have been amended",
                     RuntimeWarning,
@@ -236,7 +237,8 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
         if market_neutral:
-            if self.bounds[0][0] is not None and self.bounds[0][0] >= 0:
+            portfolio_possible = any(b[0] < 0 for b in self.bounds if b[0] is not None)
+            if not portfolio_possible:
                 warnings.warn(
                     "Market neutrality requires shorting - bounds have been amended",
                     RuntimeWarning,

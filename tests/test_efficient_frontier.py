@@ -77,6 +77,16 @@ def test_max_sharpe_short():
     assert sharpe > long_only_sharpe
 
 
+def test_weight_bounds_minus_one_to_one():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    assert ef.max_sharpe()
+    assert ef.min_volatility()
+    assert ef.efficient_return(0.05)
+    assert ef.efficient_risk(0.05)
+
+
 def test_max_sharpe_L2_reg():
     ef = setup_efficient_frontier()
     ef.gamma = 1
