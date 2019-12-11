@@ -48,6 +48,8 @@ API. The full discussion can be found on a `Github issue thread <https://github.
 but I ultimately decided that though BL is not technically an optimiser, it didn't make sense to
 split up its methods into `expected_returns` or `risk_models`. I have thus made it an independent
 module and owing to the comparatively extensive theory, have given it a dedicated documentation page.
+I'd like to thank  `Felipe Schneider <https://github.com/schneiderfelipe>`_ for his multiple
+contributions to the Black-Litterman implementation.
 
 Priors
 ======
