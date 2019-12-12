@@ -46,6 +46,21 @@ magnitude, I will definitely consider switching.
                 As of v0.5.0, you can pass a collection (list or tuple) of (min, max) pairs
                 representing different bounds for different assets.
 
+        .. automethod:: max_sharpe
+
+            .. note::
+
+                If you want to generate short-only portfolios, there is a quick hack. Multiply
+                your expected returns by -1, then maximise a long-only portfolio.
+
+        .. automethod:: max_unconstrained_utility
+
+            .. note::
+
+                pypfopt.BlackLitterman provides a method for calculating the market-implied
+                risk-aversion parameter, which gives a useful estimate in the absence of other
+                information!
+
 .. caution::
 
     If you pass an unreasonable target into :py:meth:`efficient_risk` or
