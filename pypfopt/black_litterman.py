@@ -110,6 +110,9 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
     - ``bl_weights()`` - weights implied by posterior returns
     - ``portfolio_performance()`` calculates the expected return, volatility
       and Sharpe ratio for the allocated portfolio.
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(

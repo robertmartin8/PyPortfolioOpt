@@ -43,6 +43,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
     - ``efficient_return()`` minimises risk for a given target return
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1), gamma=0):

@@ -14,7 +14,7 @@ from . import base_optimizer
 def _infnone(x):
     """
     Helper method to map None to float infinity.
-    
+
     :param x: argument
     :type x: float
     :return: infinity if the argmument was None otherwise x
@@ -46,6 +46,17 @@ class CLA(base_optimizer.BaseOptimizer):
         - ``f`` - float list list
 
     - Outputs: ``weights`` - np.ndarray
+
+    Public methods:
+
+    - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
+    - ``min_volatility()`` optimises for minimum volatility
+    - ``efficient_frontier()`` computes the entire efficient frontier
+    - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
+      the optimised portfolio.
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1)):

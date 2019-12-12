@@ -34,6 +34,9 @@ class CVAROpt(base_optimizer.BaseScipyOptimizer):
 
     - ``min_cvar()``
     - ``normalize_weights()``
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(self, returns, weight_bounds=(0, 1)):

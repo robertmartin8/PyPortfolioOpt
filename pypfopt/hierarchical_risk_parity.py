@@ -33,6 +33,9 @@ class HRPOpt(base_optimizer.BaseOptimizer):
     - ``hrp_portfolio()`` calculates weights using HRP
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(self, returns):

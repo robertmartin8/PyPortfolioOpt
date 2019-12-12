@@ -105,7 +105,7 @@ class BaseScipyOptimizer(BaseOptimizer):
     - ``tickers`` - str list
     - ``weights`` - np.ndarray
     - ``bounds`` - float tuple OR (float tuple) list
-    - ``initial_guess`` - nnp.ndarray
+    - ``initial_guess`` - np.ndarray
     - ``constraints`` - dict list
     """
 
