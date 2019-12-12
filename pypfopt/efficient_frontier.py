@@ -136,6 +136,31 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
+    def max_unconstrained_utility(self, risk_aversion=1):
+        r"""
+        Solve for weights in the unconstrained maximisation problem:
+
+        .. math::
+
+            \max_w w^T \mu - \frac \delta 2 w^T \Sigma w
+
+        This has an analytic solution, so scipy.optimize is not needed.
+        Note: this method ignores most of the parameters passed in the
+        constructor, including bounds and gamma. Because this is unconstrained,
+        resulting weights may be negative or greater than 1. It is completely up
+        to the user to decide how the resulting weights should be normalised.
+
+        :param risk_aversion: risk aversion parameter (must be greater than 0),
+                              defaults to 1
+        :type risk_aversion: positive float
+        """
+        if risk_aversion <= 0:
+            raise ValueError("risk aversion coefficient must be greater than zero")
+        A = risk_aversion * self.cov_matrix
+        b = self.expected_returns
+        self.weights = np.linalg.solve(A, b)
+        return dict(zip(self.tickers, self.weights))
+
     def custom_objective(self, objective_function, *args):
         """
         Optimise some objective function. While an implicit requirement is that the function
