@@ -119,6 +119,7 @@ S = risk_models.sample_cov(df)
 ef = EfficientFrontier(mu, S)
 raw_weights = ef.max_sharpe()
 cleaned_weights = ef.clean_weights()
+ef.save_weights_to_file("weights.csv")  # saves to file
 print(cleaned_weights)
 ef.portfolio_performance(verbose=True)
 ```

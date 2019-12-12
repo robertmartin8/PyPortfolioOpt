@@ -146,6 +146,7 @@ the :py:meth:`clean_weights` method, which truncates tiny weights to zero
 and rounds the rest::
 
     cleaned_weights = ef.clean_weights()
+    ef.save_weights_to_file("weights.txt")  # saves to file
     print(cleaned_weights)
 
 This prints::
