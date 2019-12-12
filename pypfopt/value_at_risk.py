@@ -2,13 +2,15 @@
 The ``value_at_risk`` module allows for optimisation with a (conditional)
 value-at-risk (CVaR) objective, which requires Monte Carlo simulation.
 """
+
 import pandas as pd
-from .base_optimizer import BaseScipyOptimizer
-from . import objective_functions
 import noisyopt
+from . import base_optimizer
+from . import objective_functions
 
 
-class CVAROpt(BaseScipyOptimizer):
+class CVAROpt(base_optimizer.BaseScipyOptimizer):
+
     """
     A CVAROpt object (inheriting from BaseScipyOptimizer) provides a method for
     optimising the CVaR (a.k.a expected shortfall) of a portfolio.
@@ -16,31 +18,35 @@ class CVAROpt(BaseScipyOptimizer):
     Instance variables:
 
     - Inputs
-        - ``tickers``
-        - ``returns``
-        - ``bounds``
+
+        - ``tickers`` - str list
+        - ``returns`` - pd.DataFrame
+        - ``bounds`` - float tuple OR (float tuple) list
 
     - Optimisation parameters:
 
-        - ``s``: the number of Monte Carlo simulations
-        - ``beta``: the critical value
+        - ``s`` - int (the number of Monte Carlo simulations)
+        - ``beta`` - float (the critical value)
 
-    - Output: ``weights``
+    - Output: ``weights`` - np.ndarray
 
     Public methods:
 
     - ``min_cvar()``
     - ``normalize_weights()``
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(self, returns, weight_bounds=(0, 1)):
         """
         :param returns: asset historical returns
         :type returns: pd.DataFrame
-        :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1).
-                              Must be changed to (-1, 1) for portfolios with shorting.
-                              For CVaR opt, this is not a hard boundary.
-        :type weight_bounds: tuple, optional
+        :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
+                              if all identical, defaults to (0, 1). Must be changed to (-1, 1)
+                              for portfolios with shorting.
+        :type weight_bounds: tuple OR tuple list, optional
         :raises TypeError: if ``returns`` is not a dataframe
         """
         if not isinstance(returns, pd.DataFrame):
@@ -86,4 +92,3 @@ class CVAROpt(BaseScipyOptimizer):
         )
         self.weights = CVAROpt._normalize_weights(result["x"])
         return dict(zip(self.tickers, self.weights))
-

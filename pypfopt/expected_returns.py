@@ -66,8 +66,8 @@ def mean_historical_return(prices, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = returns_from_prices(prices)
-    return daily_returns.mean() * frequency
+    returns = returns_from_prices(prices)
+    return returns.mean() * frequency
 
 
 def ema_historical_return(prices, frequency=252, span=500):
@@ -89,5 +89,5 @@ def ema_historical_return(prices, frequency=252, span=500):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = returns_from_prices(prices)
-    return daily_returns.ewm(span=span).mean().iloc[-1] * frequency
+    returns = returns_from_prices(prices)
+    return returns.ewm(span=span).mean().iloc[-1] * frequency

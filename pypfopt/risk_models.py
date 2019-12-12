@@ -20,6 +20,7 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 
 - covariance to correlation matrix
 """
+
 import warnings
 import numpy as np
 import pandas as pd
@@ -43,8 +44,8 @@ def sample_cov(prices, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = returns_from_prices(prices)
-    return daily_returns.cov() * frequency
+    returns = returns_from_prices(prices)
+    return returns.cov() * frequency
 
 
 def semicovariance(prices, benchmark=0.000079, frequency=252):
@@ -70,8 +71,8 @@ def semicovariance(prices, benchmark=0.000079, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    daily_returns = returns_from_prices(prices)
-    drops = np.fmin(daily_returns - benchmark, 0)
+    returns = returns_from_prices(prices)
+    drops = np.fmin(returns - benchmark, 0)
     return drops.cov() * frequency
 
 
@@ -115,7 +116,7 @@ def exp_cov(prices, span=180, frequency=252):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
     assets = prices.columns
-    daily_returns = returns_from_prices(prices)
+    returns = returns_from_prices(prices)
     N = len(assets)
 
     # Loop over matrix, filling entries with the pairwise exp cov
@@ -123,7 +124,7 @@ def exp_cov(prices, span=180, frequency=252):
     for i in range(N):
         for j in range(i, N):
             S[i, j] = S[j, i] = _pair_exp_cov(
-                daily_returns.iloc[:, i], daily_returns.iloc[:, j], span
+                returns.iloc[:, i], returns.iloc[:, j], span
             )
     return pd.DataFrame(S * frequency, columns=assets, index=assets)
 
@@ -181,9 +182,10 @@ class CovarianceShrinkage:
 
     Instance variables:
 
-    - ``X`` (returns)
-    - ``S`` (sample covariance matrix)
-    - ``delta`` (shrinkage constant)
+    - ``X`` - pd.DataFrame (returns)
+    - ``S`` - np.ndarray (sample covariance matrix)
+    - ``delta`` - float (shrinkage constant)
+    - ``frequency`` - int
     """
 
     def __init__(self, prices, frequency=252):

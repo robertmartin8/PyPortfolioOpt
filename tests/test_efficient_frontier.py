@@ -77,6 +77,16 @@ def test_max_sharpe_short():
     assert sharpe > long_only_sharpe
 
 
+def test_weight_bounds_minus_one_to_one():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    assert ef.max_sharpe()
+    assert ef.min_volatility()
+    assert ef.efficient_return(0.05)
+    assert ef.efficient_risk(0.05)
+
+
 def test_max_sharpe_L2_reg():
     ef = setup_efficient_frontier()
     ef.gamma = 1
@@ -182,6 +192,32 @@ def test_max_sharpe_input_errors():
 
     with pytest.raises(ValueError):
         ef.max_sharpe(risk_free_rate="0.2")
+
+
+def test_max_unconstrained_utility():
+    ef = setup_efficient_frontier()
+    w = ef.max_unconstrained_utility(2)
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    assert set(w.keys()) == set(ef.expected_returns.index)
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (1.3507326549906276, 0.8218067458322021, 1.6192768698230409)
+    )
+
+    ret1, var1, _ = ef.portfolio_performance()
+    # increasing risk_aversion should lower both vol and return
+    ef.max_unconstrained_utility(10)
+    ret2, var2, _ = ef.portfolio_performance()
+    assert ret2 < ret1 and var2 < var1
+
+
+def test_max_unconstrained_utility_error():
+    ef = setup_efficient_frontier()
+    with pytest.raises(ValueError):
+        ef.max_unconstrained_utility(0)
+    with pytest.raises(ValueError):
+        ef.max_unconstrained_utility(-1)
 
 
 def test_min_volatility():

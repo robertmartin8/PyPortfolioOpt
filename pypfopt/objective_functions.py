@@ -14,7 +14,8 @@ Currently implemented:
 - negative mean return
 - (regularised) negative Sharpe ratio
 - (regularised) volatility
-- CVaR (expected shortfall)
+- negative quadratic utility
+- negative CVaR (expected shortfall). Caveat emptor: this is very buggy.
 """
 
 import numpy as np
@@ -82,6 +83,28 @@ def volatility(weights, cov_matrix, gamma=0):
     L2_reg = gamma * (weights ** 2).sum()
     portfolio_volatility = np.dot(weights.T, np.dot(cov_matrix, weights))
     return portfolio_volatility + L2_reg
+
+
+def negative_quadratic_utility(
+    weights, expected_returns, cov_matrix, risk_aversion, gamma=0
+):
+    """
+    Calculate the (negative) quadratic utility of a portfolio.
+
+    :param weights: asset weights of the portfolio
+    :type weights: np.ndarray
+    :param expected_returns: expected return of each asset
+    :type expected_returns: pd.Series
+    :param cov_matrix: the covariance matrix of asset returns
+    :type cov_matrix: pd.DataFrame
+    :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
+                    non-negligible weights
+    :type gamma: float, optional
+    """
+    L2_reg = gamma * (weights ** 2).sum()
+    mu = weights.dot(expected_returns)
+    portfolio_volatility = np.dot(weights.T, np.dot(cov_matrix, weights))
+    return -(mu - 0.5 * risk_aversion * portfolio_volatility) + L2_reg
 
 
 def negative_cvar(weights, returns, s=10000, beta=0.95, random_state=None):

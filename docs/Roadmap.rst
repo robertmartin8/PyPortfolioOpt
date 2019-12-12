@@ -23,6 +23,17 @@ have any other feature requests, please raise them using GitHub
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Further support for different risk/return models
 
+0.5.0
+=====
+
+- Black-Litterman model and docs.
+- Custom bounds per asset
+- Improved ``BaseOptimizer``, adding a method that writes weights
+  to text and fixing a bug in ``set_weights``.
+- Unconstrained quadratic utility optimisation (analytic)
+- Revamped docs, with information on types of attributes and
+  more examples.
+
 0.4.3
 -----
 

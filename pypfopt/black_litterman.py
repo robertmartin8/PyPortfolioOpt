@@ -1,0 +1,353 @@
+"""
+The ``black_litterman`` module houses the BlackLittermanModel class, which
+generates posterior estimates of expected returns given a prior estimate and user-supplied
+views. In addition, two utility functions are defined, which calculate:
+
+- market-implied prior estimate of returns
+- market-implied risk-aversion parameter
+"""
+
+import warnings
+import numpy as np
+import pandas as pd
+from . import base_optimizer
+
+
+def market_implied_prior_returns(
+    market_caps, risk_aversion, cov_matrix, risk_free_rate=0.02
+):
+    r"""
+    Compute the prior estimate of returns implied by the market weights.
+    In other words, given each asset's contribution to the risk of the market
+    portfolio, how much are we expecting to be compensated?
+
+    .. math::
+
+        \Pi = \delta \Sigma w_{mkt}
+
+    :param market_caps: market capitalisations of all assets
+    :type market_caps: {ticker: cap} dict or pd.Series
+    :param risk_aversion: risk aversion parameter
+    :type risk_aversion: positive float
+    :param cov_matrix: covariance matrix of asset returns
+    :type cov_matrix: pd.DataFrame or np.ndarray
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                           You should use the appropriate time period, corresponding
+                           to the covariance matrix.
+    :type risk_free_rate: float, optional
+    :return: prior estimate of returns as implied by the market caps
+    :rtype: pd.Series
+    """
+    mcaps = pd.Series(market_caps)
+    mkt_weights = mcaps / mcaps.sum()
+    # Pi is excess returns so must add risk_free_rate to get return.
+    return risk_aversion * cov_matrix @ mkt_weights + risk_free_rate
+
+
+def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.02):
+    r"""
+    Calculate the market-implied risk-aversion parameter (i.e market price of risk)
+    based on market prices. For example, if the market has excess returns of 10% a year
+    with 5% variance, the risk-aversion parameter is 2, i.e you have to be compensated 2x
+    the variance.
+
+    .. math::
+
+        \delta = \frac{R - R_f}{\sigma^2}
+
+    :param market_prices: the (daily) prices of the market portfolio, e.g SPY.
+    :type market_prices: pd.Series with DatetimeIndex.
+    :param frequency: number of time periods in a year, defaults to 252 (the number
+                      of trading days in a year)
+    :type frequency: int, optional
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                            The period of the risk-free rate should correspond to the
+                            frequency of expected returns.
+    :type risk_free_rate: float, optional
+    :raises TypeError: if market_prices cannot be parsed
+    """
+    if not isinstance(market_prices, (pd.Series, pd.DataFrame)):
+        raise TypeError("Please format market_prices as a pd.Series")
+    rets = market_prices.pct_change().dropna()
+    r = rets.mean() * frequency
+    var = rets.var() * frequency
+    return (r - risk_free_rate) / var
+
+
+class BlackLittermanModel(base_optimizer.BaseOptimizer):
+
+    """
+    A BlackLittermanModel object (inheriting from BaseOptimizer) contains requires
+    a specific input format, specifying the prior, the views, the uncertainty in views,
+    and a picking matrix to map views to the asset universe. We can then compute
+    posterior estimates of returns and covariance. Helper methods have been provided
+    to supply defaults where possible.
+
+    Instance variables:
+
+    - Inputs:
+
+        - ``cov_matrix`` - pd.DataFrame
+        - ``n_assets`` - int
+        - ``tickers`` - str list
+        - ``Q`` - np.ndarray
+        - ``P`` - np.ndarray
+        - ``pi`` - np.ndarray
+        - ``omega`` - np.ndarray
+        - ``omega_inv`` - np.ndarray
+        - ``tau`` - float
+
+    - Output:
+
+        - ``posterior_rets`` - pd.Series
+        - ``posterior_cov`` - pd.DataFrame
+        - ``weights`` - np.ndarray
+
+    Public methods:
+
+    - ``bl_returns()`` - posterior estimate of returns
+    - ``bl_cov()`` - posterior estimate of covariance
+    - ``bl_weights()`` - weights implied by posterior returns
+    - ``portfolio_performance()`` calculates the expected return, volatility
+      and Sharpe ratio for the allocated portfolio.
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
+    """
+
+    def __init__(
+        self,
+        cov_matrix,
+        pi=None,
+        absolute_views=None,
+        Q=None,
+        P=None,
+        omega=None,
+        tau=0.05,
+    ):
+        """
+        :param cov_matrix: NxN covariance matrix of returns
+        :type cov_matrix: pd.DataFrame or np.ndarray
+        :param pi: Nx1 prior estimate of returns (e.g market-implied returns), defaults to None
+        :type pi: np.ndarray, pd.Series, optional
+        :param absolute_views: a colleciton of K absolute views on a subset of assets,
+                               defaults to None. If this is provided, we do not need P, Q.
+        :type absolute_views: pd.Series or dict, optional
+        :param Q: Kx1 views vector, defaults to None
+        :type Q: np.ndarray or pd.DataFrame, optional
+        :param P: KxN picking matrix, defaults to None
+        :type P: np.ndarray or pd.DataFrame, optional
+        :param omega: KxK view uncertainty matrix (diagonal), defaults to None
+        :type omega: np.ndarray or Pd.DataFrame, optional
+        :param tau: the weight-on-views scalar (default is 0.05)
+        :type tau: float, optional
+        """
+        # No typechecks because we assume this is the output of a pypfopt method.
+        self.cov_matrix = cov_matrix.values
+        # Initialise BaseOptimizer
+        super().__init__(len(cov_matrix), cov_matrix.columns)
+
+        # Views
+        if absolute_views is not None:
+            self.Q, self.P = self._parse_views(absolute_views)
+        else:
+            if isinstance(Q, (pd.Series, pd.DataFrame)):
+                self.Q = Q.values.reshape(-1, 1)
+            elif isinstance(Q, np.ndarray):
+                self.Q = Q.reshape(-1, 1)
+            else:
+                raise TypeError("Q must be an array or dataframe")
+
+            if isinstance(P, pd.DataFrame):
+                self.P = P.values
+            elif isinstance(P, np.ndarray):
+                self.P = P
+            elif len(self.Q) == self.n_assets:
+                # If a view on every asset is provided, P defaults
+                # to the identity matrix.
+                self.P = np.eye(self.n_assets)
+            else:
+                raise TypeError("P must be an array or dataframe")
+
+        if pi is None:
+            warnings.warn("Running Black-Litterman with no prior.")
+            self.pi = np.zeros((self.n_assets, 1))
+        else:
+            if isinstance(pi, (pd.Series, pd.DataFrame)):
+                self.pi = pi.values.reshape(-1, 1)
+            elif isinstance(pi, np.ndarray):
+                self.pi = pi.reshape(-1, 1)
+            else:
+                raise TypeError("pi must be an array or series")
+
+        if tau <= 0 or tau > 1:
+            raise ValueError("tau should be between 0 and 1")
+        self.tau = tau
+
+        if omega is None:
+            self.omega = BlackLittermanModel._default_omega(
+                self.cov_matrix, self.P, self.tau
+            )
+        else:
+            if isinstance(omega, pd.DataFrame):
+                self.omega = omega.values
+            elif isinstance(omega, np.ndarray):
+                self.omega = omega
+            else:
+                raise TypeError("self.omega must be a square array or dataframe")
+        self.omega_inv = None
+
+        self.posterior_rets = None
+        self.posterior_cov = None
+        # Make sure all dimensions work
+        self._check_attribute_dimensions()
+
+    def _parse_views(self, absolute_views):
+        """
+        Given a collection (dict or series) of absolute views, construct
+        the appropriate views vector and picking matrix. The views must
+        be a subset of the tickers in the covariance matrix.
+
+        {"AAPL": 0.20, "GOOG": 0.12, "XOM": -0.30}
+
+        :param absolute_views: absolute views on asset performances
+        :type absolute_views: dict, pd.Series
+        """
+        if not isinstance(absolute_views, (dict, pd.Series)):
+            raise TypeError("views should be a dict or pd.Series")
+        # Coerce to series
+        views = pd.Series(absolute_views)
+        # Q is easy to construct
+        Q = views.values.reshape(-1, 1)
+        # P maps views to the universe.
+        P = np.zeros((len(Q), self.n_assets))
+        for i, view_ticker in enumerate(views.keys()):
+            try:
+                P[i, list(self.tickers).index(view_ticker)] = 1
+            except ValueError:
+                #  Could make this smarter by just skipping
+                raise ValueError("Providing a view on an asset not in the universe")
+        return Q, P
+
+    @staticmethod
+    def _default_omega(cov_matrix, P, tau):
+        """
+        If the uncertainty matrix omega is not provided, we calculate using the method of
+        He and Litterman (1999), such that the ratio omega/tau is proportional to the
+        variance of the view portfolio.
+
+        :return: KxK diagonal uncertainty matrix
+        :rtype: np.ndarray
+        """
+        return np.diag(np.diag(tau * P @ cov_matrix @ P.T))
+
+    def _check_attribute_dimensions(self):
+        """
+        Helper method to ensure that all of the attributes created by the initialiser
+        have the correct dimensions, to avoid linear algebra errors later on.
+
+        :raises ValueError: if there are incorrect dimensions.
+        """
+        try:
+            N = self.n_assets
+            K = len(self.Q)
+            assert self.pi.shape == (N, 1)
+            assert self.P.shape == (K, N)
+            assert self.omega.shape == (K, K)
+            assert self.cov_matrix.shape == (N, N)  # redundant
+        except AssertionError:
+            raise ValueError("Some of the inputs have incorrect dimensions.")
+
+    def bl_returns(self):
+        """
+        Calculate the posterior estimate of the returns vector,
+        given views on some assets. It is assumed that omega is
+        diagonal. If this is not the case, please manually set
+        omega_inv.
+
+        :return: posterior returns vector
+        :rtype: pd.Series
+        """
+        if self.omega_inv is None:
+            # Assume diagonal
+            omega_inv = np.diag(1 / np.diag(self.omega))
+        else:
+            omega_inv = self.omega_inv
+        P_omega_inv = self.P.T @ omega_inv
+        tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
+
+        # Solve the linear system rather thatn invert everything
+        A = tau_sigma_inv + P_omega_inv @ self.P
+        b = tau_sigma_inv.dot(self.pi) + P_omega_inv.dot(self.Q)
+        x = np.linalg.solve(A, b)
+        return pd.Series(x.flatten(), index=self.tickers)
+
+    def bl_cov(self):
+        """
+        Calculate the posterior estimate of the covariance matrix,
+        given views on some assets. Based on He and Litterman (2002).
+        It is assumed that omega is diagonal. If this is not the case,
+        please manually set omega_inv.
+
+        :return: posterior covariance matrix
+        :rtype: pd.DataFrame
+        """
+        if self.omega_inv is None:
+            # Assume diagonal
+            omega_inv = np.diag(1 / np.diag(self.omega))
+        else:
+            omega_inv = self.omega_inv
+        P_omega_inv = self.P.T @ omega_inv
+        tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
+        M = np.linalg.inv(tau_sigma_inv + P_omega_inv @ self.P)
+        posterior_cov = self.cov_matrix + M
+        return pd.DataFrame(posterior_cov, index=self.tickers, columns=self.tickers)
+
+    def bl_weights(self, risk_aversion):
+        r"""
+        Compute the weights implied by the posterior returns, given the
+        market price of risk. Technically this can be applied to any
+        estimate of the expected returns, and is in fact a special case
+        of efficient frontier optimisation.
+
+        .. math::
+
+            w = (\delta \Sigma)^{-1} E(R)
+
+        :param risk_aversion: risk aversion parameter
+        :type risk_aversion: positive float
+        :return: asset weights implied by returns
+        :rtype: dict
+        """
+        self.posterior_rets = self.bl_returns()
+        A = risk_aversion * self.cov_matrix
+        b = self.posterior_rets
+        raw_weights = np.linalg.solve(A, b)
+        self.weights = raw_weights / raw_weights.sum()
+        return dict(zip(self.tickers, self.weights))
+
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+        """
+        After optimising, calculate (and optionally print) the performance of the optimal
+        portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
+        This method uses the BL posterior returns and covariance matrix.
+
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                               The period of the risk-free rate should correspond to the
+                               frequency of expected returns.
+        :type risk_free_rate: float, optional
+        :raises ValueError: if weights have not been calcualted yet
+        :return: expected return, volatility, Sharpe ratio.
+        :rtype: (float, float, float)
+        """
+        if self.posterior_cov is None:
+            self.posterior_cov = self.bl_cov()
+        return base_optimizer.portfolio_performance(
+            self.posterior_rets,
+            self.posterior_cov,
+            self.weights,
+            verbose,
+            risk_free_rate,
+        )

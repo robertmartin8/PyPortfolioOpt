@@ -7,6 +7,8 @@ from pypfopt.value_at_risk import CVAROpt
 from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
 from pypfopt.hierarchical_risk_parity import HRPOpt
 from pypfopt.cla import CLA
+from pypfopt import black_litterman
+from pypfopt.black_litterman import BlackLittermanModel
 
 
 # Reading in the data; preparing expected returns and a risk model
@@ -125,33 +127,81 @@ Annual volatility: 24.7%
 Sharpe Ratio: 1.39
 """
 
-# CVaR optimisation - very buggy
-vr = CVAROpt(returns)
-vr.min_cvar()
-print(vr.clean_weights())
+
+# Black-Litterman
+spy_prices = pd.read_csv(
+    "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
+)
+delta = black_litterman.market_implied_risk_aversion(spy_prices)
+
+mcaps = {
+    "GOOG": 927e9,
+    "AAPL": 1.19e12,
+    "FB": 574e9,
+    "BABA": 533e9,
+    "AMZN": 867e9,
+    "GE": 96e9,
+    "AMD": 43e9,
+    "WMT": 339e9,
+    "BAC": 301e9,
+    "GM": 51e9,
+    "T": 61e9,
+    "UAA": 78e9,
+    "SHLD": 0,
+    "XOM": 295e9,
+    "RRC": 1e9,
+    "BBY": 22e9,
+    "MA": 288e9,
+    "PFE": 212e9,
+    "JPM": 422e9,
+    "SBUX": 102e9,
+}
+prior = black_litterman.market_implied_prior_returns(mcaps, delta, S)
+
+# 1. SBUX will drop by 20%
+# 2. GOOG outperforms FB by 10%
+# 3. BAC and JPM will outperform T and GE by 15%
+views = np.array([-0.20, 0.10, 0.15]).reshape(-1, 1)
+picking = np.array(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, -0.5, 0, 0, 0.5, 0, -0.5, 0, 0, 0, 0, 0, 0, 0, 0.5, 0],
+    ]
+)
+bl = BlackLittermanModel(S, Q=views, P=picking, pi=prior, tau=0.01)
+rets = bl.bl_returns()
+ef = EfficientFrontier(rets, S)
+ef.max_sharpe()
+print(ef.clean_weights())
+ef.portfolio_performance(verbose=True)
 
 """
-{'GOOG': 0.10886,
- 'AAPL': 0.0,
- 'FB': 0.02598,
- 'BABA': 0.57691,
- 'AMZN': 0.0,
- 'GE': 0.01049,
- 'AMD': 0.0138,
- 'WMT': 0.01581,
- 'BAC': 0.01049,
- 'GM': 0.03463,
- 'T': 0.01049,
- 'UAA': 0.07782,
- 'SHLD': 0.04184,
- 'XOM': 0.00931,
+{'GOOG': 0.2015,
+ 'AAPL': 0.2368,
+ 'FB': 0.0,
+ 'BABA': 0.06098,
+ 'AMZN': 0.17148,
+ 'GE': 0.0,
+ 'AMD': 0.0,
+ 'WMT': 0.0,
+ 'BAC': 0.18545,
+ 'GM': 0.0,
+ 'T': 0.0,
+ 'UAA': 0.0,
+ 'SHLD': 0.0,
+ 'XOM': 0.0,
  'RRC': 0.0,
- 'BBY': 0.01748,
- 'MA': 0.03782,
+ 'BBY': 0.0,
+ 'MA': 0.0,
  'PFE': 0.0,
- 'JPM': 0.0,
- 'SBUX': 0.00828}
- """
+ 'JPM': 0.14379,
+ 'SBUX': 0.0}
+
+Expected annual return: 15.3%
+Annual volatility: 28.7%
+Sharpe Ratio: 0.46
+"""
 
 
 # Hierarchical risk parity
@@ -214,3 +264,32 @@ Expected annual return: 32.5%
 Annual volatility: 21.3%
 Sharpe Ratio: 1.43
 """
+
+
+# CVaR optimisation - very buggy
+vr = CVAROpt(returns)
+vr.min_cvar()
+print(vr.clean_weights())
+
+"""
+{'GOOG': 0.10886,
+ 'AAPL': 0.0,
+ 'FB': 0.02598,
+ 'BABA': 0.57691,
+ 'AMZN': 0.0,
+ 'GE': 0.01049,
+ 'AMD': 0.0138,
+ 'WMT': 0.01581,
+ 'BAC': 0.01049,
+ 'GM': 0.03463,
+ 'T': 0.01049,
+ 'UAA': 0.07782,
+ 'SHLD': 0.04184,
+ 'XOM': 0.00931,
+ 'RRC': 0.0,
+ 'BBY': 0.01748,
+ 'MA': 0.03782,
+ 'PFE': 0.0,
+ 'JPM': 0.0,
+ 'SBUX': 0.00828}
+ """

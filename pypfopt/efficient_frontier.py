@@ -21,17 +21,18 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
     - Inputs:
 
-        - ``cov_matrix``
-        - ``n_assets``
-        - ``tickers``
-        - ``bounds``
+        - ``n_assets`` - int
+        - ``tickers`` - str list
+        - ``bounds`` - float tuple OR (float tuple) list
+        - ``cov_matrix`` - pd.DataFrame
+        - ``expected_returns`` - pd.Series
 
     - Optimisation parameters:
 
-        - ``initial_guess``
-        - ``constraints``
+        - ``initial_guess`` - np.ndarray
+        - ``constraints`` - dict list
 
-    - Output: ``weights``
+    - Output: ``weights`` - np.ndarray
 
     Public methods:
 
@@ -42,6 +43,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
     - ``efficient_return()`` minimises risk for a given target return
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1), gamma=0):
@@ -51,9 +55,10 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         :type expected_returns: pd.Series, list, np.ndarray
         :param cov_matrix: covariance of returns for each asset
         :type cov_matrix: pd.DataFrame or np.array
-        :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1).
-                              Must be changed to (-1, 1) for portfolios with shorting.
-        :type weight_bounds: tuple, optional
+        :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
+                              if all identical, defaults to (0, 1). Must be changed to (-1, 1)
+                              for portfolios with shorting.
+        :type weight_bounds: tuple OR tuple list, optional
         :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                       non-negligible weights
         :type gamma: float, optional
@@ -131,6 +136,31 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
+    def max_unconstrained_utility(self, risk_aversion=1):
+        r"""
+        Solve for weights in the unconstrained maximisation problem:
+
+        .. math::
+
+            \max_w w^T \mu - \frac \delta 2 w^T \Sigma w
+
+        This has an analytic solution, so scipy.optimize is not needed.
+        Note: this method ignores most of the parameters passed in the
+        constructor, including bounds and gamma. Because this is unconstrained,
+        resulting weights may be negative or greater than 1. It is completely up
+        to the user to decide how the resulting weights should be normalised.
+
+        :param risk_aversion: risk aversion parameter (must be greater than 0),
+                              defaults to 1
+        :type risk_aversion: positive float
+        """
+        if risk_aversion <= 0:
+            raise ValueError("risk aversion coefficient must be greater than zero")
+        A = risk_aversion * self.cov_matrix
+        b = self.expected_returns
+        self.weights = np.linalg.solve(A, b)
+        return dict(zip(self.tickers, self.weights))
+
     def custom_objective(self, objective_function, *args):
         """
         Optimise some objective function. While an implicit requirement is that the function
@@ -186,7 +216,8 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
         if market_neutral:
-            if self.bounds[0][0] is not None and self.bounds[0][0] >= 0:
+            portfolio_possible = any(b[0] < 0 for b in self.bounds if b[0] is not None)
+            if not portfolio_possible:
                 warnings.warn(
                     "Market neutrality requires shorting - bounds have been amended",
                     RuntimeWarning,
@@ -234,7 +265,8 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
         if market_neutral:
-            if self.bounds[0][0] is not None and self.bounds[0][0] >= 0:
+            portfolio_possible = any(b[0] < 0 for b in self.bounds if b[0] is not None)
+            if not portfolio_possible:
                 warnings.warn(
                     "Market neutrality requires shorting - bounds have been amended",
                     RuntimeWarning,

@@ -10,7 +10,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v0.4.3-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v0.5.0-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
@@ -23,8 +23,10 @@
 
 
 PyPortfolioOpt is a library that implements portfolio optimisation methods, including
-classical efficient frontier techniques as well as recent developments in the field
-like shrinkage and CVaR optimisation, along with some novel experimental features.
+classical efficient frontier techniques and Black-Litterman allocation, as well as more
+recent developments in the field like shrinkage and Hierarchical Risk Parity, along with
+some novel experimental features like exponentially-weighted covariance matrices.
+
 It is **extensive** yet easily
 **extensible**, and can be useful for both the casual investor and the serious
 practitioner. Whether you are a fundamentals-oriented investor who has identified a
@@ -132,6 +134,7 @@ Contents
     ExpectedReturns
     RiskModels
     EfficientFrontier
+    BlackLitterman
     OtherOptimisers
     Postprocessing
     Roadmap
@@ -146,7 +149,7 @@ Advantages over existing implementations
   features, like L2 regularisation, shrunk covariance, hierarchical risk parity.
 - Native support for pandas dataframes: easily input your daily prices data.
 - Extensive practical tests, which use real-life data.
-- Easy to combine with your own proprietary strategies and models.
+- Easy to combine with your proprietary strategies and models.
 - Robust to missing data, and price-series of different lengths (e.g FB data
   only goes back to 2012 whereas AAPL data goes back to 1980).
 

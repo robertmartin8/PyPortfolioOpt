@@ -4,18 +4,61 @@ generates optimal portfolios using the Critical Line Algorithm as implemented
 by Marcos Lopez de Prado and David Bailey.
 """
 
+from math import log, ceil
 import numbers
 import numpy as np
 import pandas as pd
 from . import base_optimizer
-from math import log, ceil
 
 
 def _infnone(x):
+    """
+    Helper method to map None to float infinity.
+
+    :param x: argument
+    :type x: float
+    :return: infinity if the argmument was None otherwise x
+    :rtype: float
+    """
     return float("-inf") if x is None else x
 
 
 class CLA(base_optimizer.BaseOptimizer):
+
+    """
+    Instance variables:
+
+    - Inputs:
+
+        - ``n_assets`` - int
+        - ``tickers`` - str list
+        - ``mean`` - np.ndarray
+        - ``cov_matrix`` - pd.DataFrame
+        - ``expected_returns`` - pd.Series
+        - ``lb`` - np.ndarray
+        - ``ub`` - np.ndarray
+
+    - Optimisation parameters:
+
+        - ``w`` - np.ndarray list
+        - ``ls`` - float list
+        - ``g`` - float list
+        - ``f`` - float list list
+
+    - Outputs: ``weights`` - np.ndarray
+
+    Public methods:
+
+    - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
+    - ``min_volatility()`` optimises for minimum volatility
+    - ``efficient_frontier()`` computes the entire efficient frontier
+    - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
+      the optimised portfolio.
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
+    """
+
     def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1)):
         """
         :param expected_returns: expected returns for each asset. Set to None if
@@ -35,14 +78,21 @@ class CLA(base_optimizer.BaseOptimizer):
             self.mean[-1, 0] += 1e-5
         self.expected_returns = self.mean.reshape((len(self.mean),))
         self.cov_matrix = np.asarray(cov_matrix)
-        if isinstance(weight_bounds[0], numbers.Real):
-            self.lB = np.ones(self.mean.shape) * weight_bounds[0]
+
+        # Bounds
+        if len(weight_bounds) == len(self.mean):
+            self.lB = np.array([b[0] for b in weight_bounds]).reshape(-1, 1)
+            self.uB = np.array([b[1] for b in weight_bounds]).reshape(-1, 1)
         else:
-            self.lB = np.array(weight_bounds[0]).reshape(self.mean.shape)
-        if isinstance(weight_bounds[0], numbers.Real):
-            self.uB = np.ones(self.mean.shape) * weight_bounds[1]
-        else:
-            self.uB = np.array(weight_bounds[1]).reshape(self.mean.shape)
+            if isinstance(weight_bounds[0], numbers.Real):
+                self.lB = np.ones(self.mean.shape) * weight_bounds[0]
+            else:
+                self.lB = np.array(weight_bounds[0]).reshape(self.mean.shape)
+            if isinstance(weight_bounds[0], numbers.Real):
+                self.uB = np.ones(self.mean.shape) * weight_bounds[1]
+            else:
+                self.uB = np.array(weight_bounds[1]).reshape(self.mean.shape)
+
         self.w = []  # solution
         self.ls = []  # lambdas
         self.g = []  # gammas

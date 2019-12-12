@@ -86,7 +86,7 @@ actual portfolio optimisation.
 Efficient Frontier Optimisation
 ===============================
 
-Efficient Frontier Optimisation is based on Harry Markowitz's 1952 classic [1]_, which
+Efficient Frontier Optimisation is based on Harry Markowitz's 1952 classic paper [1]_, which
 turned portfolio management from an art into a science. The key insight is that by
 combining assets with different expected returns and volatilities, one can decide on a
 mathematically optimal allocation.
@@ -146,6 +146,7 @@ the :py:meth:`clean_weights` method, which truncates tiny weights to zero
 and rounds the rest::
 
     cleaned_weights = ef.clean_weights()
+    ef.save_weights_to_file("weights.txt")  # saves to file
     print(cleaned_weights)
 
 This prints::

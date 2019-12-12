@@ -5,14 +5,15 @@ to generate a portfolio.
 
 The code has been reproduced with modification from Lopez de Prado (2016).
 """
+
 import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as ssd
-from .base_optimizer import BaseOptimizer
+from . import base_optimizer
 
 
-class HRPOpt(BaseOptimizer):
+class HRPOpt(base_optimizer.BaseOptimizer):
     """
     A HRPOpt object (inheriting from BaseOptimizer) constructs a hierarchical
     risk parity portfolio.
@@ -20,13 +21,21 @@ class HRPOpt(BaseOptimizer):
     Instance variables:
 
     - Inputs
-        - ``returns``
 
-    - Output: ``weights``
+        - ``n_assets`` - int
+        - ``tickers`` - str list
+        - ``returns`` - pd.Series
+
+    - Output: ``weights`` - np.ndarray
 
     Public methods:
 
-    - ``hrp_portfolio()``
+    - ``hrp_portfolio()`` calculates weights using HRP
+    - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
+      the optimised portfolio.
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(self, returns):
@@ -51,8 +60,8 @@ class HRPOpt(BaseOptimizer):
         :type cov: np.ndarray
         :param cluster_items: tickers in the cluster
         :type cluster_items: list
-        :return: [description]
-        :rtype: [type]
+        :return: the variance per cluster
+        :rtype: float
         """
         # Compute variance per cluster
         cov_slice = cov.loc[cluster_items, cluster_items]
@@ -141,3 +150,26 @@ class HRPOpt(BaseOptimizer):
         weights = dict(hrp.sort_index())
         self.set_weights(weights)
         return weights
+
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+        """
+        After optimising, calculate (and optionally print) the performance of the optimal
+        portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
+
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                               The period of the risk-free rate should correspond to the
+                               frequency of expected returns.
+        :type risk_free_rate: float, optional
+        :raises ValueError: if weights have not been calcualted yet
+        :return: expected return, volatility, Sharpe ratio.
+        :rtype: (float, float, float)
+        """
+        return base_optimizer.portfolio_performance(
+            self.returns.mean(),
+            self.returns.cov(),
+            self.weights,
+            verbose,
+            risk_free_rate,
+        )
