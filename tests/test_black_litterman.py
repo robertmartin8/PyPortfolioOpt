@@ -61,7 +61,7 @@ def test_parse_views():
 
     # Check views vector is correct
     np.testing.assert_array_equal(
-        bl.Q, np.array(list(viewdict.values())).reshape(-1, 1)
+        bl.Q, np.array([0.20, -0.30, 0.40]).reshape(-1, 1)
     )
 
 
