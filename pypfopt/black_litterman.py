@@ -41,7 +41,7 @@ def market_implied_prior_returns(
     mcaps = pd.Series(market_caps)
     mkt_weights = mcaps / mcaps.sum()
     # Pi is excess returns so must add risk_free_rate to get return.
-    return risk_aversion * cov_matrix @ mkt_weights + risk_free_rate
+    return risk_aversion * cov_matrix.dot(mkt_weights) + risk_free_rate
 
 
 def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.02):
