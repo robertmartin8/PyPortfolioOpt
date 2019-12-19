@@ -32,20 +32,13 @@ packages = [ {include = "pypfopt"} ]
 "Personal website" = "https://reasonabledeviations.com"
 
 [tool.poetry.dependencies]
-python = "^3.4"
-atomicwrites = "^=1.1.5"
-attrs = "^=18.1.0"
-more-itertools = "^=4.2.0"
+python = "^3.5.3"
 noisyopt = "^=0.2.2"
 numpy = "^=1.14.3"
-pluggy = "^=0.6.0"
 pulp = "^=1.6.9"
-py = "^=1.5.3"
-python-dateutil = "^=2.7.3"
-pytz = "^=2018.4"
 scipy = "^=1.1.0"
-six = "^=1.11.0"
-pytest = "^4.6"
+pandas = "^0.25.3"
+scikit-learn = "^0.22"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
