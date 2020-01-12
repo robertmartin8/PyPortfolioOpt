@@ -4,9 +4,14 @@ value-at-risk (CVaR) objective, which requires Monte Carlo simulation.
 """
 
 import pandas as pd
-import noisyopt
 from . import base_optimizer
 from . import objective_functions
+
+# Extra dependency
+try:
+    import noisyopt
+except (ModuleNotFoundError, ImportError):
+    raise ImportError("Please install noisyopt via pip or poetry")
 
 
 class CVAROpt(base_optimizer.BaseScipyOptimizer):

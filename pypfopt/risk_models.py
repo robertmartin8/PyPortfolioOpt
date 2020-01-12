@@ -24,7 +24,6 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 import warnings
 import numpy as np
 import pandas as pd
-import sklearn.covariance
 from .expected_returns import returns_from_prices
 
 
@@ -148,6 +147,13 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
+
+    # Extra dependency
+    try:
+        import sklearn.covariance
+    except (ModuleNotFoundError, ImportError):
+        raise ImportError("Please install scikit-learn via pip or poetry")
+
     assets = prices.columns
     X = prices.pct_change().dropna(how="all")
     X = np.nan_to_num(X.values)
@@ -187,6 +193,11 @@ class CovarianceShrinkage:
     - ``delta`` - float (shrinkage constant)
     - ``frequency`` - int
     """
+
+    try:
+        import sklearn.covariance
+    except (ModuleNotFoundError, ImportError):
+        raise ImportError("Please install scikit-learn via pip or poetry")
 
     def __init__(self, prices, frequency=252):
         """
@@ -253,7 +264,7 @@ class CovarianceShrinkage:
         """
         if shrinkage_target == "constant_variance":
             X = np.nan_to_num(self.X.values)
-            shrunk_cov, self.delta = sklearn.covariance.ledoit_wolf(X)
+            shrunk_cov, self.delta = self.sklearn.covariance.ledoit_wolf(X)
         elif shrinkage_target == "single_factor":
             shrunk_cov, self.delta = self._ledoit_wolf_single_factor()
         elif shrinkage_target == "constant_correlation":
@@ -379,5 +390,5 @@ class CovarianceShrinkage:
         :rtype: np.ndarray
         """
         X = np.nan_to_num(self.X.values)
-        shrunk_cov, self.delta = sklearn.covariance.oas(X)
+        shrunk_cov, self.delta = self.sklearn.covariance.oas(X)
         return self.format_and_annualise(shrunk_cov)
