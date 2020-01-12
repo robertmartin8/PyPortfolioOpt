@@ -5,7 +5,6 @@ offers multiple methods to generate a discrete portfolio allocation from continu
 
 import numpy as np
 import pandas as pd
-import pulp
 
 
 def get_latest_prices(prices):
@@ -258,6 +257,12 @@ class DiscreteAllocation:
                 of funds leftover.
         :rtype: (dict, float)
         """
+
+        # Extra dependency
+        try:
+            import pulp
+        except (ModuleNotFoundError, ImportError):
+            raise ImportError("Please install PulP via pip or poetry")
 
         if any([w < 0 for _, w in self.weights]):
             longs = {t: w for t, w in self.weights if w >= 0}

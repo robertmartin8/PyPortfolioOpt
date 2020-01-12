@@ -33,12 +33,9 @@ packages = [ {include = "pypfopt"} ]
 
 [tool.poetry.dependencies]
 python = "^3.5.3"
-noisyopt = "^=0.2.2"
 numpy = "^=1.14.3"
-pulp = "^=1.6.9"
 scipy = "^=1.1.0"
 pandas = "^0.25.3"
-scikit-learn = "^0.22"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
@@ -49,3 +46,8 @@ rope = "^0.14.0"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+[tool.poetry.extras]
+noisyopt = ["^=0.2.2"]
+scikit-learn = ["^0.22"]
+pulp = ["^=1.6.10"]
