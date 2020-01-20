@@ -31,6 +31,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
         - ``initial_guess`` - np.ndarray
         - ``constraints`` - dict list
+        - ``opt_method`` - the optimisation algorithm to use. Defaults to SLSQP.
 
     - Output: ``weights`` - np.ndarray
 
@@ -110,7 +111,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_functions.negative_sharpe,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=self.constraints,
         )
@@ -129,7 +130,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_functions.volatility,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=self.constraints,
         )
@@ -176,7 +177,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_function,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=self.constraints,
         )
@@ -235,7 +236,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_functions.negative_sharpe,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=constraints,
         )
@@ -294,7 +295,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_functions.volatility,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=constraints,
         )
