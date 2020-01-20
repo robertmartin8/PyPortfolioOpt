@@ -198,6 +198,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
         :raises ValueError: if ``target_risk`` is not a positive float
+        :raises ValueError: if no portfolio can be found with volatility equal to ``target_risk``
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the efficient risk portfolio
         :rtype: dict
@@ -223,12 +224,12 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                     RuntimeWarning,
                 )
                 self.bounds = self._make_valid_bounds((-1, 1))
-            self.constraints = [
+            constraints = [
                 {"type": "eq", "fun": lambda x: np.sum(x)},
                 target_constraint,
             ]
         else:
-            self.constraints = self.constraints + [target_constraint]
+            constraints = self.constraints + [target_constraint]
 
         result = sco.minimize(
             objective_functions.negative_sharpe,
@@ -236,7 +237,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             args=args,
             method="SLSQP",
             bounds=self.bounds,
-            constraints=self.constraints,
+            constraints=constraints,
         )
         self.weights = result["x"]
 
@@ -260,6 +261,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                                defaults to False. Requires negative lower weight bound.
         :type market_neutral: bool, optional
         :raises ValueError: if ``target_return`` is not a positive float
+        :raises ValueError: if no portfolio can be found with return equal to ``target_return``
         :return: asset weights for the Markowitz portfolio
         :rtype: dict
         """
@@ -281,12 +283,12 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                     RuntimeWarning,
                 )
                 self.bounds = self._make_valid_bounds((-1, 1))
-            self.constraints = [
+            constraints = [
                 {"type": "eq", "fun": lambda x: np.sum(x)},
                 target_constraint,
             ]
         else:
-            self.constraints = self.constraints + [target_constraint]
+            constraints = self.constraints + [target_constraint]
 
         result = sco.minimize(
             objective_functions.volatility,
@@ -294,7 +296,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             args=args,
             method="SLSQP",
             bounds=self.bounds,
-            constraints=self.constraints,
+            constraints=constraints,
         )
         self.weights = result["x"]
         if not np.isclose(self.weights.dot(self.expected_returns), target_return):

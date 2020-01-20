@@ -84,7 +84,7 @@ def test_weight_bounds_minus_one_to_one():
     assert ef.max_sharpe()
     assert ef.min_volatility()
     assert ef.efficient_return(0.05)
-    assert ef.efficient_risk(0.05)
+    assert ef.efficient_risk(0.20)
 
 
 def test_max_sharpe_L2_reg():
@@ -311,7 +311,7 @@ def test_efficient_risk_error():
 
 def test_efficient_risk_many_values():
     ef = setup_efficient_frontier()
-    for target_risk in np.arange(0.16, 0.21, 0.01):
+    for target_risk in np.arange(0.16, 0.21, 0.30):
         ef.efficient_risk(target_risk)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         volatility = ef.portfolio_performance()[1]
@@ -365,7 +365,7 @@ def test_efficient_risk_L2_reg_many_values():
     initial_number = sum(ef.weights > 0.01)
     for a in np.arange(0.5, 5, 0.5):
         ef.gamma = a
-        ef.efficient_risk(0.19)
+        ef.efficient_risk(0.2)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         new_number = sum(ef.weights > 0.01)
         # Higher gamma should reduce the number of small weights
@@ -431,7 +431,7 @@ def test_efficient_return_error():
 
 def test_efficient_return_many_values():
     ef = setup_efficient_frontier()
-    for target_return in np.arange(0.19, 0.30, 0.01):
+    for target_return in np.arange(0.25, 0.20, 0.28):
         ef.efficient_return(target_return)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         assert all([i >= 0 for i in ef.weights])
@@ -481,7 +481,7 @@ def test_efficient_return_L2_reg_many_values():
     initial_number = sum(ef.weights > 0.01)
     for a in np.arange(0.5, 5, 0.5):
         ef.gamma = a
-        ef.efficient_return(0.25)
+        ef.efficient_return(0.20)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         assert all([i >= 0 for i in ef.weights])
         new_number = sum(ef.weights > 0.01)
