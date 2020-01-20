@@ -239,6 +239,15 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             constraints=self.constraints,
         )
         self.weights = result["x"]
+
+        if not np.isclose(
+            objective_functions.volatility(self.weights, self.cov_matrix),
+            target_risk ** 2,
+        ):
+            raise ValueError(
+                "Optimisation was not succesful. Please increase target_risk"
+            )
+
         return dict(zip(self.tickers, self.weights))
 
     def efficient_return(self, target_return, market_neutral=False):
@@ -288,6 +297,10 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             constraints=self.constraints,
         )
         self.weights = result["x"]
+        if not np.isclose(self.weights.dot(self.expected_returns), target_return):
+            raise ValueError(
+                "Optimisation was not succesful. Please reduce target_return"
+            )
         return dict(zip(self.tickers, self.weights))
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):

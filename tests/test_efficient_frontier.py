@@ -300,6 +300,15 @@ def test_efficient_risk():
     )
 
 
+def test_efficient_risk_error():
+    ef = setup_efficient_frontier()
+    ef.min_volatility()
+    min_possible_vol = ef.portfolio_performance()[1]
+    with pytest.raises(ValueError):
+        # This volatility is too low
+        ef.efficient_risk(min_possible_vol - 0.01)
+
+
 def test_efficient_risk_many_values():
     ef = setup_efficient_frontier()
     for target_risk in np.arange(0.16, 0.21, 0.01):
@@ -410,6 +419,14 @@ def test_efficient_return():
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.25, 0.1738877891235972, 1.3226920714748545), atol=1e-6
     )
+
+
+def test_efficient_return_error():
+    ef = setup_efficient_frontier()
+    max_ret = ef.expected_returns.max()
+    with pytest.raises(ValueError):
+        # This volatility is too low
+        ef.efficient_return(max_ret + 0.01)
 
 
 def test_efficient_return_many_values():
