@@ -344,7 +344,7 @@ def test_efficient_risk_L2_reg():
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.28438883284316746, 0.19, 1.3915199577262938),
+        (0.28437776398043807, 0.19, 1.3914587310224322),
         atol=1e-6,
     )
 

@@ -209,9 +209,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
         args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
         target_constraint = {
-            "type": "ineq",
-            "fun": lambda w: target_risk
-            - np.sqrt(objective_functions.volatility(w, self.cov_matrix)),
+            "type": "eq",
+            "fun": lambda w: target_risk ** 2
+            - objective_functions.volatility(w, self.cov_matrix),
         }
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
@@ -223,12 +223,12 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                     RuntimeWarning,
                 )
                 self.bounds = self._make_valid_bounds((-1, 1))
-            constraints = [
+            self.constraints = [
                 {"type": "eq", "fun": lambda x: np.sum(x)},
                 target_constraint,
             ]
         else:
-            constraints = self.constraints + [target_constraint]
+            self.constraints = self.constraints + [target_constraint]
 
         result = sco.minimize(
             objective_functions.negative_sharpe,
@@ -236,7 +236,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             args=args,
             method="SLSQP",
             bounds=self.bounds,
-            constraints=constraints,
+            constraints=self.constraints,
         )
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
@@ -272,12 +272,12 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                     RuntimeWarning,
                 )
                 self.bounds = self._make_valid_bounds((-1, 1))
-            constraints = [
+            self.constraints = [
                 {"type": "eq", "fun": lambda x: np.sum(x)},
                 target_constraint,
             ]
         else:
-            constraints = self.constraints + [target_constraint]
+            self.constraints = self.constraints + [target_constraint]
 
         result = sco.minimize(
             objective_functions.volatility,
@@ -285,7 +285,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             args=args,
             method="SLSQP",
             bounds=self.bounds,
-            constraints=constraints,
+            constraints=self.constraints,
         )
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
