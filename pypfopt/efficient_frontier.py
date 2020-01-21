@@ -31,6 +31,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
         - ``initial_guess`` - np.ndarray
         - ``constraints`` - dict list
+        - ``opt_method`` - the optimisation algorithm to use. Defaults to SLSQP.
 
     - Output: ``weights`` - np.ndarray
 
@@ -110,7 +111,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_functions.negative_sharpe,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=self.constraints,
         )
@@ -129,7 +130,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_functions.volatility,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=self.constraints,
         )
@@ -176,7 +177,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_function,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=self.constraints,
         )
@@ -198,6 +199,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
         :raises ValueError: if ``target_risk`` is not a positive float
+        :raises ValueError: if no portfolio can be found with volatility equal to ``target_risk``
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the efficient risk portfolio
         :rtype: dict
@@ -209,9 +211,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
         args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
         target_constraint = {
-            "type": "ineq",
-            "fun": lambda w: target_risk
-            - np.sqrt(objective_functions.volatility(w, self.cov_matrix)),
+            "type": "eq",
+            "fun": lambda w: target_risk ** 2
+            - objective_functions.volatility(w, self.cov_matrix),
         }
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
@@ -234,11 +236,20 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_functions.negative_sharpe,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=constraints,
         )
         self.weights = result["x"]
+
+        if not np.isclose(
+            objective_functions.volatility(self.weights, self.cov_matrix),
+            target_risk ** 2,
+        ):
+            raise ValueError(
+                "Optimisation was not succesful. Please increase target_risk"
+            )
+
         return dict(zip(self.tickers, self.weights))
 
     def efficient_return(self, target_return, market_neutral=False):
@@ -251,6 +262,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                                defaults to False. Requires negative lower weight bound.
         :type market_neutral: bool, optional
         :raises ValueError: if ``target_return`` is not a positive float
+        :raises ValueError: if no portfolio can be found with return equal to ``target_return``
         :return: asset weights for the Markowitz portfolio
         :rtype: dict
         """
@@ -283,11 +295,15 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
             objective_functions.volatility,
             x0=self.initial_guess,
             args=args,
-            method="SLSQP",
+            method=self.opt_method,
             bounds=self.bounds,
             constraints=constraints,
         )
         self.weights = result["x"]
+        if not np.isclose(self.weights.dot(self.expected_returns), target_return):
+            raise ValueError(
+                "Optimisation was not succesful. Please reduce target_return"
+            )
         return dict(zip(self.tickers, self.weights))
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):

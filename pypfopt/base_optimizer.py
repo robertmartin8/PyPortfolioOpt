@@ -107,6 +107,7 @@ class BaseScipyOptimizer(BaseOptimizer):
     - ``bounds`` - float tuple OR (float tuple) list
     - ``initial_guess`` - np.ndarray
     - ``constraints`` - dict list
+    - ``opt_method`` - the optimisation algorithm to use. Defaults to SLSQP.
     """
 
     def __init__(self, n_assets, tickers=None, weight_bounds=(0, 1)):
@@ -121,6 +122,7 @@ class BaseScipyOptimizer(BaseOptimizer):
         # Optimisation parameters
         self.initial_guess = np.array([1 / self.n_assets] * self.n_assets)
         self.constraints = [{"type": "eq", "fun": lambda x: np.sum(x) - 1}]
+        self.opt_method = "SLSQP"
 
     def _make_valid_bounds(self, test_bounds):
         """

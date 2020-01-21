@@ -43,6 +43,13 @@ Fixed an error with dot products by amending the pandas requirements.
 Made PuLP, sklearn, noisyopt optional dependencies to improve installation
 experience.
 
+0.5.3
+-----
+
+- Fixed an optimisation bug in `EfficientFrontier.efficient_risk`. An error is now
+thrown if optimisation fails.
+- Added a hidden API to change the scipy optimiser method. 
+
 0.4.0
 =====
 
