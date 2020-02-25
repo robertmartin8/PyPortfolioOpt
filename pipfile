@@ -11,4 +11,4 @@ pandas = "^0.25.3"
 pytest = "^4.6"
 
 [requires]
-python_version = "^3.5.3"
+python_version = "^3.6"

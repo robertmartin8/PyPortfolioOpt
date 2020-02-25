@@ -28,7 +28,6 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Office/Business :: Financial",
         "Topic :: Office/Business :: Financial :: Investment",
@@ -38,7 +37,7 @@ setup(
     install_requires=["numpy", "pandas", "scipy"],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     project_urls={
         "Documentation": "https://pyportfolioopt.readthedocs.io/en/latest/",
         "Issues": "https://github.com/robertmartin8/PyPortfolioOpt/issues",
