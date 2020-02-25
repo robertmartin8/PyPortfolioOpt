@@ -60,9 +60,7 @@ def test_parse_views():
     np.testing.assert_array_equal(test_P, np.zeros((len(bl.Q), bl.n_assets)))
 
     # Check views vector is correct
-    np.testing.assert_array_equal(
-        bl.Q, np.array([0.20, -0.30, 0.40]).reshape(-1, 1)
-    )
+    np.testing.assert_array_equal(bl.Q, np.array([0.20, -0.30, 0.40]).reshape(-1, 1))
 
 
 def test_dataframe_input():
@@ -317,7 +315,7 @@ def test_market_implied_prior():
     pd.testing.assert_series_equal(pi, pi2, check_exact=False)
 
 
-def test_black_litterman_market_prior():
+def test_bl_market_prior():
     df = get_data()
     S = risk_models.sample_cov(df)
 
@@ -370,3 +368,80 @@ def test_black_litterman_market_prior():
     )
     # Check that bl.cov() has been called and used
     assert bl.posterior_cov is not None
+
+
+def test_bl_tau():
+    df = get_data()
+    S = risk_models.sample_cov(df)
+
+    prices = pd.read_csv(
+        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
+    )
+    delta = black_litterman.market_implied_risk_aversion(prices)
+
+    mcaps = {
+        "GOOG": 927e9,
+        "AAPL": 1.19e12,
+        "FB": 574e9,
+        "BABA": 533e9,
+        "AMZN": 867e9,
+        "GE": 96e9,
+        "AMD": 43e9,
+        "WMT": 339e9,
+        "BAC": 301e9,
+        "GM": 51e9,
+        "T": 61e9,
+        "UAA": 78e9,
+        "SHLD": 0,
+        "XOM": 295e9,
+        "RRC": 1e9,
+        "BBY": 22e9,
+        "MA": 288e9,
+        "PFE": 212e9,
+        "JPM": 422e9,
+        "SBUX": 102e9,
+    }
+    prior = black_litterman.market_implied_prior_returns(mcaps, delta, S)
+
+    viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
+
+    # Need to change omega for this test to work
+    omega = np.diag([0.01, 0.01, 0.01, 0.01])
+
+    bl0 = BlackLittermanModel(
+        S, pi=prior, absolute_views=viewdict, tau=1e-10, omega=omega
+    )
+    bl1 = BlackLittermanModel(
+        S, pi=prior, absolute_views=viewdict, tau=0.01, omega=omega
+    )
+    bl2 = BlackLittermanModel(
+        S, pi=prior, absolute_views=viewdict, tau=0.1, omega=omega
+    )
+
+    # For tiny tau, posterior should roughly equal prior
+    np.testing.assert_allclose(bl0.bl_returns(), bl0.pi.flatten(), rtol=1e-5)
+
+    # For bigger tau, GOOG should be given more weight
+    assert bl1.bl_returns()["GOOG"] > bl0.bl_returns()["GOOG"]
+    assert bl2.bl_returns()["GOOG"] > bl1.bl_returns()["GOOG"]
+
+
+def test_bl_no_uncertainty():
+    df = get_data()
+    S = risk_models.sample_cov(df)
+    omega = np.diag([0, 0, 0, 0])
+
+    viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
+    bl = BlackLittermanModel(S, absolute_views=viewdict, omega=omega)
+    rets = bl.bl_returns()
+
+    # For 100% confidence, posterior return should equal view return.
+    for k, v in viewdict.items():
+        assert np.abs(rets[k] - v) < 1e-5
+
+    # If only one view has 100% confidencee, only that asset will have post = prior.
+    omega = np.diag([0, 0.2, 0.2, 0.2])
+    bl = BlackLittermanModel(S, absolute_views=viewdict, omega=omega)
+    rets = bl.bl_returns()
+    assert np.abs(bl.bl_returns()["GOOG"] - viewdict["GOOG"]) < 1e-5
+    assert np.abs(rets["AAPL"] - viewdict["AAPL"]) > 0.01
