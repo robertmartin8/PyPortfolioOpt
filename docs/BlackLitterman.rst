@@ -172,6 +172,12 @@ Another parameter that controls the relative weighting of the priors views is :m
 this parameter, with many contradictory rules of thumb. Indeed, there has been an entire paper written on it [3]_. We choose
 the sensible default :math:`\tau = 0.05`.
 
+.. note::
+
+    If you use this default estimate of :math:`\Omega`, it turns out that the value of :math:`\tau` does not matter. This
+    is a consequence of the mathematics: the :math:`\tau` cancels in the matrix multiplications.
+
+
 Output of the BL model
 ======================
 

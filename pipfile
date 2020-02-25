@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/project/pyportfolioopt/"
+name = "pypi"
+
+[packages]
+numpy = "^=1.14.3"
+scipy = "^=1.1.0"
+pandas = "^0.25.3"
+
+[dev-packages]
+pytest = "^4.6"
+
+[requires]
+python_version = "^3.5.3"

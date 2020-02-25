@@ -94,7 +94,6 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         - ``P`` - np.ndarray
         - ``pi`` - np.ndarray
         - ``omega`` - np.ndarray
-        - ``omega_inv`` - np.ndarray
         - ``tau`` - float
 
     - Output:
@@ -195,7 +194,10 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                 self.omega = omega
             else:
                 raise TypeError("self.omega must be a square array or dataframe")
-        self.omega_inv = None
+
+        # Private intermediaries
+        self._tau_sigma_P = None
+        self._A = None
 
         self.posterior_rets = None
         self.posterior_cov = None
@@ -261,26 +263,21 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
     def bl_returns(self):
         """
         Calculate the posterior estimate of the returns vector,
-        given views on some assets. It is assumed that omega is
-        diagonal. If this is not the case, please manually set
-        omega_inv.
+        given views on some assets.
 
         :return: posterior returns vector
         :rtype: pd.Series
         """
-        if self.omega_inv is None:
-            # Assume diagonal
-            omega_inv = np.diag(1 / np.diag(self.omega))
-        else:
-            omega_inv = self.omega_inv
-        P_omega_inv = self.P.T @ omega_inv
-        tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
 
-        # Solve the linear system rather thatn invert everything
-        A = tau_sigma_inv + P_omega_inv @ self.P
-        b = tau_sigma_inv.dot(self.pi) + P_omega_inv.dot(self.Q)
-        x = np.linalg.solve(A, b)
-        return pd.Series(x.flatten(), index=self.tickers)
+        if self._tau_sigma_P is None:
+            self._tau_sigma_P = self.tau * self.cov_matrix @ self.P.T
+
+        # Solve the linear system Ax = b to avoid inversion
+        if self._A is None:
+            self._A = (self.P @ self._tau_sigma_P) + self.omega
+        b = self.Q - self.P @ self.pi
+        post_rets = self.pi + self._tau_sigma_P @ np.linalg.solve(self._A, b)
+        return pd.Series(post_rets.flatten(), index=self.tickers)
 
     def bl_cov(self):
         """
@@ -292,14 +289,13 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :return: posterior covariance matrix
         :rtype: pd.DataFrame
         """
-        if self.omega_inv is None:
-            # Assume diagonal
-            omega_inv = np.diag(1 / np.diag(self.omega))
-        else:
-            omega_inv = self.omega_inv
-        P_omega_inv = self.P.T @ omega_inv
-        tau_sigma_inv = np.linalg.inv(self.tau * self.cov_matrix)
-        M = np.linalg.inv(tau_sigma_inv + P_omega_inv @ self.P)
+        if self._tau_sigma_P is None:
+            self._tau_sigma_P = self.tau * self.cov_matrix @ self.P.T
+        if self._A is None:
+            self._A = (self.P @ self._tau_sigma_P) + self.omega
+
+        b = self._tau_sigma_P.T
+        M = self.tau * self.cov_matrix - self._tau_sigma_P @ np.linalg.solve(self._A, b)
         posterior_cov = self.cov_matrix + M
         return pd.DataFrame(posterior_cov, index=self.tickers, columns=self.tickers)
 

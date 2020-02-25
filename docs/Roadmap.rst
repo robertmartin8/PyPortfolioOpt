@@ -46,9 +46,18 @@ experience.
 0.5.3
 -----
 
-- Fixed an optimisation bug in `EfficientFrontier.efficient_risk`. An error is now
-thrown if optimisation fails.
+- Fixed an optimisation bug in ``EfficientFrontier.efficient_risk``. An error is now
+  thrown if optimisation fails.
 - Added a hidden API to change the scipy optimiser method. 
+
+0.5.4
+-----
+
+- Improved the Black-Litterman linear algebra to avoid inverting the uncertainty matrix. 
+  It is now possible to have 100% confidence in views.
+- Clarified regarding the role of tau.
+- Added a ``pipfile`` for ``pipenv`` users.
+- Removed Value-at-risk from docs to discourage usage until it is properly fixed.
 
 0.4.0
 =====

@@ -98,50 +98,50 @@ with ``portfolio_performance()`` and post-processing methods.
 
         .. automethod:: __init__
 
-Value-at-Risk
-=============
+.. Value-at-Risk
+.. =============
 
-.. warning::
-    Caveat emptor: this functionality is still experimental. Although I have
-    used the CVaR optimisation, I've noticed that it is very inconsistent
-    (which to some extent is expected because of its stochastic nature).
-    However, the optimiser doesn't always find a minimum, and it fails
-    silently. Additionally, the weight bounds are not treated as hard bounds.
-
-
-The value-at-risk is a measure of tail risk that estimates how much a portfolio
-will lose in a day with a given probability. Alternatively, it is the maximum
-loss with a confidence of beta. In fact, a more useful measure is the
-**expected shortfall**, or **conditional value-at-risk** (CVaR), which is the
-mean of all losses so severe that they only occur with a probability
-:math:`1-\beta`.
-
-.. math::
-    CVaR_\beta = \frac{1}{1-\beta} \int_0^{1-\beta} VaR_\gamma(X) d\gamma
-
-To approximate the CVaR for a portfolio, we will follow these steps:
-
-1. Generate the portfolio returns, i.e the weighted sum of individual asset returns.
-2. Fit a Gaussian KDE to these returns, then resample.
-3. Compute the value-at-risk as the :math:`1-\beta` quantile of sampled returns.
-4. Calculate the mean of all the sample returns that are below the value-at-risk.
-
-Though CVaR optimisation can be transformed into a linear programming problem [3]_, I
-have opted to keep things simple using the `NoisyOpt <https://noisyopt.readthedocs.io/en/latest/>`_
-library, which is suited for optimising noisy functions.
+.. .. warning::
+..     Caveat emptor: this functionality is still experimental. Although I have
+..     used the CVaR optimisation, I've noticed that it is very inconsistent
+..     (which to some extent is expected because of its stochastic nature).
+..     However, the optimiser doesn't always find a minimum, and it fails
+..     silently. Additionally, the weight bounds are not treated as hard bounds.
 
 
-.. automodule:: pypfopt.value_at_risk
+.. The value-at-risk is a measure of tail risk that estimates how much a portfolio
+.. will lose in a day with a given probability. Alternatively, it is the maximum
+.. loss with a confidence of beta. In fact, a more useful measure is the
+.. **expected shortfall**, or **conditional value-at-risk** (CVaR), which is the
+.. mean of all losses so severe that they only occur with a probability
+.. :math:`1-\beta`.
 
-    .. autoclass:: CVAROpt
-        :members:
+.. .. math::
+..     CVaR_\beta = \frac{1}{1-\beta} \int_0^{1-\beta} VaR_\gamma(X) d\gamma
 
-        .. automethod:: __init__
+.. To approximate the CVaR for a portfolio, we will follow these steps:
 
-    .. caution::
-        Currently, we have not implemented any performance function. If you
-        would like to calculate the actual CVaR of the resulting portfolio,
-        please import the function from `objective_functions`.
+.. 1. Generate the portfolio returns, i.e the weighted sum of individual asset returns.
+.. 2. Fit a Gaussian KDE to these returns, then resample.
+.. 3. Compute the value-at-risk as the :math:`1-\beta` quantile of sampled returns.
+.. 4. Calculate the mean of all the sample returns that are below the value-at-risk.
+
+.. Though CVaR optimisation can be transformed into a linear programming problem [3]_, I
+.. have opted to keep things simple using the `NoisyOpt <https://noisyopt.readthedocs.io/en/latest/>`_
+.. library, which is suited for optimising noisy functions.
+
+
+.. .. automodule:: pypfopt.value_at_risk
+
+..     .. autoclass:: CVAROpt
+..         :members:
+
+..         .. automethod:: __init__
+
+..     .. caution::
+..         Currently, we have not implemented any performance function. If you
+..         would like to calculate the actual CVaR of the resulting portfolio,
+..         please import the function from `objective_functions`.
 
 
 

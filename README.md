@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v0.5.3-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v0.5.4-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -230,7 +230,6 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
 - Minimum volatility. This may be useful if you're trying to get an idea of how low the volatility *could* be, but in practice it makes a lot more sense to me to use the portfolio that maximises the Sharpe ratio.
 - Efficient return, a.k.a. the Markowitz portfolio, which minimises risk for a given target return – this was the main focus of Markowitz 1952
 - Efficient risk: the Sharpe-maximising portfolio for a given target risk.
-- Conditional value-at-risk: a measure of tail loss
 
 ### Efficient Frontier hyperparameters
 
