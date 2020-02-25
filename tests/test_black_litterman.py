@@ -443,5 +443,4 @@ def test_bl_no_uncertainty():
     omega = np.diag([0, 0.2, 0.2, 0.2])
     bl = BlackLittermanModel(S, absolute_views=viewdict, omega=omega)
     rets = bl.bl_returns()
-    assert np.abs(bl.bl_returns()["GOOG"] - viewdict["GOOG"]) < 1e-5
     assert np.abs(rets["AAPL"] - viewdict["AAPL"]) > 0.01
