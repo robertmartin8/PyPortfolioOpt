@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "PyPortfolioOpt"
-version = "0.5.3"
+version = "0.5.4"
 description = "Financial portfolio optimisation in python"
 license = "MIT"
 authors = ["Robert Andrew Martin <martin.robertandrew@gmail.com>"]

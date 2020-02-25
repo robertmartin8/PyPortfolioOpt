@@ -10,7 +10,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v0.5.3-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v0.5.4-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
