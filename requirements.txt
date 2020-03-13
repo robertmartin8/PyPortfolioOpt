@@ -8,4 +8,4 @@ pytz==2019.3
 scikit-learn==0.22
 scipy==1.2.2
 six==1.13.0
-cvxpy = "1.0.28"
+cvxpy==1.0.28
