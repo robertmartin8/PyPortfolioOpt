@@ -22,6 +22,13 @@ def test_get_latest_prices_error():
         get_latest_prices(df.values)
 
 
+def test_remove_zero_positions():
+    raw = {"MA": 14, "FB": 12, "XOM": 0, "PFE": 51, "BABA": 5, "GOOG": 0}
+
+    da = DiscreteAllocation({}, pd.Series())
+    assert da._remove_zero_positions(raw) == {"MA": 14, "FB": 12, "PFE": 51, "BABA": 5}
+
+
 def test_greedy_portfolio_allocation():
     df = get_data()
     mu = mean_historical_return(df)
@@ -33,21 +40,22 @@ def test_greedy_portfolio_allocation():
     da = DiscreteAllocation(w, latest_prices)
     allocation, leftover = da.greedy_portfolio()
 
-    assert da.allocation == {
+    assert allocation == {
         "MA": 14,
         "FB": 12,
         "PFE": 51,
         "BABA": 5,
         "AAPL": 5,
-        "AMZN": 0,
         "BBY": 9,
         "SBUX": 6,
         "GOOG": 1,
+        "AMD": 1,
     }
+
     total = 0
     for ticker, num in allocation.items():
         total += num * latest_prices[ticker]
-    np.testing.assert_almost_equal(total + leftover, 10000)
+    np.testing.assert_almost_equal(total + leftover, 10000, decimal=4)
 
 
 def test_greedy_allocation_rmse_error():
@@ -60,7 +68,7 @@ def test_greedy_allocation_rmse_error():
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(w, latest_prices)
     da.greedy_portfolio()
-    np.testing.assert_almost_equal(da._allocation_rmse_error(), 0.0383845)
+    np.testing.assert_almost_equal(da._allocation_rmse_error(), 0.0257368)
 
 
 def test_greedy_portfolio_allocation_short():
@@ -83,15 +91,16 @@ def test_greedy_portfolio_allocation_short():
         "BBY": 8,
         "AMZN": 1,
         "SBUX": 9,
-        "GOOG": 0,
         "WMT": 2,
         "XOM": 2,
-        "BAC": -33,
+        "BAC": -32,
         "GM": -16,
         "GE": -43,
-        "SHLD": -114,
-        "AMD": -35,
+        "SHLD": -110,
+        "AMD": -34,
         "JPM": -1,
+        "T": -1,
+        "UAA": -1,
     }
     long_total = 0
     short_total = 0
@@ -100,7 +109,9 @@ def test_greedy_portfolio_allocation_short():
             long_total += num * latest_prices[ticker]
         else:
             short_total -= num * latest_prices[ticker]
-    np.testing.assert_almost_equal(long_total + short_total + leftover, 13000)
+    np.testing.assert_almost_equal(
+        long_total + short_total + leftover, 13000, decimal=4
+    )
 
 
 def test_greedy_allocation_rmse_error_short():
@@ -113,7 +124,7 @@ def test_greedy_allocation_rmse_error_short():
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(w, latest_prices)
     da.greedy_portfolio()
-    np.testing.assert_almost_equal(da._allocation_rmse_error(), 0.035650433)
+    np.testing.assert_almost_equal(da._allocation_rmse_error(), 0.03306318)
 
 
 def test_greedy_portfolio_allocation_short_different_params():
@@ -125,11 +136,7 @@ def test_greedy_portfolio_allocation_short_different_params():
 
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(
-        w,
-        latest_prices,
-        min_allocation=0.015,
-        total_portfolio_value=50000,
-        short_ratio=0.5,
+        w, latest_prices, total_portfolio_value=50000, short_ratio=0.5
     )
     allocation, leftover = da.greedy_portfolio()
 
@@ -145,11 +152,15 @@ def test_greedy_portfolio_allocation_short_different_params():
         "GOOG": 3,
         "WMT": 11,
         "XOM": 11,
-        "BAC": -286,
-        "GM": -140,
-        "GE": -373,
-        "SHLD": -971,
-        "AMD": -300,
+        "BAC": -271,
+        "GM": -133,
+        "GE": -355,
+        "SHLD": -923,
+        "AMD": -284,
+        "JPM": -6,
+        "T": -13,
+        "UAA": -7,
+        "RRC": -2,
     }
     long_total = 0
     short_total = 0
@@ -173,20 +184,19 @@ def test_lp_portfolio_allocation():
     allocation, leftover = da.lp_portfolio()
 
     assert da.allocation == {
-        "GOOG": 0,
-        "AAPL": 5,
-        "FB": 11,
-        "BABA": 5,
-        "AMZN": 1,
-        "BBY": 7,
-        "MA": 14,
-        "PFE": 50,
-        "SBUX": 5,
+        "AAPL": 5.0,
+        "FB": 11.0,
+        "BABA": 5.0,
+        "AMZN": 1.0,
+        "BBY": 7.0,
+        "MA": 14.0,
+        "PFE": 50.0,
+        "SBUX": 5.0,
     }
     total = 0
     for ticker, num in allocation.items():
         total += num * latest_prices[ticker]
-    np.testing.assert_almost_equal(total + leftover, 10000)
+    np.testing.assert_almost_equal(total + leftover, 10000, decimal=4)
 
 
 def test_lp_allocation_rmse_error():
@@ -199,9 +209,7 @@ def test_lp_allocation_rmse_error():
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(w, latest_prices)
     da.lp_portfolio()
-    np.testing.assert_almost_equal(
-        da._allocation_rmse_error(verbose=False), 0.0254366321
-    )
+    np.testing.assert_almost_equal(da._allocation_rmse_error(verbose=False), 0.0170634)
 
 
 def test_lp_portfolio_allocation_short():
@@ -216,23 +224,24 @@ def test_lp_portfolio_allocation_short():
     allocation, leftover = da.lp_portfolio()
 
     assert da.allocation == {
-        "GOOG": 1,
-        "AAPL": 5,
-        "FB": 8,
-        "BABA": 5,
-        "AMZN": 0,
-        "WMT": 2,
-        "XOM": 2,
-        "BBY": 9,
-        "MA": 16,
-        "PFE": 46,
-        "SBUX": 9,
-        "GE": -43,
-        "AMD": -35,
-        "BAC": -33,
-        "GM": -16,
-        "SHLD": -114,
-        "JPM": -1,
+        "GOOG": 1.0,
+        "AAPL": 5.0,
+        "FB": 8.0,
+        "BABA": 5.0,
+        "WMT": 2.0,
+        "XOM": 2.0,
+        "BBY": 9.0,
+        "MA": 16.0,
+        "PFE": 46.0,
+        "SBUX": 9.0,
+        "GE": -43.0,
+        "AMD": -34.0,
+        "BAC": -32.0,
+        "GM": -16.0,
+        "T": -1.0,
+        "UAA": -1.0,
+        "SHLD": -110.0,
+        "JPM": -1.0,
     }
     long_total = 0
     short_total = 0
@@ -241,7 +250,9 @@ def test_lp_portfolio_allocation_short():
             long_total += num * latest_prices[ticker]
         else:
             short_total -= num * latest_prices[ticker]
-    np.testing.assert_almost_equal(long_total + short_total + leftover, 13000)
+    np.testing.assert_almost_equal(
+        long_total + short_total + leftover, 13000, decimal=5
+    )
 
 
 def test_lp_allocation_rmse_error_short():
@@ -254,7 +265,7 @@ def test_lp_allocation_rmse_error_short():
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(w, latest_prices)
     da.lp_portfolio()
-    np.testing.assert_almost_equal(da._allocation_rmse_error(), 0.02901217)
+    np.testing.assert_almost_equal(da._allocation_rmse_error(), 0.02699558)
 
 
 def test_lp_portfolio_allocation_different_params():
@@ -266,29 +277,27 @@ def test_lp_portfolio_allocation_different_params():
 
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(
-        w,
-        latest_prices,
-        min_allocation=0.002,
-        total_portfolio_value=80000,
-        short_ratio=0.4,
+        w, latest_prices, total_portfolio_value=80000, short_ratio=0.4
     )
     allocation, leftover = da.lp_portfolio()
 
     assert da.allocation == {
-        "GOOG": 1,
-        "AAPL": 43,
-        "FB": 95,
-        "BABA": 44,
-        "AMZN": 4,
-        "BBY": 69,
-        "MA": 114,
-        "PFE": 412,
-        "SBUX": 51,
+        "GOOG": 1.0,
+        "AAPL": 43.0,
+        "FB": 95.0,
+        "BABA": 44.0,
+        "AMZN": 4.0,
+        "AMD": 1.0,
+        "SHLD": 3.0,
+        "BBY": 69.0,
+        "MA": 114.0,
+        "PFE": 412.0,
+        "SBUX": 51.0,
     }
     total = 0
     for ticker, num in allocation.items():
         total += num * latest_prices[ticker]
-    np.testing.assert_almost_equal(total + leftover, 80000)
+    np.testing.assert_almost_equal(total + leftover, 80000, decimal=4)
 
 
 def test_rmse_decreases_with_value():
@@ -311,7 +320,7 @@ def test_rmse_decreases_with_value():
     da3 = DiscreteAllocation(w, latest_prices, total_portfolio_value=10000)
     da3.lp_portfolio()
     rmse3 = da3._allocation_rmse_error(verbose=False)
-    da4 = DiscreteAllocation(w, latest_prices, total_portfolio_value=100000)
+    da4 = DiscreteAllocation(w, latest_prices, total_portfolio_value=30000)
     da4.lp_portfolio()
     rmse4 = da4._allocation_rmse_error(verbose=False)
     assert rmse4 < rmse3
@@ -329,8 +338,6 @@ def test_allocation_errors():
         DiscreteAllocation(ef.weights, latest_prices)
     with pytest.raises(TypeError):
         DiscreteAllocation(w, latest_prices.values.tolist())
-    with pytest.raises(ValueError):
-        DiscreteAllocation(w, latest_prices, min_allocation=0.5)
     with pytest.raises(ValueError):
         DiscreteAllocation(w, latest_prices, total_portfolio_value=0)
     with pytest.raises(ValueError):
