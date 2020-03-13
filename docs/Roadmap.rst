@@ -59,6 +59,11 @@ experience.
 - Added a ``pipfile`` for ``pipenv`` users.
 - Removed Value-at-risk from docs to discourage usage until it is properly fixed.
 
+0.5.5
+-----
+
+Began migration to cvxpy by changing the discrete allocation backend from PuLP to cvxpy. 
+
 0.4.0
 =====
 

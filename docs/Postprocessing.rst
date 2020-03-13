@@ -63,16 +63,31 @@ particuarly for companies with a high share price (e.g AMZN).
 Integer programming
 ===================
 
-This method (credit to `Dingyuan Wang <https://github.com/gumblex>`_ for the implementation)
+This method (credit to `Dingyuan Wang <https://github.com/gumblex>`_ for the first implementation)
 treats the discrete allocation as an integer programming problem. In effect, the integer
 programming approach searches the space of possible allocations to find the one that is
-closest to our desired weights.
+closest to our desired weights. We will use the following notation:
 
-Unfortunately, ``scipy``
-does not support integer programming so we must instead use the
-`PuLP library <https://pythonhosted.org/PuLP/>`_. I'm not a huge fan of their API, for example
-using ``opt += a <= b`` to add a constraint to the optimisation problem, but overall it is a
-simple library to get up and running with.
+- :math:`T \in \mathbb{R}` is the total dollar value to be allocated
+- :math:`p \in \mathbb{R}^n` is the array of latest prices
+- :math:`w \in \mathbb{R}^n` is the set of target weights
+- :math:`x \in \mathbb{Z}^n` is the integer allocation (i.e the result)
+- :math:`r \in \mathbb{R}` is the remaining unallocated value, i.e :math:`r = T - x \cdot p`.
+
+The optimisation problem is then given by:
+
+.. math::
+
+    \begin{equation*}
+    \begin{aligned}
+    & \underset{x \in \mathbb{Z}^n}{\text{minimise}} & & r + \lVert wT - x \odot p \rVert_1  \\
+    & \text{subject to} & & r + x \cdot p = T\\
+    \end{aligned}
+    \end{equation*}
+
+This is straighforward to translate into ``cvxpy``. The initial implementation used 
+`PuLP <https://pythonhosted.org/PuLP/>`_, but this caused numerous packaging issues and
+the code was a lot more verbose.
 
 .. caution::
 

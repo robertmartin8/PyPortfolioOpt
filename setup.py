@@ -9,7 +9,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="PyPortfolioOpt",
-    version="0.5.4",
+    version="0.5.5",
     description="Financial portfolio optimisation in python",
     long_description=desc,
     long_description_content_type="text/markdown",

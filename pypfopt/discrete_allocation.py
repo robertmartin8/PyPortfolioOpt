@@ -5,6 +5,8 @@ offers multiple methods to generate a discrete portfolio allocation from continu
 
 import numpy as np
 import pandas as pd
+import cvxpy as cp
+from . import exceptions
 
 
 def get_latest_prices(prices):
@@ -33,7 +35,6 @@ class DiscreteAllocation:
 
         - ``weights`` - dict
         - ``latest_prices`` - pd.Series or dict
-        - ``min_allocation`` - float
         - ``total_portfolio_value`` - int/float
         - ``short_ratio``- float
 
@@ -46,54 +47,44 @@ class DiscreteAllocation:
     """
 
     def __init__(
-        self,
-        weights,
-        latest_prices,
-        min_allocation=0.01,
-        total_portfolio_value=10000,
-        short_ratio=0.30,
+        self, weights, latest_prices, total_portfolio_value=10000, short_ratio=0.30
     ):
         """
         :param weights: continuous weights generated from the ``efficient_frontier`` module
         :type weights: dict
         :param latest_prices: the most recent price for each asset
-        :type latest_prices: pd.Series or dict
-        :param min_allocation: any weights less than this number are considered negligible,
-                               defaults to 0.01
-        :type min_allocation: float, optional
+        :type latest_prices: pd.Series
         :param total_portfolio_value: the desired total value of the portfolio, defaults to 10000
         :type total_portfolio_value: int/float, optional
         :param short_ratio: the short ratio, e.g 0.3 corresponds to 130/30
         :type short_ratio: float
         :raises TypeError: if ``weights`` is not a dict
         :raises TypeError: if ``latest_prices`` isn't a series
-        :raises ValueError: if not ``0 < min_allocation < 0.3``
         :raises ValueError: if ``short_ratio < 0``
         """
         if not isinstance(weights, dict):
             raise TypeError("weights should be a dictionary of {ticker: weight}")
-        if not isinstance(latest_prices, (pd.Series, dict)):
+        if not isinstance(latest_prices, pd.Series):
             raise TypeError("latest_prices should be a pd.Series")
-        if min_allocation > 0.3:
-            raise ValueError("min_allocation should be a small float")
         if total_portfolio_value <= 0:
             raise ValueError("total_portfolio_value must be greater than zero")
         if short_ratio <= 0:
             raise ValueError("short_ratio must be positive")
 
         # Drop any companies with negligible weights. Use a tuple because order matters.
-        self.weights = [
-            (k, v) for k, v in weights.items() if np.abs(v) > min_allocation
-        ]
-        print(
-            "{} out of {} tickers were removed".format(
-                len(weights) - len(self.weights), len(weights)
-            )
-        )
+        self.weights = list(weights.items())
         self.latest_prices = latest_prices
-        self.min_allocation = min_allocation
         self.total_portfolio_value = total_portfolio_value
         self.short_ratio = short_ratio
+
+    @staticmethod
+    def _remove_zero_positions(allocation):
+        """
+        Utility function to remove zero positions (i.e with no shares being bought)
+
+        :type allocation: dict
+        """
+        return {k: v for k, v in allocation.items() if v != 0}
 
     def _allocation_rmse_error(self, verbose=True):
         """
@@ -161,7 +152,6 @@ class DiscreteAllocation:
             da1 = DiscreteAllocation(
                 longs,
                 self.latest_prices[longs.keys()],
-                min_allocation=0,
                 total_portfolio_value=self.total_portfolio_value,
             )
             long_alloc, long_leftover = da1.greedy_portfolio()
@@ -170,7 +160,6 @@ class DiscreteAllocation:
             da2 = DiscreteAllocation(
                 shorts,
                 self.latest_prices[shorts.keys()],
-                min_allocation=0,
                 total_portfolio_value=short_val,
             )
             short_alloc, short_leftover = da2.greedy_portfolio()
@@ -179,6 +168,8 @@ class DiscreteAllocation:
             # Combine and return
             self.allocation = long_alloc.copy()
             self.allocation.update(short_alloc)
+            self.allocation = self._remove_zero_positions(self.allocation)
+
             return self.allocation, long_leftover + short_leftover
 
         # Otherwise, portfolio is long only and we proceed with greedy algo
@@ -239,7 +230,9 @@ class DiscreteAllocation:
             shares_bought[idx] += 1
             available_funds -= price
 
-        self.allocation = dict(zip([i[0] for i in self.weights], shares_bought))
+        self.allocation = self._remove_zero_positions(
+            dict(zip([i[0] for i in self.weights], shares_bought))
+        )
 
         if verbose:
             print("Funds remaining: {:.2f}".format(available_funds))
@@ -257,13 +250,6 @@ class DiscreteAllocation:
                 of funds leftover.
         :rtype: (dict, float)
         """
-
-        # Extra dependency
-        try:
-            import pulp
-        except (ModuleNotFoundError, ImportError):
-            raise ImportError("Please install PulP via pip or poetry")
-
         if any([w < 0 for _, w in self.weights]):
             longs = {t: w for t, w in self.weights if w >= 0}
             shorts = {t: -w for t, w in self.weights if w < 0}
@@ -281,7 +267,6 @@ class DiscreteAllocation:
             da1 = DiscreteAllocation(
                 longs,
                 self.latest_prices[longs.keys()],
-                min_allocation=0,
                 total_portfolio_value=self.total_portfolio_value,
             )
             long_alloc, long_leftover = da1.lp_portfolio()
@@ -290,7 +275,6 @@ class DiscreteAllocation:
             da2 = DiscreteAllocation(
                 shorts,
                 self.latest_prices[shorts.keys()],
-                min_allocation=0,
                 total_portfolio_value=short_val,
             )
             short_alloc, short_leftover = da2.lp_portfolio()
@@ -299,34 +283,34 @@ class DiscreteAllocation:
             # Combine and return
             self.allocation = long_alloc.copy()
             self.allocation.update(short_alloc)
+            self.allocation = self._remove_zero_positions(self.allocation)
             return self.allocation, long_leftover + short_leftover
 
-        opt = pulp.LpProblem("PfAlloc", pulp.LpMinimize)
-        vals = {}
-        realvals = {}
-        etas = {}
-        abss = {}
-        remaining = pulp.LpVariable("remaining", 0)
-        for k, w in self.weights:
-            # Each ticker is an optimisation variable
-            vals[k] = pulp.LpVariable("x_" + k, 0, cat="Integer")
-            # Allocated weights
-            realvals[k] = self.latest_prices[k] * vals[k]
-            # Deviation between allocated and ideal weights
-            etas[k] = w * self.total_portfolio_value - realvals[k]
-            abss[k] = pulp.LpVariable("u_" + k, 0)
-            # Constraints
-            opt += etas[k] <= abss[k]
-            opt += -etas[k] <= abss[k]
+        p = self.latest_prices.values
+        n = len(p)
+        w = np.fromiter([i[1] for i in self.weights], dtype=float)
 
-        # Constraint: fixed total value
-        opt += remaining + pulp.lpSum(realvals.values()) == self.total_portfolio_value
+        # Integer allocation
+        x = cp.Variable(n, integer=True)
+        # Remaining dollars
+        r = self.total_portfolio_value - p.T * x
 
-        # Objective function: leftover + sum of abs errors
-        opt += pulp.lpSum(abss.values()) + remaining
+        # Objective function is remaining dollars + sum of absolute deviations from ideality.
+        objective = r + cp.norm(w * self.total_portfolio_value - cp.multiply(x, p), 1)
+        constraints = [r + p.T * x == self.total_portfolio_value, x >= 0, r >= 0]
+
+        opt = cp.Problem(cp.Minimize(objective), constraints)
         opt.solve()
-        self.allocation = {k: int(val.varValue) for k, val in vals.items()}
+
+        if opt.status not in {"optimal", "optimal_inaccurate"}:
+            raise exceptions.OptimizationError("Please try greedy_portfolio")
+
+        vals = np.rint(x.value)
+        self.allocation = self._remove_zero_positions(
+            dict(zip([i[0] for i in self.weights], vals))
+        )
+
         if verbose:
-            print("Funds remaining: {:.2f}".format(remaining.varValue))
+            print("Funds remaining: {:.2f}".format(r.value))
             self._allocation_rmse_error()
-        return self.allocation, remaining.varValue
+        return self.allocation, r.value

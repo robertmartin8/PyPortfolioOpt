@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "PyPortfolioOpt"
-version = "0.5.4"
+version = "0.5.5"
 description = "Financial portfolio optimisation in python"
 license = "MIT"
 authors = ["Robert Andrew Martin <martin.robertandrew@gmail.com>"]
@@ -34,17 +34,18 @@ python = "^3.6.0"
 numpy = "^=1.14.3"
 scipy = "^=1.1.0"
 pandas = "^0.25.3"
+cvxpy = "^1.0.28"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
 flake8 = "^3.7"
 black = {version = "^18.9b0", python = "^3.6"}
 rope = "^0.14.0"
+ipython = "^7.13.0"
 
 [tool.poetry.extras]
 noisyopt = ["^=0.2.2"]
 scikit-learn = ["^0.22"]
-pulp = ["^=1.6.10"]
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
