@@ -6,6 +6,7 @@ name = "pypi"
 numpy = "^=1.14.3"
 scipy = "^=1.1.0"
 pandas = "^0.25.3"
+cvxpy = "^1.0.28"
 
 [dev-packages]
 pytest = "^4.6"
