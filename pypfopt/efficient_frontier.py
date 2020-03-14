@@ -6,14 +6,16 @@ generates optimal portfolios for various possible objective functions and parame
 import warnings
 import numpy as np
 import pandas as pd
+import cvxpy as cp
 import scipy.optimize as sco
+from . import exceptions
 from . import objective_functions, base_optimizer
 
 
-class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
+class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     """
-    An EfficientFrontier object (inheriting from BaseScipyOptimizer) contains multiple
+    An EfficientFrontier object (inheriting from BaseConvexOptimizer) contains multiple
     optimisation methods that can be called (corresponding to different objective
     functions) with various parameters.
 
@@ -24,8 +26,8 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         - ``n_assets`` - int
         - ``tickers`` - str list
         - ``bounds`` - float tuple OR (float tuple) list
-        - ``cov_matrix`` - pd.DataFrame
-        - ``expected_returns`` - pd.Series
+        - ``cov_matrix`` - np.ndarray
+        - ``expected_returns`` - np.ndarray
 
     - Optimisation parameters:
 
@@ -67,33 +69,104 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
         # Inputs
-        self.cov_matrix = cov_matrix
-        if expected_returns is not None:
-            if not isinstance(expected_returns, (pd.Series, list, np.ndarray)):
-                raise TypeError("expected_returns is not a series, list or array")
-            if not isinstance(cov_matrix, (pd.DataFrame, np.ndarray)):
-                raise TypeError("cov_matrix is not a dataframe or array")
-            self.expected_returns = expected_returns
+        self.cov_matrix = EfficientFrontier._validate_cov_matrix(cov_matrix)
+        self.expected_returns = EfficientFrontier._validate_expected_returns(
+            expected_returns
+        )
+
+        # Labels
         if isinstance(expected_returns, pd.Series):
             tickers = list(expected_returns.index)
         elif isinstance(cov_matrix, pd.DataFrame):
             tickers = list(cov_matrix.columns)
-        else:
+        else:  # use integer labels
             tickers = list(range(len(expected_returns)))
+
+        if cov_matrix.shape != (len(expected_returns), len(expected_returns)):
+            raise ValueError("Covariance matrix does not match expected returns")
 
         super().__init__(len(tickers), tickers, weight_bounds)
 
-        if not isinstance(gamma, (int, float)):
-            raise ValueError("gamma should be numeric")
-        if gamma < 0:
-            warnings.warn("in most cases, gamma should be positive", UserWarning)
-        self.gamma = gamma
+    @staticmethod
+    def _validate_expected_returns(expected_returns):
+        if expected_returns is None:
+            raise ValueError("expected_returns must be provided")
+        elif isinstance(expected_returns, pd.Series):
+            return expected_returns.values
+        elif isinstance(expected_returns, list):
+            return np.array(expected_returns)
+        elif isinstance(expected_returns, np.ndarray):
+            return expected_returns.ravel()
+        else:
+            raise TypeError("expected_returns is not a series, list or array")
+
+    @staticmethod
+    def _validate_cov_matrix(cov_matrix):
+        if cov_matrix is None:
+            raise ValueError("cov_matrix must be provided")
+        elif isinstance(cov_matrix, pd.DataFrame):
+            return cov_matrix.values
+        elif isinstance(cov_matrix, np.ndarray):
+            return cov_matrix
+        else:
+            raise TypeError("cov_matrix is not a series, list or array")
+
+    def add_objective(self, new_objective, **kwargs):
+        """
+        Add a new term into the objective function. This term must be convex,
+        and built from cvxpy atomic functions.
+
+        Example:
+
+        def L1_norm(w, k=1):
+            return k * cp.norm(w, 1)
+
+        ef.add_objective(L1_norm, k=2)
+
+        :param new_objective: the objective to be added
+        :type new_objective: cp.Expression (i.e function of cp.Variable)
+        """
+        self._additional_objectives.append(new_objective(self._w, **kwargs))
+
+    def add_constraint(self, new_constraint):
+        """
+        Add a new constraint to the optimisation problem. This constraint must be linear and
+        must be either an equality or simple inequality.
+
+        Examples:
+
+        ef.add_constraint(lambda x : x[0] == 0.02)
+        ef.add_constraint(lambda x : x >= 0.01)
+        ef.add_constraint(lambda x: x <= np.array([0.01, 0.08, ..., 0.5]))
+
+        :param new_constraint: the constraint to be added
+        :type constraintfunc: lambda function
+        """
+        if not callable(new_constraint):
+            raise TypeError("New constraint must be provided as a lambda function")
+        self._constraints.append(new_constraint(self._w))
+
+    def convex_optimize(custom_objective, constraints):
+        pass
+
+    def nonconvex_optimize(custom_objective, constraints):
+        # opt using scip
+        # args = (self.cov_matrix, self.gamma)
+        # result = sco.minimize(
+        #     objective_functions.volatility,
+        #     x0=self.initial_guess,
+        #     args=args,
+        #     method=self.opt_method,
+        #     bounds=self.bounds,
+        #     constraints=self.constraints,
+        # )
+        # self.weights = result["x"]
+        pass
 
     def max_sharpe(self, risk_free_rate=0.02):
         """
         Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
-        as it is the tangent to the efficient frontier curve that intercepts the risk-free
-        rate.
+        as it is the portfolio for which the capital market line is tangent to the efficient frontier.
 
         :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
                                The period of the risk-free rate should correspond to the
@@ -125,16 +198,23 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         :return: asset weights for the volatility-minimising portfolio
         :rtype: dict
         """
-        args = (self.cov_matrix, self.gamma)
-        result = sco.minimize(
-            objective_functions.volatility,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=self.constraints,
+        self._objective = objective_functions.portfolio_variance(
+            self._w, self.cov_matrix
         )
-        self.weights = result["x"]
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints.append(cp.sum(self._w) == 1)
+
+        try:
+            opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
+        except TypeError:
+            raise exceptions.OptimizationError
+
+        opt.solve()
+        if opt.status != "optimal":
+            raise exceptions.OptimizationError
+        self.weights = self._w.value.round(20)
         return dict(zip(self.tickers, self.weights))
 
     def max_unconstrained_utility(self, risk_aversion=1):
@@ -224,7 +304,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                     "Market neutrality requires shorting - bounds have been amended",
                     RuntimeWarning,
                 )
-                self.bounds = self._make_valid_bounds((-1, 1))
+                self.bounds = self._map_bounds_to_constraints((-1, 1))
             constraints = [
                 {"type": "eq", "fun": lambda x: np.sum(x)},
                 target_constraint,
@@ -283,7 +363,7 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
                     "Market neutrality requires shorting - bounds have been amended",
                     RuntimeWarning,
                 )
-                self.bounds = self._make_valid_bounds((-1, 1))
+                self.bounds = self._map_bounds_to_constraints((-1, 1))
             constraints = [
                 {"type": "eq", "fun": lambda x: np.sum(x)},
                 target_constraint,

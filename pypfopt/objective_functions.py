@@ -19,7 +19,45 @@ Currently implemented:
 """
 
 import numpy as np
-import scipy.stats
+import cvxpy as cp
+import pandas as pd
+
+
+def _objective_value(w, obj):
+    """
+    Helper method to return either the value of the objective function
+    or the objective function as a cvxpy object depending on whether
+    w is a cvxpy variable or np array.
+
+    :param w: weights
+    :type w: np.ndarray OR cp.Variable
+    :param obj: objective function expression
+    :type obj: cp.Expression
+    :return: value of the objective function OR objective function expression
+    :rtype: float OR cp.Expression
+    """
+    if isinstance(w, np.ndarray):
+        if np.isscalar(obj.value):
+            return obj.value
+        else:
+            return obj.value.item()
+    else:
+        return obj
+
+
+def portfolio_variance(w, cov_matrix):
+    if isinstance(w, pd.Series):
+        w = w.values
+
+    variance = cp.quad_form(w, cov_matrix)
+    return _objective_value(w, variance)
+
+
+def L2_reg(w, gamma=1):
+    if isinstance(w, pd.Series):
+        w = w.values
+    L2_reg = gamma * cp.sum_squares(w)
+    return _objective_value(w, L2_reg)
 
 
 def negative_mean_return(weights, expected_returns):
@@ -107,32 +145,33 @@ def negative_quadratic_utility(
     return -(mu - 0.5 * risk_aversion * portfolio_volatility) + L2_reg
 
 
-def negative_cvar(weights, returns, s=10000, beta=0.95, random_state=None):
-    """
-    Calculate the negative CVaR. Though we want the "min CVaR portfolio", we
-    actually need to maximise the expected return of the worst q% cases, thus
-    we need this value to be negative.
+# def negative_cvar(weights, returns, s=10000, beta=0.95, random_state=None):
+#     """
+#     Calculate the negative CVaR. Though we want the "min CVaR portfolio", we
+#     actually need to maximise the expected return of the worst q% cases, thus
+#     we need this value to be negative.
 
-    :param weights: asset weights of the portfolio
-    :type weights: np.ndarray
-    :param returns: asset returns
-    :type returns: pd.DataFrame or np.ndarray
-    :param s: number of bootstrap draws, defaults to 10000
-    :type s: int, optional
-    :param beta: "significance level" (i. 1 - q), defaults to 0.95
-    :type beta: float, optional
-    :param random_state: seed for random sampling, defaults to None
-    :type random_state: int, optional
-    :return: negative CVaR
-    :rtype: float
-    """
-    np.random.seed(seed=random_state)
-    # Calcualte the returns given the weights
-    portfolio_returns = (weights * returns).sum(axis=1)
-    # Sample from the historical distribution
-    dist = scipy.stats.gaussian_kde(portfolio_returns)
-    sample = dist.resample(s)
-    # Calculate the value at risk
-    var = portfolio_returns.quantile(1 - beta)
-    # Mean of all losses worse than the value at risk
-    return -sample[sample < var].mean()
+#     :param weights: asset weights of the portfolio
+#     :type weights: np.ndarray
+#     :param returns: asset returns
+#     :type returns: pd.DataFrame or np.ndarray
+#     :param s: number of bootstrap draws, defaults to 10000
+#     :type s: int, optional
+#     :param beta: "significance level" (i. 1 - q), defaults to 0.95
+#     :type beta: float, optional
+#     :param random_state: seed for random sampling, defaults to None
+#     :type random_state: int, optional
+#     :return: negative CVaR
+#     :rtype: float
+#     """
+#     import scipy.stats
+#     np.random.seed(seed=random_state)
+#     # Calcualte the returns given the weights
+#     portfolio_returns = (weights * returns).sum(axis=1)
+#     # Sample from the historical distribution
+#     dist = scipy.stats.gaussian_kde(portfolio_returns)
+#     sample = dist.resample(s)
+#     # Calculate the value at risk
+#     var = portfolio_returns.quantile(1 - beta)
+#     # Mean of all losses worse than the value at risk
+#     return -sample[sample < var].mean()

@@ -1,6 +1,6 @@
 """
 The ``base_optimizer`` module houses the parent classes ``BaseOptimizer`` and
-``BaseScipyOptimizer``, from which all optimisers will inherit. The later is for
+``BaseConvexOptimizer``, from which all optimisers will inherit. The later is for
 optimisers that use the scipy solver.
 
 Additionally, we define a general utility function ``portfolio_performance`` to
@@ -10,6 +10,7 @@ evaluate return and risk for a given set of portfolio weights.
 import json
 import numpy as np
 import pandas as pd
+import cvxpy as cp
 from . import objective_functions
 
 
@@ -96,7 +97,7 @@ class BaseOptimizer:
                 f.write(str(clean_weights))
 
 
-class BaseScipyOptimizer(BaseOptimizer):
+class BaseConvexOptimizer(BaseOptimizer):
 
     """
     Instance variables:
@@ -105,9 +106,13 @@ class BaseScipyOptimizer(BaseOptimizer):
     - ``tickers`` - str list
     - ``weights`` - np.ndarray
     - ``bounds`` - float tuple OR (float tuple) list
-    - ``initial_guess`` - np.ndarray
     - ``constraints`` - dict list
-    - ``opt_method`` - the optimisation algorithm to use. Defaults to SLSQP.
+
+    Public methods:
+
+    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
+    - ``clean_weights()`` rounds the weights and clips near-zeros.
+    - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
     def __init__(self, n_assets, tickers=None, weight_bounds=(0, 1)):
@@ -118,46 +123,58 @@ class BaseScipyOptimizer(BaseOptimizer):
         :type weight_bounds: tuple OR tuple list, optional
         """
         super().__init__(n_assets, tickers)
-        self.bounds = self._make_valid_bounds(weight_bounds)
-        # Optimisation parameters
-        self.initial_guess = np.array([1 / self.n_assets] * self.n_assets)
-        self.constraints = [{"type": "eq", "fun": lambda x: np.sum(x) - 1}]
-        self.opt_method = "SLSQP"
 
-    def _make_valid_bounds(self, test_bounds):
+        # Optimisation variables
+        self._w = cp.Variable(n_assets)
+        self._objective = None
+        self._additional_objectives = []
+        self._constraints = []
+        self._map_bounds_to_constraints(weight_bounds)
+
+    def _map_bounds_to_constraints(self, test_bounds):
         """
-        Private method: process input bounds into a form acceptable by scipy.optimize,
-        and check the validity of said bounds.
+        Process input bounds into a form acceptable by cvxpy and add to the constraints list.
 
         :param test_bounds: minimum and maximum weight of each asset OR single min/max pair
-                              if all identical, defaults to (0, 1).
-        :type test_bounds: tuple OR list/tuple of tuples.
-        :raises ValueError: if ``test_bounds`` is not a tuple of length two OR a collection
-                            of pairs.
-        :raises ValueError: if the lower bound is too high
-        :return: a tuple of bounds, e.g ((0, 1), (0, 1), (0, 1) ...)
-        :rtype: tuple of tuples
+                            if all identical OR pair of arrays corresponding to lower/upper bounds. defaults to (0, 1).
+        :type test_bounds: tuple OR list/tuple of tuples OR pair of np arrays
+        :raises TypeError: if ``test_bounds`` is not of the right type
+        :return: bounds suitable for cvxpy
+        :rtype: tuple pair of np.ndarray
         """
         # If it is a collection with the right length, assume they are all bounds.
         if len(test_bounds) == self.n_assets and not isinstance(
             test_bounds[0], (float, int)
         ):
-            bounds = test_bounds
+            bounds = np.array(test_bounds, dtype=np.float)
+            lower = np.nan_to_num(bounds[:, 0], nan=-np.inf)
+            upper = np.nan_to_num(bounds[:, 1], nan=np.inf)
         else:
-            if len(test_bounds) != 2 or not isinstance(test_bounds, tuple):
-                raise ValueError(
-                    "test_bounds must be a tuple of (lower bound, upper bound) "
-                    "OR collection of bounds for each asset"
+            # Otherwise this must be a pair.
+            if len(test_bounds) != 2 or not isinstance(test_bounds, (tuple, list)):
+                raise TypeError(
+                    "test_bounds must be a pair (lower bound, upper bound) "
+                    "OR a collection of bounds for each asset"
                 )
-            bounds = (test_bounds,) * self.n_assets
+            lower, upper = test_bounds
 
-        # Ensure lower bound is not too high
-        if sum((0 if b[0] is None else b[0]) for b in bounds) > 1:
-            raise ValueError(
-                "Lower bound is too high. Impossible to construct valid portfolio"
-            )
+            # Replace None values with the appropriate infinity.
+            if np.isscalar(lower) or lower is None:
+                lower = -np.inf if lower is None else lower
+                upper = np.inf if upper is None else upper
+            else:
+                lower = np.nan_to_num(lower, nan=-np.inf)
+                upper = np.nan_to_num(upper, nan=np.inf)
 
-        return bounds
+        self._constraints.append(self._w >= lower)
+        self._constraints.append(self._w <= upper)
+
+    @staticmethod
+    def _make_scipy_bounds():
+        """
+        Convert the current cvxpy bounds to scipy bounds
+        """
+        raise NotImplementedError
 
 
 def portfolio_performance(
@@ -199,7 +216,8 @@ def portfolio_performance(
         new_weights = np.asarray(weights)
     else:
         raise ValueError("Weights is None")
-    sigma = np.sqrt(objective_functions.volatility(new_weights, cov_matrix))
+
+    sigma = np.sqrt(objective_functions.portfolio_variance(new_weights, cov_matrix))
     mu = new_weights.dot(expected_returns)
 
     sharpe = -objective_functions.negative_sharpe(

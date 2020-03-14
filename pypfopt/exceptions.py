@@ -12,7 +12,9 @@ class OptimizationError(Exception):
     """
 
     def __init__(self, *args, **kwargs):
-        default_message = "Please check your constraints or use a different solver."
+        default_message = (
+            "Please check your objectives/constraints or use a different solver."
+        )
 
         if not (args or kwargs):
             args = (default_message,)
