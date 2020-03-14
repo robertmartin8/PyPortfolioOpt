@@ -11,18 +11,6 @@ import pandas as pd
 from . import base_optimizer
 
 
-def _infnone(x):
-    """
-    Helper method to map None to float infinity.
-
-    :param x: argument
-    :type x: float
-    :return: infinity if the argmument was None otherwise x
-    :rtype: float
-    """
-    return float("-inf") if x is None else x
-
-
 class CLA(base_optimizer.BaseOptimizer):
 
     """
@@ -103,6 +91,18 @@ class CLA(base_optimizer.BaseOptimizer):
         else:
             tickers = list(range(len(self.mean)))
         super().__init__(len(tickers), tickers)
+
+    @staticmethod
+    def _infnone(x):
+        """
+        Helper method to map None to float infinity.
+
+        :param x: argument
+        :type x: float
+        :return: infinity if the argmument was None otherwise x
+        :rtype: float
+        """
+        return float("-inf") if x is None else x
 
     def _init_algo(self):
         # Initialize the algo
@@ -193,13 +193,13 @@ class CLA(base_optimizer.BaseOptimizer):
         # Reduce a matrix to the provided list of rows and columns
         if len(listX) == 0 or len(listY) == 0:
             return
-        matrix_ = matrix[:, listY[0]: listY[0] + 1]
+        matrix_ = matrix[:, listY[0] : listY[0] + 1]
         for i in listY[1:]:
-            a = matrix[:, i: i + 1]
+            a = matrix[:, i : i + 1]
             matrix_ = np.append(matrix_, a, 1)
-        matrix__ = matrix_[listX[0]: listX[0] + 1, :]
+        matrix__ = matrix_[listX[0] : listX[0] + 1, :]
         for i in listX[1:]:
-            a = matrix_[i: i + 1, :]
+            a = matrix_[i : i + 1, :]
             matrix__ = np.append(matrix__, a, 0)
         return matrix__
 
@@ -313,7 +313,7 @@ class CLA(base_optimizer.BaseOptimizer):
                     l, bi = self._compute_lambda(
                         covarF_inv, covarFB, meanF, wB, j, [self.lB[i], self.uB[i]]
                     )
-                    if _infnone(l) > _infnone(l_in):
+                    if CLA._infnone(l) > CLA._infnone(l_in):
                         l_in, i_in, bi_in = l, i, bi
                     j += 1
             # 2) case b): Free one bounded weight
@@ -331,7 +331,9 @@ class CLA(base_optimizer.BaseOptimizer):
                         meanF.shape[0] - 1,
                         self.w[-1][i],
                     )
-                    if (self.ls[-1] is None or l < self.ls[-1]) and l > _infnone(l_out):
+                    if (self.ls[-1] is None or l < self.ls[-1]) and l > CLA._infnone(
+                        l_out
+                    ):
                         l_out, i_out = l, i
             if (l_in is None or l_in < 0) and (l_out is None or l_out < 0):
                 # 3) compute minimum variance solution
@@ -341,7 +343,7 @@ class CLA(base_optimizer.BaseOptimizer):
                 meanF = np.zeros(meanF.shape)
             else:
                 # 4) decide lambda
-                if _infnone(l_in) > _infnone(l_out):
+                if CLA._infnone(l_in) > CLA._infnone(l_out):
                     self.ls.append(l_in)
                     f.remove(i_in)
                     w[i_in] = bi_in  # set value at the correct boundary
@@ -364,7 +366,12 @@ class CLA(base_optimizer.BaseOptimizer):
         self._purge_excess()
 
     def max_sharpe(self):
-        """Get the max Sharpe ratio portfolio"""
+        """
+        Maximise the sharpe ratio.
+
+        :return: asset weights for the volatility-minimising portfolio
+        :rtype: dict
+        """
         if not self.w:
             self._solve()
         # 1) Compute the local max SR portfolio between any two neighbor turning points
@@ -381,7 +388,12 @@ class CLA(base_optimizer.BaseOptimizer):
         return dict(zip(self.tickers, self.weights))
 
     def min_volatility(self):
-        """Get the minimum variance solution"""
+        """
+        Minimise volatility.
+
+        :return: asset weights for the volatility-minimising portfolio
+        :rtype: dict
+        """
         if not self.w:
             self._solve()
         var = []
