@@ -1,26 +1,33 @@
 """
 The ``objective_functions`` module provides optimisation objectives, including the actual
 objective functions called by the ``EfficientFrontier`` object's optimisation methods.
-These methods are primarily designed for internal use during optimisation (via
-scipy.optimize), and each requires a certain signature (which is why they have not been
-factored into a class). For obvious reasons, any objective function must accept ``weights``
+These methods are primarily designed for internal use during optimisation and each requires
+a different signature (which is why they have not been factored into a class).
+For obvious reasons, any objective function must accept ``weights``
 as an argument, and must also have at least one of ``expected_returns`` or ``cov_matrix``.
 
-Because scipy.optimize only minimises, any objectives that we want to maximise must be
-made negative.
+The objective functions either compute the objective given a numpy array of weights, or they
+return a cvxpy *expression* when weights are a ``cp.Variable``. In this way, the same objective
+function can be used both internally for optimisation and externally for computing the objective
+given weights. ``_objective_value()`` automatically chooses between the two behaviours.
+
+``objective_functions`` defaults to objectives for minimisation. In the cases of objectives
+that clearly should be maximised (e.g Sharpe Ratio, portfolio return), the objective function
+actually returns the negative quantity, since minimising the negative is equivalent to maximising
+the positive. This behaviour is controlled by the negative=True optional argument.
 
 Currently implemented:
 
-- negative mean return
-- (regularised) negative Sharpe ratio
-- (regularised) volatility
-- negative quadratic utility
-- negative CVaR (expected shortfall). Caveat emptor: this is very buggy.
+- Portfolio variance (i.e square of volatility)
+- Portfolio return
+- Sharpe ratio
+- L2 regularisation (minimising this reduces nonzero weights)
+- Quadratic utility
+# - negative CVaR (expected shortfall). Caveat emptor: this is very buggy.
 """
 
 import numpy as np
 import cvxpy as cp
-import pandas as pd
 
 
 def _objective_value(w, obj):
@@ -49,7 +56,7 @@ def _objective_value(w, obj):
 
 def portfolio_variance(w, cov_matrix):
     """
-    Total portfolio variance (i.e square volatility).
+    Calculate the total portfolio variance (i.e square volatility).
 
     :param w: asset weights in the portfolio
     :type w: np.ndarray OR cp.Variable
@@ -76,8 +83,8 @@ def portfolio_return(w, expected_returns, negative=True):
     :rtype: float
     """
     sign = -1 if negative else 1
-    mu = sign * (w @ expected_returns)
-    return _objective_value(w, mu)
+    mu = w @ expected_returns
+    return _objective_value(w, sign * mu)
 
 
 def sharpe_ratio(w, expected_returns, cov_matrix, risk_free_rate=0.02, negative=True):
@@ -85,11 +92,11 @@ def sharpe_ratio(w, expected_returns, cov_matrix, risk_free_rate=0.02, negative=
     Calculate the (negative) Sharpe ratio of a portfolio
 
     :param w: asset weights in the portfolio
-    :type w: np.ndarray
+    :type w: np.ndarray OR cp.Variable
     :param expected_returns: expected return of each asset
     :type expected_returns: np.ndarray
-    :param cov_matrix: the covariance matrix of asset returns
-    :type cov_matrix: pd.DataFrame
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: np.ndarray
     :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
                            The period of the risk-free rate should correspond to the
                            frequency of expected returns.
@@ -102,15 +109,15 @@ def sharpe_ratio(w, expected_returns, cov_matrix, risk_free_rate=0.02, negative=
     mu = w @ expected_returns
     sigma = cp.sqrt(cp.quad_form(w, cov_matrix))
     sign = -1 if negative else 1
-    sharpe = sign * (mu - risk_free_rate) / sigma
-    return _objective_value(w, sharpe)
+    sharpe = (mu - risk_free_rate) / sigma
+    return _objective_value(w, sign * sharpe)
 
 
 def L2_reg(w, gamma=1):
     """
-    "L2 regularisation", i.e gamma * ||w||^2
+    L2 regularisation, i.e gamma * ||w||^2, to increase the number of nonzero weights.
 
-    :param w: weights
+    :param w: asset weights in the portfolio
     :type w: np.ndarray OR cp.Variable
     :param gamma: L2 regularisation parameter, defaults to 1. Increase if you want more
                     non-negligible weights
@@ -122,68 +129,27 @@ def L2_reg(w, gamma=1):
     return _objective_value(w, L2_reg)
 
 
-def negative_sharpe(
-    weights, expected_returns, cov_matrix, gamma=0, risk_free_rate=0.02
-):
+def quadratic_utility(w, expected_returns, cov_matrix, risk_aversion, negative=True):
     """
-    Calculate the negative Sharpe ratio of a portfolio
+    Quadratic utility function, i.e mu - 0.5 * risk_aversion * variance
 
-    :param weights: asset weights of the portfolio
-    :type weights: np.ndarray
+    :param w: asset weights in the portfolio
+    :type w: np.ndarray OR cp.Variable
     :param expected_returns: expected return of each asset
-    :type expected_returns: pd.Series
-    :param cov_matrix: the covariance matrix of asset returns
-    :type cov_matrix: pd.DataFrame
-    :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
-                    non-negligible weights
-    :type gamma: float, optional
-    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
-                           The period of the risk-free rate should correspond to the
-                           frequency of expected returns.
-    :type risk_free_rate: float, optional
-    :return: negative Sharpe ratio
-    :rtype: float
+    :type expected_returns: np.ndarray
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: np.ndarray
+    :param risk_aversion: risk aversion coefficient. Increase to reduce risk.
+    :type risk_aversion: float
+    :param negative: whether quantity should be made negative (so we can minimise).
+    :type negative: boolean
     """
-    pass
+    sign = -1 if negative else 1
+    mu = w @ expected_returns
+    variance = cp.quad_form(w, cov_matrix)
 
-
-def volatility(weights, cov_matrix, gamma=0):
-    """
-    Calculate the volatility of a portfolio. This is actually a misnomer because
-    the function returns variance, which is technically the correct objective
-    function when minimising volatility.
-
-    :param weights: asset weights of the portfolio
-    :type weights: np.ndarray
-    :param cov_matrix: the covariance matrix of asset returns
-    :type cov_matrix: pd.DataFrame
-    :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
-                  non-negligible weights
-    :type gamma: float, optional
-    :return: portfolio variance
-    :rtype: float
-    """
-    pass
-
-
-def negative_quadratic_utility(
-    weights, expected_returns, cov_matrix, risk_aversion, gamma=0
-):
-    """
-    Calculate the (negative) quadratic utility of a portfolio.
-
-    :param weights: asset weights of the portfolio
-    :type weights: np.ndarray
-    :param expected_returns: expected return of each asset
-    :type expected_returns: pd.Series
-    :param cov_matrix: the covariance matrix of asset returns
-    :type cov_matrix: pd.DataFrame
-    :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
-                    non-negligible weights
-    :type gamma: float, optional
-    """
-    L2_reg = gamma * (weights ** 2).sum()
-    pass
+    utility = mu - 0.5 * risk_aversion * variance
+    return _objective_value(w, sign * utility)
 
 
 # def negative_cvar(weights, returns, s=10000, beta=0.95, random_state=None):

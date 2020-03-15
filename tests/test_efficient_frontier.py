@@ -133,6 +133,19 @@ def test_min_volatility_L2_reg_limit_case():
     np.testing.assert_array_almost_equal(ef.weights, equal_weights)
 
 
+def test_min_volatility_L2_reg_increases_vol():
+    # L2 reg should reduce the number of small weights
+    # but increase in-sample volatility.
+    ef_no_reg = setup_efficient_frontier()
+    ef_no_reg.min_volatility()
+    vol_no_reg = ef_no_reg.portfolio_performance()[1]
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=2)
+    ef.min_volatility()
+    vol = ef.portfolio_performance()[1]
+    assert vol > vol_no_reg
+
+
 def test_min_volatility_cvxpy_vs_scipy():
     # cvxpy
     ef = setup_efficient_frontier()
@@ -143,7 +156,7 @@ def test_min_volatility_cvxpy_vs_scipy():
     args = (ef.cov_matrix,)
     initial_guess = np.array([1 / ef.n_assets] * ef.n_assets)
     result = sco.minimize(
-        objective_functions.volatility,
+        objective_functions.portfolio_variance,
         x0=initial_guess,
         args=args,
         method="SLSQP",
@@ -236,114 +249,173 @@ def test_max_sharpe_short():
     assert sharpe > long_only_sharpe
 
 
-# def test_max_sharpe_L2_reg():
-#     ef = setup_efficient_frontier()
-#     ef.gamma = 1
-#     w = ef.max_sharpe()
-#     assert isinstance(w, dict)
-#     assert set(w.keys()) == set(ef.tickers)
-#     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-#     assert all([i >= 0 for i in w.values()])
+def test_max_sharpe_L2_reg():
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=5)
 
-#     np.testing.assert_allclose(
-#         ef.portfolio_performance(),
-#         (0.3062919877378972, 0.20291366982652356, 1.4109053765705188),
-#     )
+    with warnings.catch_warnings(record=True) as w:
+        weights = ef.max_sharpe()
+        assert len(w) == 1
 
+    assert isinstance(weights, dict)
+    assert set(weights.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in weights.values()])
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.2936875354933478, 0.22783545277575057, 1.2012508683744123),
+    )
 
-# def test_max_sharpe_L2_reg_many_values():
-#     ef = setup_efficient_frontier()
-#     ef.max_sharpe()
-#     # Count the number of weights more 1%
-#     initial_number = sum(ef.weights > 0.01)
-#     for a in np.arange(0.5, 5, 0.5):
-#         ef.gamma = a
-#         ef.max_sharpe()
-#         np.testing.assert_almost_equal(ef.weights.sum(), 1)
-#         new_number = sum(ef.weights > 0.01)
-#         # Higher gamma should reduce the number of small weights
-#         assert new_number >= initial_number
-#         initial_number = new_number
+    ef2 = setup_efficient_frontier()
+    ef2.max_sharpe()
+
+    # L2_reg should pull close to equal weight
+    equal_weight = np.full((ef.n_assets,), 1 / ef.n_assets)
+    assert (
+        np.abs(equal_weight - ef.weights).sum()
+        < np.abs(equal_weight - ef2.weights).sum()
+    )
 
 
-# def test_max_sharpe_L2_reg_limit_case():
-#     ef = setup_efficient_frontier()
-#     ef.gamma = 1e10
-#     ef.max_sharpe()
-#     equal_weights = np.array([1 / ef.n_assets] * ef.n_assets)
-#     np.testing.assert_array_almost_equal(ef.weights, equal_weights)
+def test_max_sharpe_L2_reg_many_values():
+    ef = setup_efficient_frontier()
+    ef.max_sharpe()
+    # Count the number of weights more 1%
+    initial_number = sum(ef.weights > 0.01)
+    for _ in range(10):
+        print(initial_number)
+        ef.add_objective(objective_functions.L2_reg, gamma=0.05)
+        ef.max_sharpe()
+        np.testing.assert_almost_equal(ef.weights.sum(), 1)
+        new_number = sum(ef.weights > 0.01)
+        # Higher gamma should reduce the number of small weights
+        assert new_number >= initial_number
+        initial_number = new_number
 
 
-# def test_max_sharpe_L2_reg_reduces_sharpe():
-#     # L2 reg should reduce the number of small weights at the cost of Sharpe
-#     ef_no_reg = setup_efficient_frontier()
-#     ef_no_reg.max_sharpe()
-#     sharpe_no_reg = ef_no_reg.portfolio_performance()[2]
-#     ef = setup_efficient_frontier()
-#     ef.gamma = 1
-#     ef.max_sharpe()
-#     sharpe = ef.portfolio_performance()[2]
+def test_max_sharpe_L2_reg_different_gamma():
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=1)
+    ef.max_sharpe()
 
-#     assert sharpe < sharpe_no_reg
+    ef2 = setup_efficient_frontier()
+    ef2.add_objective(objective_functions.L2_reg, gamma=0.01)
+    ef2.max_sharpe()
 
-
-# def test_max_sharpe_L2_reg_with_shorts():
-#     ef_no_reg = setup_efficient_frontier()
-#     ef_no_reg.max_sharpe()
-#     initial_number = sum(ef_no_reg.weights > 0.01)
-
-#     ef = EfficientFrontier(
-#         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-#     )
-#     ef.gamma = 1
-#     w = ef.max_sharpe()
-#     assert isinstance(w, dict)
-#     assert set(w.keys()) == set(ef.tickers)
-#     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-#     np.testing.assert_allclose(
-#         ef.portfolio_performance(),
-#         (0.32360478341793864, 0.20241509658051923, 1.499911758296975),
-#     )
-#     new_number = sum(ef.weights > 0.01)
-#     assert new_number >= initial_number
+    # Higher gamma should pull close to equal weight
+    equal_weight = np.array([1 / ef.n_assets] * ef.n_assets)
+    assert (
+        np.abs(equal_weight - ef.weights).sum()
+        < np.abs(equal_weight - ef2.weights).sum()
+    )
 
 
-# def test_max_sharpe_risk_free_rate():
-#     ef = setup_efficient_frontier()
-#     ef.max_sharpe()
-#     _, _, initial_sharpe = ef.portfolio_performance()
-#     ef.max_sharpe(risk_free_rate=0.10)
-#     _, _, new_sharpe = ef.portfolio_performance(risk_free_rate=0.10)
-#     assert new_sharpe <= initial_sharpe
-
-#     ef.max_sharpe(risk_free_rate=0)
-#     _, _, new_sharpe = ef.portfolio_performance(risk_free_rate=0)
-#     assert new_sharpe >= initial_sharpe
-
-
-# def test_max_unconstrained_utility():
-#     ef = setup_efficient_frontier()
-#     w = ef.max_unconstrained_utility(2)
-#     assert isinstance(w, dict)
-#     assert set(w.keys()) == set(ef.tickers)
-#     np.testing.assert_allclose(
-#         ef.portfolio_performance(),
-#         (1.3507326549906276, 0.8218067458322021, 1.6192768698230409),
-#     )
-
-#     ret1, var1, _ = ef.portfolio_performance()
-#     # increasing risk_aversion should lower both vol and return
-#     ef.max_unconstrained_utility(10)
-#     ret2, var2, _ = ef.portfolio_performance()
-#     assert ret2 < ret1 and var2 < var1
+def test_max_sharpe_L2_reg_reduces_sharpe():
+    # L2 reg should reduce the number of small weights at the cost of Sharpe
+    ef_no_reg = setup_efficient_frontier()
+    ef_no_reg.max_sharpe()
+    sharpe_no_reg = ef_no_reg.portfolio_performance()[2]
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=2)
+    ef.max_sharpe()
+    sharpe = ef.portfolio_performance()[2]
+    assert sharpe < sharpe_no_reg
 
 
-# def test_max_unconstrained_utility_error():
-#     ef = setup_efficient_frontier()
-#     with pytest.raises(ValueError):
-#         ef.max_unconstrained_utility(0)
-#     with pytest.raises(ValueError):
-#         ef.max_unconstrained_utility(-1)
+def test_max_sharpe_L2_reg_with_shorts():
+    ef_no_reg = setup_efficient_frontier()
+    ef_no_reg.max_sharpe()
+    initial_number = sum(ef_no_reg.weights > 0.01)
+
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
+    )
+    ef.add_objective(objective_functions.L2_reg)
+    w = ef.max_sharpe()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.3076093180094401, 0.22415982749409985, 1.2830546901496447),
+    )
+    new_number = sum(ef.weights > 0.01)
+    assert new_number >= initial_number
+
+
+def test_max_sharpe_risk_free_rate():
+    ef = setup_efficient_frontier()
+    ef.max_sharpe()
+    _, _, initial_sharpe = ef.portfolio_performance()
+    ef.max_sharpe(risk_free_rate=0.10)
+    _, _, new_sharpe = ef.portfolio_performance(risk_free_rate=0.10)
+    assert new_sharpe <= initial_sharpe
+
+    ef.max_sharpe(risk_free_rate=0)
+    _, _, new_sharpe = ef.portfolio_performance(risk_free_rate=0)
+    assert new_sharpe >= initial_sharpe
+
+
+def test_max_quadratic_utility():
+    ef = setup_efficient_frontier()
+    w = ef.max_quadratic_utility(risk_aversion=2)
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.40064324249527605, 0.2917825266124642, 1.3045443362029479),
+    )
+
+    ret1, var1, _ = ef.portfolio_performance()
+    # increasing risk_aversion should lower both vol and return
+    ef.max_quadratic_utility(10)
+    ret2, var2, _ = ef.portfolio_performance()
+    assert ret2 < ret1 and var2 < var1
+
+
+def test_max_quadratic_utility_with_shorts():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    ef.max_quadratic_utility()
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (1.3318330413711252, 1.0198436183533854, 1.2863080356272452),
+    )
+
+
+def test_max_quadratic_utility_market_neutral():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    ef.max_quadratic_utility(market_neutral=True)
+    np.testing.assert_almost_equal(ef.weights.sum(), 0)
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (1.13434841843883, 0.9896404148973286, 1.1260134506071473),
+    )
+
+
+def test_max_quadratic_utility_limit():
+    # in limit of large risk_aversion, this should approach min variance.
+    ef = setup_efficient_frontier()
+    ef.max_quadratic_utility(risk_aversion=1e10)
+
+    ef2 = setup_efficient_frontier()
+    ef2.min_volatility()
+    np.testing.assert_array_almost_equal(ef.weights, ef2.weights)
+
+
+def test_max_quadratic_utility_error():
+    ef = setup_efficient_frontier()
+    with pytest.raises(ValueError):
+        ef.max_quadratic_utility(0)
+    with pytest.raises(ValueError):
+        ef.max_quadratic_utility(-1)
 
 
 # def test_efficient_risk():

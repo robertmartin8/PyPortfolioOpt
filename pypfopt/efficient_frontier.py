@@ -120,9 +120,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         try:
             opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
-        except TypeError:
+            opt.solve()
+        except (TypeError, cp.DCPError):
             raise exceptions.OptimizationError
-        opt.solve()
         if opt.status != "optimal":
             raise exceptions.OptimizationError
         self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
@@ -246,6 +246,10 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         # Note: objectives are not scaled by k. Hence there are subtle differences
         # between how these objectives work for max_sharpe vs min_volatility
+        if len(self._additional_objectives) > 0:
+            warnings.warn(
+                "max_sharpe transforms the optimisation problem so additional objectives may not work as expected."
+            )
         for obj in self._additional_objectives:
             self._objective += obj
 
@@ -267,34 +271,39 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         self._constraints.append(self._w <= k * new_upper_bound)
 
         self._solve_cvxpy_opt_problem()
-
         # Inverse-transform
         self.weights = (self._w.value / k.value).round(16) + 0.0
         return dict(zip(self.tickers, self.weights))
 
-    def max_unconstrained_utility(self, risk_aversion=1):
+    def max_quadratic_utility(self, risk_aversion=1, market_neutral=False):
         r"""
-        Solve for weights in the unconstrained maximisation problem:
+        Maximise the given quadratic utility, i.e:
 
         .. math::
 
             \max_w w^T \mu - \frac \delta 2 w^T \Sigma w
 
-        This has an analytic solution, so scipy.optimize is not needed.
-        Note: this method ignores most of the parameters passed in the
-        constructor, including bounds and gamma. Because this is unconstrained,
-        resulting weights may be negative or greater than 1. It is completely up
-        to the user to decide how the resulting weights should be normalised.
-
         :param risk_aversion: risk aversion parameter (must be greater than 0),
                               defaults to 1
         :type risk_aversion: positive float
+        :param market_neutral: whether resulting portfolio should be market_neutral
+        :type market_neutral: bool
         """
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
-        A = risk_aversion * self.cov_matrix
-        b = self.expected_returns
-        self.weights = np.linalg.solve(A, b)
+
+        self._objective = objective_functions.quadratic_utility(
+            self._w, self.expected_returns, self.cov_matrix, risk_aversion=risk_aversion
+        )
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        if market_neutral:
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        self._solve_cvxpy_opt_problem()
         return dict(zip(self.tickers, self.weights))
 
     # TODO: roll custom_objective into nonconvex_optimizer
