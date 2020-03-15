@@ -2,10 +2,12 @@ import warnings
 import numpy as np
 import pandas as pd
 import pytest
+import scipy.optimize as sco
+
 from pypfopt import EfficientFrontier
-from tests.utilities_for_tests import get_data, setup_efficient_frontier
 from pypfopt import risk_models
 from pypfopt import objective_functions
+from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
 def test_data_source():
@@ -29,77 +31,183 @@ def test_returns_dataframe():
 def test_efficient_frontier_inheritance():
     ef = setup_efficient_frontier()
     assert ef.clean_weights
-    assert isinstance(ef.initial_guess, np.ndarray)
-    assert isinstance(ef.constraints, list)
+    assert ef.n_assets
+    assert ef.tickers
+    assert isinstance(ef._constraints, list)
+    assert isinstance(ef._lower_bounds, np.ndarray)
+    assert isinstance(ef._upper_bounds, np.ndarray)
 
 
-# def test_max_sharpe_input_errors():
-#     with pytest.raises(ValueError):
-#         ef = EfficientFrontier(*setup_efficient_frontier(data_only=True), gamma="2")
-
-#     with warnings.catch_warnings(record=True) as w:
-#         ef = EfficientFrontier(*setup_efficient_frontier(data_only=True), gamma=-1)
-#         assert len(w) == 1
-#         assert issubclass(w[0].category, UserWarning)
-#         assert str(w[0].message) == "in most cases, gamma should be positive"
-
-#     with pytest.raises(ValueError):
-#         ef.max_sharpe(risk_free_rate="0.2")
+def test_portfolio_performance():
+    ef = setup_efficient_frontier()
+    with pytest.raises(ValueError):
+        ef.portfolio_performance()
+    ef.min_volatility()
+    perf = ef.portfolio_performance()
+    assert isinstance(perf, tuple)
+    assert len(perf) == 3
+    assert isinstance(perf[0], float)
 
 
-# def test_portfolio_performance():
-#     ef = setup_efficient_frontier()
-#     with pytest.raises(ValueError):
-#         ef.portfolio_performance()
-#     ef.max_sharpe()
-#     assert ef.portfolio_performance()
+def test_min_volatility():
+    ef = setup_efficient_frontier()
+    w = ef.min_volatility()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
+
+    # TODO fix
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.17931232481259154, 0.15915084514118694, 1.00101463282373),
+    )
 
 
-# def test_max_sharpe_long_only():
-#     ef = setup_efficient_frontier()
-#     w = ef.max_sharpe()
-#     assert isinstance(w, dict)
-#     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
-#     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-#     assert all([i >= 0 for i in w.values()])
+def test_min_volatility_short():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
+    )
+    w = ef.min_volatility()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.1721356467349655, 0.1555915367269669, 0.9777887019776287),
+    )
 
-#     np.testing.assert_allclose(
-#         ef.portfolio_performance(),
-#         (0.3303554227420522, 0.21671629569400466, 1.4320816150358278),
-#     )
-
-
-# def test_max_sharpe_short():
-#     ef = EfficientFrontier(
-#         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-#     )
-#     w = ef.max_sharpe()
-#     assert isinstance(w, dict)
-#     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
-#     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-#     np.testing.assert_allclose(
-#         ef.portfolio_performance(),
-#         (0.4072375737868628, 0.24823079606119094, 1.5599900573634125),
-#     )
-#     sharpe = ef.portfolio_performance()[2]
-
-#     ef_long_only = setup_efficient_frontier()
-#     ef_long_only.max_sharpe()
-#     long_only_sharpe = ef_long_only.portfolio_performance()[2]
-
-#     assert sharpe > long_only_sharpe
+    # Shorting should reduce volatility
+    volatility = ef.portfolio_performance()[1]
+    ef_long_only = setup_efficient_frontier()
+    ef_long_only.min_volatility()
+    long_only_volatility = ef_long_only.portfolio_performance()[1]
+    assert volatility < long_only_volatility
 
 
-# def test_weight_bounds_minus_one_to_one():
-#     ef = EfficientFrontier(
-#         *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-#     )
-#     assert ef.max_sharpe()
-#     assert ef.min_volatility()
-#     assert ef.efficient_return(0.05)
-#     assert ef.efficient_risk(0.20)
+def test_min_volatility_L2_reg():
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=5)
+    weights = ef.min_volatility()
+    assert isinstance(weights, dict)
+    assert set(weights.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in weights.values()])
+
+    ef2 = setup_efficient_frontier()
+    ef2.min_volatility()
+
+    # L2_reg should pull close to equal weight
+    equal_weight = np.full((ef.n_assets,), 1 / ef.n_assets)
+    assert (
+        np.abs(equal_weight - ef.weights).sum()
+        < np.abs(equal_weight - ef2.weights).sum()
+    )
+
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.2382083649754719, 0.20795460936504614, 1.049307662098637),
+    )
+
+
+def test_min_volatility_L2_reg_many_values():
+    ef = setup_efficient_frontier()
+    ef.min_volatility()
+    # Count the number of weights more 1%
+    initial_number = sum(ef.weights > 0.01)
+    for _ in range(10):
+        ef.add_objective(objective_functions.L2_reg, gamma=0.05)
+        ef.min_volatility()
+        np.testing.assert_almost_equal(ef.weights.sum(), 1)
+        new_number = sum(ef.weights > 0.01)
+        # Higher gamma should reduce the number of small weights
+        assert new_number >= initial_number
+        initial_number = new_number
+
+
+def test_min_volatility_L2_reg_limit_case():
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=1e10)
+    ef.min_volatility()
+    equal_weights = np.array([1 / ef.n_assets] * ef.n_assets)
+    np.testing.assert_array_almost_equal(ef.weights, equal_weights)
+
+
+def test_min_volatility_cvxpy_vs_scipy():
+    # cvxpy
+    ef = setup_efficient_frontier()
+    ef.min_volatility()
+    w1 = ef.weights
+
+    # scipy
+    args = (ef.cov_matrix,)
+    initial_guess = np.array([1 / ef.n_assets] * ef.n_assets)
+    result = sco.minimize(
+        objective_functions.volatility,
+        x0=initial_guess,
+        args=args,
+        method="SLSQP",
+        bounds=[(0, 1)] * 20,
+        constraints=[{"type": "eq", "fun": lambda x: np.sum(x) - 1}],
+    )
+    w2 = result["x"]
+
+    cvxpy_var = objective_functions.portfolio_variance(w1, ef.cov_matrix)
+    scipy_var = objective_functions.portfolio_variance(w2, ef.cov_matrix)
+    assert cvxpy_var <= scipy_var
+
+
+def test_max_sharpe_long_only():
+    ef = setup_efficient_frontier()
+    w = ef.max_sharpe()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
+
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.33035037367760506, 0.21671276571944567, 1.4320816434015786),
+    )
+
+
+def test_max_sharpe_long_weight_bounds():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(0.03, 0.13)
+    )
+    ef.max_sharpe()
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert ef.weights.min() >= 0.03
+    assert ef.weights.max() <= 0.13
+
+    bounds = [(0.01, 0.13), (0.02, 0.11)] * 10
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=bounds
+    )
+    ef.max_sharpe()
+    assert (0.01 <= ef.weights[::2]).all() and (ef.weights[::2] <= 0.13).all()
+    assert (0.02 <= ef.weights[1::2]).all() and (ef.weights[1::2] <= 0.11).all()
+
+
+def test_max_sharpe_short():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
+    )
+    w = ef.max_sharpe()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.4072439477276246, 0.24823487545231313, 1.5599900981762558),
+    )
+    sharpe = ef.portfolio_performance()[2]
+
+    ef_long_only = setup_efficient_frontier()
+    ef_long_only.max_sharpe()
+    long_only_sharpe = ef_long_only.portfolio_performance()[2]
+
+    assert sharpe > long_only_sharpe
 
 
 # def test_max_sharpe_L2_reg():
@@ -108,7 +216,6 @@ def test_efficient_frontier_inheritance():
 #     w = ef.max_sharpe()
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 
@@ -166,7 +273,6 @@ def test_efficient_frontier_inheritance():
 #     w = ef.max_sharpe()
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     np.testing.assert_allclose(
 #         ef.portfolio_performance(),
@@ -194,7 +300,6 @@ def test_efficient_frontier_inheritance():
 #     w = ef.max_unconstrained_utility(2)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_allclose(
 #         ef.portfolio_performance(),
 #         (1.3507326549906276, 0.8218067458322021, 1.6192768698230409),
@@ -215,88 +320,11 @@ def test_efficient_frontier_inheritance():
 #         ef.max_unconstrained_utility(-1)
 
 
-def test_min_volatility():
-    ef = setup_efficient_frontier()
-    w = ef.min_volatility()
-    assert isinstance(w, dict)
-    assert set(w.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
-
-    # TODO fix
-    np.testing.assert_allclose(
-        ef.portfolio_performance(),
-        (0.1791557243114251, 0.15915426422116669, 1.0000091740567905),
-    )
-
-
-def test_min_volatility_short():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-    )
-    w = ef.min_volatility()
-    assert isinstance(w, dict)
-    assert set(w.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    np.testing.assert_allclose(
-        ef.portfolio_performance(),
-        (0.1719799152621441, 0.1555954785460613, 0.9767630568850568),
-    )
-
-    # Shorting should reduce volatility
-    volatility = ef.portfolio_performance()[1]
-    ef_long_only = setup_efficient_frontier()
-    ef_long_only.min_volatility()
-    long_only_volatility = ef_long_only.portfolio_performance()[1]
-    assert volatility < long_only_volatility
-
-
-def test_min_volatility_L2_reg():
-    ef = setup_efficient_frontier()
-    ef.add_objective(objective_functions.L2_reg, gamma=5)
-    weights = ef.min_volatility()
-    assert isinstance(weights, dict)
-    assert set(weights.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in weights.values()])
-
-    ef2 = setup_efficient_frontier()
-    ef2.min_volatility()
-
-    # L2_reg should pull close to equal weight
-    equal_weight = np.full((ef.n_assets,), 1 / ef.n_assets)
-    assert (
-        np.abs(equal_weight - ef.weights).sum()
-        < np.abs(equal_weight - ef2.weights).sum()
-    )
-
-    np.testing.assert_allclose(
-        ef.portfolio_performance(),
-        (0.23136193240984504, 0.1955259140191799, 1.0809919159314694),
-    )
-
-
-def test_min_volatility_L2_reg_many_values():
-    ef = setup_efficient_frontier()
-    ef.min_volatility()
-    # Count the number of weights more 1%
-    initial_number = sum(ef.weights > 0.01)
-    for _ in range(10):
-        ef.add_objective(objective_functions.L2_reg, gamma=0.05)
-        ef.min_volatility()
-        np.testing.assert_almost_equal(ef.weights.sum(), 1)
-        new_number = sum(ef.weights > 0.01)
-        # Higher gamma should reduce the number of small weights
-        assert new_number >= initial_number
-        initial_number = new_number
-
-
 # def test_efficient_risk():
 #     ef = setup_efficient_frontier()
 #     w = ef.efficient_risk(0.19)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 #     np.testing.assert_allclose(
@@ -331,7 +359,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_risk(0.19)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     np.testing.assert_allclose(
 #         ef.portfolio_performance(),
@@ -353,7 +380,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_risk(0.19)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 
@@ -386,7 +412,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_risk(0.19, market_neutral=True)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 0)
 #     assert (ef.weights < 1).all() and (ef.weights > -1).all()
 #     np.testing.assert_allclose(
@@ -419,7 +444,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_return(0.25)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 #     np.testing.assert_allclose(
@@ -454,7 +478,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_return(0.25)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     np.testing.assert_allclose(
 #         ef.portfolio_performance(), (0.25, 0.1682647442258144, 1.3668935881968987)
@@ -474,7 +497,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_return(0.25)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 #     np.testing.assert_allclose(
@@ -505,7 +527,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_return(0.25, market_neutral=True)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 0)
 #     assert (ef.weights < 1).all() and (ef.weights > -1).all()
 #     np.testing.assert_almost_equal(
@@ -537,7 +558,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.max_sharpe()
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 #     np.testing.assert_allclose(
@@ -555,7 +575,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.max_sharpe()
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     np.testing.assert_allclose(
 #         ef.portfolio_performance(),
@@ -571,7 +590,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.min_volatility()
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 #     np.testing.assert_allclose(
@@ -587,7 +605,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_return(0.12)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 #     np.testing.assert_allclose(
@@ -603,7 +620,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.max_sharpe()
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 #     np.testing.assert_allclose(
@@ -620,7 +636,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.min_volatility()
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 #     assert all([i >= 0 for i in w.values()])
 #     np.testing.assert_allclose(
@@ -638,7 +653,6 @@ def test_min_volatility_L2_reg_many_values():
 #     w = ef.efficient_risk(0.19, market_neutral=True)
 #     assert isinstance(w, dict)
 #     assert set(w.keys()) == set(ef.tickers)
-#     assert set(w.keys()) == set(ef.expected_returns.index)
 #     np.testing.assert_almost_equal(ef.weights.sum(), 0)
 #     assert (ef.weights < 1).all() and (ef.weights > -1).all()
 #     np.testing.assert_allclose(

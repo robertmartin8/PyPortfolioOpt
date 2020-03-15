@@ -111,6 +111,22 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             raise TypeError("cov_matrix is not a series, list or array")
 
+    def _solve_cvxpy_opt_problem(self):
+        """
+        Helper method to solve the cvxpy problem and check output,
+        once objectives and constraints have been defined
+
+        :raises exceptions.OptimizationError: if problem is not solvable by cvxpy
+        """
+        try:
+            opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
+        except TypeError:
+            raise exceptions.OptimizationError
+        opt.solve()
+        if opt.status != "optimal":
+            raise exceptions.OptimizationError
+        self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
+
     def add_objective(self, new_objective, **kwargs):
         """
         Add a new term into the objective function. This term must be convex,
@@ -144,16 +160,38 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not callable(new_constraint):
             raise TypeError("New constraint must be provided as a lambda function")
+
+        # Save raw constraint (needed for e.g max_sharpe)
+        self._additional_constraints_raw.append(new_constraint)
+        # Add constraint
         self._constraints.append(new_constraint(self._w))
 
-    def convex_optimize(custom_objective, constraints):
+    def convex_optimize(self, custom_objective, constraints):
+        # TODO: fix
+        # genera convex optimistion
         pass
 
-    def nonconvex_optimize(custom_objective, constraints):
-        # opt using scip
-        # args = (self.cov_matrix, self.gamma)
+    def nonconvex_optimize(self, custom_objective=None, constraints=None):
+        #  TODO: fix
+        # opt using scipy
+        args = (self.cov_matrix,)
+
+        initial_guess = np.array([1 / self.n_assets] * self.n_assets)
+
+        result = sco.minimize(
+            objective_functions.volatility,
+            x0=initial_guess,
+            args=args,
+            method="SLSQP",
+            bounds=[(0, 1)] * 20,
+            constraints=[{"type": "eq", "fun": lambda x: np.sum(x) - 1}],
+        )
+        self.weights = result["x"]
+
+        #  max sharpe
+        # args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
         # result = sco.minimize(
-        #     objective_functions.volatility,
+        #     objective_functions.negative_sharpe,
         #     x0=self.initial_guess,
         #     args=args,
         #     method=self.opt_method,
@@ -161,34 +199,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         #     constraints=self.constraints,
         # )
         # self.weights = result["x"]
-        pass
 
-    def max_sharpe(self, risk_free_rate=0.02):
-        """
-        Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
-        as it is the portfolio for which the capital market line is tangent to the efficient frontier.
-
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
-                               The period of the risk-free rate should correspond to the
-                               frequency of expected returns.
-        :type risk_free_rate: float, optional
-        :raises ValueError: if ``risk_free_rate`` is non-numeric
-        :return: asset weights for the Sharpe-maximising portfolio
-        :rtype: dict
-        """
-        if not isinstance(risk_free_rate, (int, float)):
-            raise ValueError("risk_free_rate should be numeric")
-
-        args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
-        result = sco.minimize(
-            objective_functions.negative_sharpe,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=self.constraints,
-        )
-        self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
     def min_volatility(self):
@@ -206,15 +217,59 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         self._constraints.append(cp.sum(self._w) == 1)
 
-        try:
-            opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
-        except TypeError:
-            raise exceptions.OptimizationError
+        self._solve_cvxpy_opt_problem()
+        return dict(zip(self.tickers, self.weights))
 
-        opt.solve()
-        if opt.status != "optimal":
-            raise exceptions.OptimizationError
-        self.weights = self._w.value.round(20)
+    def max_sharpe(self, risk_free_rate=0.02):
+        """
+        Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
+        as it is the portfolio for which the capital market line is tangent to the efficient frontier.
+
+        This is a convex optimisation problem after making a certain variable substitution. See
+        `Cornuejols and Tutuncu 2006 <http://web.math.ku.dk/~rolf/CT_FinOpt.pdf>`_ for more.
+
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                               The period of the risk-free rate should correspond to the
+                               frequency of expected returns.
+        :type risk_free_rate: float, optional
+        :raises ValueError: if ``risk_free_rate`` is non-numeric
+        :return: asset weights for the Sharpe-maximising portfolio
+        :rtype: dict
+        """
+        if not isinstance(risk_free_rate, (int, float)):
+            raise ValueError("risk_free_rate should be numeric")
+
+        # max_sharpe requires us to make a variable transformation.
+        # Here we treat w as the transformed variable.
+        self._objective = cp.quad_form(self._w, self.cov_matrix)
+        k = cp.Variable()
+
+        # Note: objectives are not scaled by k. Hence there are subtle differences
+        # between how these objectives work for max_sharpe vs min_volatility
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        # Overwrite original constraints with suitable constraints
+        # for the transformed max_sharpe problem
+        self._constraints = [
+            (self.expected_returns - risk_free_rate).T * self._w == 1,
+            cp.sum(self._w) == k,
+            k >= 0,
+        ]
+        #  Rebuild original constraints with scaling factor
+        for raw_constr in self._additional_constraints_raw:
+            self._constraints.append(raw_constr(self.w / k))
+        # Sharpe ratio is invariant w.r.t scaled weights, so we must
+        # replace infinities and negative infinities
+        new_lower_bound = np.nan_to_num(self._lower_bounds, neginf=-1)
+        new_upper_bound = np.nan_to_num(self._upper_bounds, posinf=1)
+        self._constraints.append(self._w >= k * new_lower_bound)
+        self._constraints.append(self._w <= k * new_upper_bound)
+
+        self._solve_cvxpy_opt_problem()
+
+        # Inverse-transform
+        self.weights = (self._w.value / k.value).round(16) + 0.0
         return dict(zip(self.tickers, self.weights))
 
     def max_unconstrained_utility(self, risk_aversion=1):
@@ -242,6 +297,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         self.weights = np.linalg.solve(A, b)
         return dict(zip(self.tickers, self.weights))
 
+    # TODO: roll custom_objective into nonconvex_optimizer
     def custom_objective(self, objective_function, *args):
         """
         Optimise some objective function. While an implicit requirement is that the function
@@ -402,9 +458,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :rtype: (float, float, float)
         """
         return base_optimizer.portfolio_performance(
+            self.weights,
             self.expected_returns,
             self.cov_matrix,
-            self.weights,
             verbose,
             risk_free_rate,
         )

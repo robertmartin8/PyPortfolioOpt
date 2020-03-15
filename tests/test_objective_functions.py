@@ -6,22 +6,22 @@ from pypfopt.risk_models import sample_cov
 from tests.utilities_for_tests import get_data
 
 
-def test_negative_mean_return_dummy():
+def test_portfolio_return_dummy():
     w = np.array([0.3, 0.1, 0.2, 0.25, 0.15])
     e_rets = pd.Series([0.19, 0.08, 0.09, 0.23, 0.17])
 
-    negative_mu = objective_functions.negative_mean_return(w, e_rets)
-    assert isinstance(negative_mu, float)
-    assert negative_mu < 0
-    np.testing.assert_almost_equal(negative_mu, -w.dot(e_rets))
-    np.testing.assert_almost_equal(negative_mu, -(w * e_rets).sum())
+    mu = objective_functions.portfolio_return(w, e_rets, negative=False)
+    assert isinstance(mu, float)
+    assert mu > 0
+    np.testing.assert_almost_equal(mu, w.dot(e_rets))
+    np.testing.assert_almost_equal(mu, (w * e_rets).sum())
 
 
-def test_negative_mean_return_real():
+def test_portfolio_return_real():
     df = get_data()
     e_rets = mean_historical_return(df)
     w = np.array([1 / len(e_rets)] * len(e_rets))
-    negative_mu = objective_functions.negative_mean_return(w, e_rets)
+    negative_mu = objective_functions.portfolio_return(w, e_rets)
     assert isinstance(negative_mu, float)
     assert negative_mu < 0
     assert negative_mu == -w.dot(e_rets)
@@ -29,24 +29,22 @@ def test_negative_mean_return_real():
     np.testing.assert_almost_equal(-e_rets.sum() / len(e_rets), negative_mu)
 
 
-def test_negative_sharpe():
+def test_sharpe_ratio():
     df = get_data()
     e_rets = mean_historical_return(df)
     S = sample_cov(df)
     w = np.array([1 / len(e_rets)] * len(e_rets))
 
-    sharpe = objective_functions.negative_sharpe(w, e_rets, S)
+    sharpe = objective_functions.sharpe_ratio(w, e_rets, S)
     assert isinstance(sharpe, float)
     assert sharpe < 0
 
     sigma = np.sqrt(np.dot(w, np.dot(S, w.T)))
-    negative_mu = objective_functions.negative_mean_return(w, e_rets)
+    negative_mu = objective_functions.portfolio_return(w, e_rets)
     np.testing.assert_almost_equal(sharpe * sigma - 0.02, negative_mu)
 
     # Risk free rate increasing should lead to negative Sharpe increasing.
-    assert sharpe < objective_functions.negative_sharpe(
-        w, e_rets, S, risk_free_rate=0.1
-    )
+    assert sharpe < objective_functions.sharpe_ratio(w, e_rets, S, risk_free_rate=0.1)
 
 
 def test_negative_quadratic_utility():

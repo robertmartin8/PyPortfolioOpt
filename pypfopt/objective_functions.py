@@ -37,7 +37,9 @@ def _objective_value(w, obj):
     :rtype: float OR cp.Expression
     """
     if isinstance(w, np.ndarray):
-        if np.isscalar(obj.value):
+        if np.isscalar(obj):
+            return obj
+        elif np.isscalar(obj.value):
             return obj.value
         else:
             return obj.value.item()
@@ -46,32 +48,78 @@ def _objective_value(w, obj):
 
 
 def portfolio_variance(w, cov_matrix):
-    if isinstance(w, pd.Series):
-        w = w.values
+    """
+    Total portfolio variance (i.e square volatility).
 
+    :param w: asset weights in the portfolio
+    :type w: np.ndarray OR cp.Variable
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: np.ndarray
+    :return: value of the objective function OR objective function expression
+    :rtype: float OR cp.Expression
+    """
     variance = cp.quad_form(w, cov_matrix)
     return _objective_value(w, variance)
 
 
-def L2_reg(w, gamma=1):
-    if isinstance(w, pd.Series):
-        w = w.values
-    L2_reg = gamma * cp.sum_squares(w)
-    return _objective_value(w, L2_reg)
-
-
-def negative_mean_return(weights, expected_returns):
+def portfolio_return(w, expected_returns, negative=True):
     """
-    Calculate the negative mean return of a portfolio
+    Calculate the (negative) mean return of a portfolio
 
-    :param weights: asset weights of the portfolio
-    :type weights: np.ndarray
+    :param w: asset weights in the portfolio
+    :type w: np.ndarray OR cp.Variable
     :param expected_returns: expected return of each asset
-    :type expected_returns: pd.Series
+    :type expected_returns: np.ndarray
+    :param negative: whether quantity should be made negative (so we can minimise) 
+    :type negative: boolean
     :return: negative mean return
     :rtype: float
     """
-    return -weights.dot(expected_returns)
+    sign = -1 if negative else 1
+    mu = sign * (w @ expected_returns)
+    return _objective_value(w, mu)
+
+
+def sharpe_ratio(w, expected_returns, cov_matrix, risk_free_rate=0.02, negative=True):
+    """
+    Calculate the (negative) Sharpe ratio of a portfolio
+
+    :param w: asset weights in the portfolio
+    :type w: np.ndarray
+    :param expected_returns: expected return of each asset
+    :type expected_returns: np.ndarray
+    :param cov_matrix: the covariance matrix of asset returns
+    :type cov_matrix: pd.DataFrame
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                           The period of the risk-free rate should correspond to the
+                           frequency of expected returns.
+    :type risk_free_rate: float, optional
+    :param negative: whether quantity should be made negative (so we can minimise) 
+    :type negative: boolean
+    :return: (negative) Sharpe ratio
+    :rtype: float
+    """
+    mu = w @ expected_returns
+    sigma = cp.sqrt(cp.quad_form(w, cov_matrix))
+    sign = -1 if negative else 1
+    sharpe = sign * (mu - risk_free_rate) / sigma
+    return _objective_value(w, sharpe)
+
+
+def L2_reg(w, gamma=1):
+    """
+    "L2 regularisation", i.e gamma * ||w||^2
+
+    :param w: weights
+    :type w: np.ndarray OR cp.Variable
+    :param gamma: L2 regularisation parameter, defaults to 1. Increase if you want more
+                    non-negligible weights
+    :type gamma: float, optional
+    :return: value of the objective function OR objective function expression
+    :rtype: float OR cp.Expression
+    """
+    L2_reg = gamma * cp.sum_squares(w)
+    return _objective_value(w, L2_reg)
 
 
 def negative_sharpe(
@@ -96,10 +144,7 @@ def negative_sharpe(
     :return: negative Sharpe ratio
     :rtype: float
     """
-    mu = weights.dot(expected_returns)
-    sigma = np.sqrt(np.dot(weights, np.dot(cov_matrix, weights.T)))
-    L2_reg = gamma * (weights ** 2).sum()
-    return -(mu - risk_free_rate) / sigma + L2_reg
+    pass
 
 
 def volatility(weights, cov_matrix, gamma=0):
@@ -118,9 +163,7 @@ def volatility(weights, cov_matrix, gamma=0):
     :return: portfolio variance
     :rtype: float
     """
-    L2_reg = gamma * (weights ** 2).sum()
-    portfolio_volatility = np.dot(weights.T, np.dot(cov_matrix, weights))
-    return portfolio_volatility + L2_reg
+    pass
 
 
 def negative_quadratic_utility(
@@ -140,9 +183,7 @@ def negative_quadratic_utility(
     :type gamma: float, optional
     """
     L2_reg = gamma * (weights ** 2).sum()
-    mu = weights.dot(expected_returns)
-    portfolio_volatility = np.dot(weights.T, np.dot(cov_matrix, weights))
-    return -(mu - 0.5 * risk_aversion * portfolio_volatility) + L2_reg
+    pass
 
 
 # def negative_cvar(weights, returns, s=10000, beta=0.95, random_state=None):

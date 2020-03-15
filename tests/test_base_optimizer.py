@@ -12,7 +12,7 @@ def test_custom_upper_bound():
         *setup_efficient_frontier(data_only=True), weight_bounds=(0, 0.10)
     )
     ef.min_volatility()
-    ef.portfolio_performance()
+    np.testing.assert_allclose(ef._lower_bounds, np.array([0] * ef.n_assets))
     assert ef.weights.max() <= 0.1
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
@@ -52,11 +52,27 @@ def test_custom_bounds_different_values():
     )
 
 
+def test_weight_bounds_minus_one_to_one():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    assert ef.max_sharpe()
+    assert ef.min_volatility()
+
+    # TODO: fix
+    # assert ef.efficient_return(0.05)
+    # assert ef.efficient_risk(0.20)
+
+
 def test_bound_input_types():
     bounds = [0.01, 0.13]
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=bounds
     )
+    assert ef
+    np.testing.assert_allclose(ef._lower_bounds, np.array([0.01] * ef.n_assets))
+    np.testing.assert_allclose(ef._upper_bounds, np.array([0.13] * ef.n_assets))
+
     lb = np.array([0.01, 0.02] * 10)
     ub = np.array([0.07, 0.2] * 10)
     assert EfficientFrontier(

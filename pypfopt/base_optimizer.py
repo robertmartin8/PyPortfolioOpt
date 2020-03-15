@@ -128,7 +128,10 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._w = cp.Variable(n_assets)
         self._objective = None
         self._additional_objectives = []
+        self._additional_constraints_raw = []
         self._constraints = []
+        self._lower_bounds = None
+        self._upper_bounds = None
         self._map_bounds_to_constraints(weight_bounds)
 
     def _map_bounds_to_constraints(self, test_bounds):
@@ -147,8 +150,8 @@ class BaseConvexOptimizer(BaseOptimizer):
             test_bounds[0], (float, int)
         ):
             bounds = np.array(test_bounds, dtype=np.float)
-            lower = np.nan_to_num(bounds[:, 0], nan=-np.inf)
-            upper = np.nan_to_num(bounds[:, 1], nan=np.inf)
+            self._lower_bounds = np.nan_to_num(bounds[:, 0], nan=-np.inf)
+            self._upper_bounds = np.nan_to_num(bounds[:, 1], nan=np.inf)
         else:
             # Otherwise this must be a pair.
             if len(test_bounds) != 2 or not isinstance(test_bounds, (tuple, list)):
@@ -161,13 +164,15 @@ class BaseConvexOptimizer(BaseOptimizer):
             # Replace None values with the appropriate infinity.
             if np.isscalar(lower) or lower is None:
                 lower = -np.inf if lower is None else lower
+                self._lower_bounds = np.array([lower] * self.n_assets)
                 upper = np.inf if upper is None else upper
+                self._upper_bounds = np.array([upper] * self.n_assets)
             else:
-                lower = np.nan_to_num(lower, nan=-np.inf)
-                upper = np.nan_to_num(upper, nan=np.inf)
+                self._lower_bounds = np.nan_to_num(lower, nan=-np.inf)
+                self._upper_bounds = np.nan_to_num(upper, nan=np.inf)
 
-        self._constraints.append(self._w >= lower)
-        self._constraints.append(self._w <= upper)
+        self._constraints.append(self._w >= self._lower_bounds)
+        self._constraints.append(self._w <= self._upper_bounds)
 
     @staticmethod
     def _make_scipy_bounds():
@@ -178,7 +183,7 @@ class BaseConvexOptimizer(BaseOptimizer):
 
 
 def portfolio_performance(
-    expected_returns, cov_matrix, weights, verbose=False, risk_free_rate=0.02
+    weights, expected_returns, cov_matrix, verbose=False, risk_free_rate=0.02
 ):
     """
     After optimising, calculate (and optionally print) the performance of the optimal
@@ -186,9 +191,9 @@ def portfolio_performance(
 
     :param expected_returns: expected returns for each asset. Set to None if
                              optimising for volatility only.
-    :type expected_returns: pd.Series, list, np.ndarray
+    :type expected_returns: np.ndarray or pd.Series
     :param cov_matrix: covariance of returns for each asset
-    :type cov_matrix: pd.DataFrame or np.array
+    :type cov_matrix: np.array or pd.DataFrame
     :param weights: weights or assets
     :type weights: list, np.array or dict, optional
     :param verbose: whether performance should be printed, defaults to False
@@ -218,11 +223,23 @@ def portfolio_performance(
         raise ValueError("Weights is None")
 
     sigma = np.sqrt(objective_functions.portfolio_variance(new_weights, cov_matrix))
-    mu = new_weights.dot(expected_returns)
-
-    sharpe = -objective_functions.negative_sharpe(
-        new_weights, expected_returns, cov_matrix, risk_free_rate=risk_free_rate
+    mu = objective_functions.portfolio_return(
+        new_weights, expected_returns, negative=False
     )
+    # new_weights.dot(expected_returns)
+
+    # sharpe = -objective_functions.negative_sharpe(
+    #     new_weights, expected_returns, cov_matrix, risk_free_rate=risk_free_rate
+    # )
+
+    sharpe = objective_functions.sharpe_ratio(
+        new_weights,
+        expected_returns,
+        cov_matrix,
+        risk_free_rate=risk_free_rate,
+        negative=False,
+    )
+
     if verbose:
         print("Expected annual return: {:.1f}%".format(100 * mu))
         print("Annual volatility: {:.1f}%".format(100 * sigma))
