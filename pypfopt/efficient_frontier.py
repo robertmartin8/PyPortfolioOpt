@@ -123,7 +123,10 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 "Market neutrality requires shorting - bounds have been amended",
                 RuntimeWarning,
             )
-            self.bounds = self._map_bounds_to_constraints((-1, 1))
+            self._map_bounds_to_constraints((-1, 1))
+            # Delete original constraints
+            del self._constraints[0]
+            del self._constraints[0]
 
     def _solve_cvxpy_opt_problem(self):
         """
@@ -382,15 +385,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._constraints.append(cp.sum(self._w) == 1)
 
         self._solve_cvxpy_opt_problem()
-
-        # if not np.isclose(
-        #     objective_functions.volatility(self.weights, self.cov_matrix),
-        #     target_volatility ** 2,
-        # ):
-        #     raise ValueError(
-        #         "Optimisation was not succesful. Please increase target_volatility"
-        #     )
-
         return dict(zip(self.tickers, self.weights))
 
     def efficient_return(self, target_return, market_neutral=False):
@@ -409,42 +403,36 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
+        if target_return > self.expected_returns.max():
+            raise ValueError(
+                "target_return must be lower than the largest expected return"
+            )
 
-        args = (self.cov_matrix, self.gamma)
-        target_constraint = {
-            "type": "eq",
-            "fun": lambda w: w.dot(self.expected_returns) - target_return,
-        }
+        self._objective = objective_functions.portfolio_variance(
+            self._w, self.cov_matrix
+        )
+        ret = objective_functions.portfolio_return(
+            self._w, self.expected_returns, negative=False
+        )
+
+        self.objective = cp.quad_form(self._w, self.cov_matrix)
+        ret = self.expected_returns.T @ self._w
+
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints.append(ret >= target_return)
+
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
         if market_neutral:
-            portfolio_possible = any(b[0] < 0 for b in self.bounds if b[0] is not None)
-            if not portfolio_possible:
-                warnings.warn(
-                    "Market neutrality requires shorting - bounds have been amended",
-                    RuntimeWarning,
-                )
-                self.bounds = self._map_bounds_to_constraints((-1, 1))
-            constraints = [
-                {"type": "eq", "fun": lambda x: np.sum(x)},
-                target_constraint,
-            ]
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
         else:
-            constraints = self.constraints + [target_constraint]
+            self._constraints.append(cp.sum(self._w) == 1)
 
-        result = sco.minimize(
-            objective_functions.volatility,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=constraints,
-        )
-        self.weights = result["x"]
-        if not np.isclose(self.weights.dot(self.expected_returns), target_return):
-            raise ValueError(
-                "Optimisation was not succesful. Please reduce target_return"
-            )
+        self._solve_cvxpy_opt_problem()
+
         return dict(zip(self.tickers, self.weights))
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
