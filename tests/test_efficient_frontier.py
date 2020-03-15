@@ -157,6 +157,32 @@ def test_min_volatility_cvxpy_vs_scipy():
     assert cvxpy_var <= scipy_var
 
 
+def test_min_volatility_vs_max_sharpe():
+    # Test based on issue #75
+    expected_returns_daily = pd.Series(
+        [0.043622, 0.120588, 0.072331, 0.056586], index=["AGG", "SPY", "GLD", "HYG"]
+    )
+    covariance_matrix = pd.DataFrame(
+        [
+            [0.000859, -0.000941, 0.001494, -0.000062],
+            [-0.000941, 0.022400, -0.002184, 0.005747],
+            [0.001494, -0.002184, 0.011518, -0.000129],
+            [-0.000062, 0.005747, -0.000129, 0.002287],
+        ],
+        index=["AGG", "SPY", "GLD", "HYG"],
+        columns=["AGG", "SPY", "GLD", "HYG"],
+    )
+
+    ef = EfficientFrontier(expected_returns_daily, covariance_matrix)
+    ef.min_volatility()
+    vol_min_vol = ef.portfolio_performance(risk_free_rate=0.00)[1]
+
+    ef.max_sharpe(risk_free_rate=0.00)
+    vol_max_sharpe = ef.portfolio_performance(risk_free_rate=0.00)[1]
+
+    assert vol_min_vol < vol_max_sharpe
+
+
 def test_max_sharpe_long_only():
     ef = setup_efficient_frontier()
     w = ef.max_sharpe()
