@@ -161,15 +161,15 @@ class BaseConvexOptimizer(BaseOptimizer):
                 )
             lower, upper = test_bounds
 
-            # Replace None values with the appropriate infinity.
+            # Replace None values with the appropriate +/- 1
             if np.isscalar(lower) or lower is None:
-                lower = -np.inf if lower is None else lower
+                lower = -1 if lower is None else lower
                 self._lower_bounds = np.array([lower] * self.n_assets)
-                upper = np.inf if upper is None else upper
+                upper = 1 if upper is None else upper
                 self._upper_bounds = np.array([upper] * self.n_assets)
             else:
-                self._lower_bounds = np.nan_to_num(lower, nan=-np.inf)
-                self._upper_bounds = np.nan_to_num(upper, nan=np.inf)
+                self._lower_bounds = np.nan_to_num(lower, nan=-1)
+                self._upper_bounds = np.nan_to_num(upper, nan=1)
 
         self._constraints.append(self._w >= self._lower_bounds)
         self._constraints.append(self._w <= self._upper_bounds)

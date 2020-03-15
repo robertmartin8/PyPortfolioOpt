@@ -7,32 +7,16 @@ from pypfopt import exceptions
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
-def test_custom_upper_bound():
+def test_custom_bounds():
     ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(0, 0.10)
+        *setup_efficient_frontier(data_only=True), weight_bounds=(0.02, 0.10)
     )
     ef.min_volatility()
-    np.testing.assert_allclose(ef._lower_bounds, np.array([0] * ef.n_assets))
-    assert ef.weights.max() <= 0.1
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    np.testing.assert_allclose(ef._lower_bounds, np.array([0.02] * ef.n_assets))
+    np.testing.assert_allclose(ef._lower_bounds, np.array([0.10] * ef.n_assets))
 
-
-def test_custom_lower_bound():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(0.02, 1)
-    )
-    ef.min_volatility()
     assert ef.weights.min() >= 0.02
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
-
-
-def test_custom_bounds_same():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(0.03, 0.13)
-    )
-    ef.min_volatility()
-    assert ef.weights.min() >= 0.03
-    assert ef.weights.max() <= 0.13
+    assert ef.weights.max() <= 0.10
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
 
@@ -63,6 +47,20 @@ def test_weight_bounds_minus_one_to_one():
     # assert ef.efficient_return(0.05)
     # assert ef.efficient_risk(0.20)
 
+
+def test_none_bounds():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(None, 0.3)
+    )
+    ef.min_volatility()
+    w1 = ef.weights
+
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 0.3)
+    )
+    ef.min_volatility()
+    w2 = ef.weights
+    np.testing.assert_array_almost_equal(w1, w2)
 
 def test_bound_input_types():
     bounds = [0.01, 0.13]

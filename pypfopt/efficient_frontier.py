@@ -17,7 +17,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
     """
     An EfficientFrontier object (inheriting from BaseConvexOptimizer) contains multiple
     optimisation methods that can be called (corresponding to different objective
-    functions) with various parameters.
+    functions) with various parameters. Note: a new EfficientFrontier object should
+    be instantiated if you want to make any change to objectives/constraints/bounds/parameters.
 
     Instance variables:
 
@@ -110,6 +111,19 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             return cov_matrix
         else:
             raise TypeError("cov_matrix is not a series, list or array")
+
+    def _market_neutral_bounds_check(self):
+        """
+        Helper method to make sure bounds are suitable for a market neutral
+        optimisation.
+        """
+        portfolio_possible = np.any(self._lower_bounds < 0)
+        if not portfolio_possible:
+            warnings.warn(
+                "Market neutrality requires shorting - bounds have been amended",
+                RuntimeWarning,
+            )
+            self.bounds = self._map_bounds_to_constraints((-1, 1))
 
     def _solve_cvxpy_opt_problem(self):
         """
@@ -265,10 +279,10 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._constraints.append(raw_constr(self.w / k))
         # Sharpe ratio is invariant w.r.t scaled weights, so we must
         # replace infinities and negative infinities
-        new_lower_bound = np.nan_to_num(self._lower_bounds, neginf=-1)
-        new_upper_bound = np.nan_to_num(self._upper_bounds, posinf=1)
-        self._constraints.append(self._w >= k * new_lower_bound)
-        self._constraints.append(self._w <= k * new_upper_bound)
+        # new_lower_bound = np.nan_to_num(self._lower_bounds, neginf=-1)
+        # new_upper_bound = np.nan_to_num(self._upper_bounds, posinf=1)
+        self._constraints.append(self._w >= k * self._lower_bounds)
+        self._constraints.append(self._w <= k * self._upper_bounds)
 
         self._solve_cvxpy_opt_problem()
         # Inverse-transform
@@ -286,8 +300,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :param risk_aversion: risk aversion parameter (must be greater than 0),
                               defaults to 1
         :type risk_aversion: positive float
-        :param market_neutral: whether resulting portfolio should be market_neutral
-        :type market_neutral: bool
+        :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
+                               defaults to False. Requires negative lower weight bound.
+        :param market_neutral: bool, optional
         """
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
@@ -299,6 +314,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._objective += obj
 
         if market_neutral:
+            self._market_neutral_bounds_check()
             self._constraints.append(cp.sum(self._w) == 0)
         else:
             self._constraints.append(cp.sum(self._w) == 1)
@@ -329,71 +345,51 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
-    def efficient_risk(self, target_risk, risk_free_rate=0.02, market_neutral=False):
+    def efficient_risk(self, target_volatility, market_neutral=False):
         """
-        Calculate the Sharpe-maximising portfolio for a given volatility (i.e max return
-        for a target risk).
+        Maximise return for a target risk.
 
-        :param target_risk: the desired volatility of the resulting portfolio.
-        :type target_risk: float
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
-                               The period of the risk-free rate should correspond to the
-                               frequency of expected returns.
-        :type risk_free_rate: float, optional
+        :param target_volatility: the desired volatility of the resulting portfolio.
+        :type target_volatility: float
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
-        :raises ValueError: if ``target_risk`` is not a positive float
-        :raises ValueError: if no portfolio can be found with volatility equal to ``target_risk``
+        :raises ValueError: if ``target_volatility`` is not a positive float
+        :raises ValueError: if no portfolio can be found with volatility equal to ``target_volatility``
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the efficient risk portfolio
         :rtype: dict
         """
-        if not isinstance(target_risk, float) or target_risk < 0:
-            raise ValueError("target_risk should be a positive float")
-        if not isinstance(risk_free_rate, (int, float)):
-            raise ValueError("risk_free_rate should be numeric")
+        if not isinstance(target_volatility, float) or target_volatility < 0:
+            raise ValueError("target_volatility should be a positive float")
 
-        args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
-        target_constraint = {
-            "type": "eq",
-            "fun": lambda w: target_risk ** 2
-            - objective_functions.volatility(w, self.cov_matrix),
-        }
+        self._objective = objective_functions.portfolio_return(
+            self._w, self.expected_returns
+        )
+        variance = objective_functions.portfolio_variance(self._w, self.cov_matrix)
+
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints.append(variance <= target_volatility ** 2)
+
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
         if market_neutral:
-            portfolio_possible = any(b[0] < 0 for b in self.bounds if b[0] is not None)
-            if not portfolio_possible:
-                warnings.warn(
-                    "Market neutrality requires shorting - bounds have been amended",
-                    RuntimeWarning,
-                )
-                self.bounds = self._map_bounds_to_constraints((-1, 1))
-            constraints = [
-                {"type": "eq", "fun": lambda x: np.sum(x)},
-                target_constraint,
-            ]
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
         else:
-            constraints = self.constraints + [target_constraint]
+            self._constraints.append(cp.sum(self._w) == 1)
 
-        result = sco.minimize(
-            objective_functions.negative_sharpe,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=constraints,
-        )
-        self.weights = result["x"]
+        self._solve_cvxpy_opt_problem()
 
-        if not np.isclose(
-            objective_functions.volatility(self.weights, self.cov_matrix),
-            target_risk ** 2,
-        ):
-            raise ValueError(
-                "Optimisation was not succesful. Please increase target_risk"
-            )
+        # if not np.isclose(
+        #     objective_functions.volatility(self.weights, self.cov_matrix),
+        #     target_volatility ** 2,
+        # ):
+        #     raise ValueError(
+        #         "Optimisation was not succesful. Please increase target_volatility"
+        #     )
 
         return dict(zip(self.tickers, self.weights))
 
