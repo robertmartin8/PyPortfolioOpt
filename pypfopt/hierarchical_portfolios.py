@@ -16,6 +16,8 @@ import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as ssd
+
+from .expected_returns import mean_historical_return
 from . import base_optimizer
 
 
@@ -157,10 +159,11 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         self.set_weights(weights)
         return weights
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.02, frequency=252):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
-        portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
+        portfolio. Currently calculates expected return, volatility, and the Sharpe ratio
+        assuming returns are daily
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
@@ -168,14 +171,17 @@ class HRPOpt(base_optimizer.BaseOptimizer):
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional
+        :param frequency: number of time periods in a year, defaults to 252 (the number
+                            of trading days in a year)
+        :type frequency: int, optional
         :raises ValueError: if weights have not been calcualted yet
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """
         return base_optimizer.portfolio_performance(
             self.weights,
-            self.returns.mean(),
-            self.returns.cov(),
+            self.returns.mean() * frequency,
+            self.returns.cov() * frequency,
             verbose,
             risk_free_rate,
         )

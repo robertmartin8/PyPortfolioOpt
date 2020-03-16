@@ -7,6 +7,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import cvxpy as cp
+import scipy.optimize as sco
 
 from . import objective_functions, base_optimizer
 
@@ -183,7 +184,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         ]
         #  Rebuild original constraints with scaling factor
         for raw_constr in self._additional_constraints_raw:
-            self._constraints.append(raw_constr(self.w / k))
+            self._constraints.append(raw_constr(self._w / k))
         # Sharpe ratio is invariant w.r.t scaled weights, so we must
         # replace infinities and negative infinities
         # new_lower_bound = np.nan_to_num(self._lower_bounds, neginf=-1)
