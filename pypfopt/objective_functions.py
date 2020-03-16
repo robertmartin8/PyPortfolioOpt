@@ -142,6 +142,8 @@ def quadratic_utility(w, expected_returns, cov_matrix, risk_aversion, negative=T
     :type risk_aversion: float
     :param negative: whether quantity should be made negative (so we can minimise).
     :type negative: boolean
+    :return: value of the objective function OR objective function expression
+    :rtype: float OR cp.Expression
     """
     sign = -1 if negative else 1
     mu = w @ expected_returns
@@ -150,3 +152,19 @@ def quadratic_utility(w, expected_returns, cov_matrix, risk_aversion, negative=T
     utility = mu - 0.5 * risk_aversion * variance
     return _objective_value(w, sign * utility)
 
+
+def transaction_cost(w, w_prev, k=0.001):
+    """
+    A very simple transaction cost model: sum all the weight changes
+    and multiply by a given fraction (default to 10bps).
+
+    :param w: asset weights in the portfolio
+    :type w: np.ndarray OR cp.Variable
+    :param w_prev: previous weights
+    :type w_prev: np.ndarray
+    :param k: fractional cost per unit weight exchanged
+    :type k: float
+    :return: value of the objective function OR objective function expression
+    :rtype: float OR cp.Expression
+    """
+    return _objective_value(w, k * cp.norm(w - w_prev, 1))

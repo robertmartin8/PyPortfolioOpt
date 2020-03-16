@@ -59,11 +59,27 @@ def test_min_volatility():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
 
-    # TODO fix
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.17931232481259154, 0.15915084514118694, 1.00101463282373),
     )
+
+
+def test_min_volatility_tx_costs():
+    # Baseline
+    ef = setup_efficient_frontier()
+    ef.min_volatility()
+    w1 = ef.weights
+
+    # Pretend we were initally equal weight
+    ef = setup_efficient_frontier()
+    prev_w = np.array([1 / ef.n_assets] * ef.n_assets)
+    ef.add_objective(objective_functions.transaction_cost, w_prev=prev_w)
+    ef.min_volatility()
+    w2 = ef.weights
+
+    # TX cost should  pull closer to prev portfolio
+    assert np.abs(prev_w - w2).sum() < np.abs(prev_w - w1).sum()
 
 
 def test_min_volatility_short():
@@ -146,6 +162,19 @@ def test_min_volatility_L2_reg_increases_vol():
     ef.min_volatility()
     vol = ef.portfolio_performance()[1]
     assert vol > vol_no_reg
+
+
+def test_min_volatility_tx_costs_L2_reg():
+    ef = setup_efficient_frontier()
+    prev_w = np.array([1 / ef.n_assets] * ef.n_assets)
+    ef.add_objective(objective_functions.transaction_cost, w_prev=prev_w)
+    ef.add_objective(objective_functions.L2_reg)
+    ef.min_volatility()
+
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.2316565265271545, 0.1959773703677164, 1.0800049318450338),
+    )
 
 
 def test_min_volatility_cvxpy_vs_scipy():

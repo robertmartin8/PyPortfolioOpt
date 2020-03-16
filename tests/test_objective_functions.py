@@ -83,17 +83,10 @@ def test_quadratic_utility():
     np.testing.assert_almost_equal(-utility + 3 / 2 * variance, mu)
 
 
-# def test_cvar():
-#     df = get_data()
-#     returns = df.pct_change().dropna(how="all")
-#     w = np.array([1 / df.shape[1]] * df.shape[1])
-#     cvar0 = objective_functions.negative_cvar(w, returns, s=5000, random_state=0)
-#     assert cvar0 > 0
-#     cvar1 = objective_functions.negative_cvar(
-#         w, returns, s=5000, beta=0.98, random_state=0
-#     )
-#     assert cvar1 > 0
+def test_transaction_costs():
+    old_w = np.array([0.1, 0.2, 0.3])
+    new_w = np.array([-0.3, 0.1, 0.2])
 
-#     # Nondeterministic
-#     cvar2 = objective_functions.negative_cvar(w, returns, s=5000, random_state=1)
-#     assert not cvar0 == cvar2
+    k = 0.1
+    tx_cost = k * np.abs(old_w - new_w).sum()
+    assert tx_cost == objective_functions.transaction_cost(new_w, old_w, k=k)
