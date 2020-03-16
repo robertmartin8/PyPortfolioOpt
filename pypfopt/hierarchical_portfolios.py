@@ -1,9 +1,15 @@
 """
-The ``hierarchical_risk_parity`` module implements the HRP portfolio from Marcos Lopez de Prado.
-It has the same interface as ``EfficientFrontier``. Call the ``hrp_portfolio()`` method
-to generate a portfolio.
+The ``hierarchical_portfolio`` module seeks to implement one of the recent advances in
+portfolio optimisation – the application of hierarchical clustering models in allocation.
 
-The code has been reproduced with modification from Lopez de Prado (2016).
+All of the hierarchical classes have a similar API to ``EfficientFrontier``, though since
+many hierarchical models currently don't support different objectives, the actual allocation
+happens with a call to `optimize()`.
+
+Currently implemented:
+
+- ``HRPOpt`` implements the Hierarchical Risk Parity (HRP) portfolio. Code reproduced with
+  permission from Marcos Lopez de Prado (2016).
 """
 
 import numpy as np
@@ -130,7 +136,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
                 w[second_cluster] *= 1 - alpha  # weight 2
         return w
 
-    def hrp_portfolio(self):
+    def optimize(self):
         """
         Construct a hierarchical risk parity portfolio
 
@@ -167,9 +173,9 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         :rtype: (float, float, float)
         """
         return base_optimizer.portfolio_performance(
+            self.weights,
             self.returns.mean(),
             self.returns.cov(),
-            self.weights,
             verbose,
             risk_free_rate,
         )
