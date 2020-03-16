@@ -7,8 +7,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import cvxpy as cp
-import scipy.optimize as sco
-from . import exceptions
+
 from . import objective_functions, base_optimizer
 
 
@@ -30,11 +29,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         - ``cov_matrix`` - np.ndarray
         - ``expected_returns`` - np.ndarray
 
-    - Optimisation parameters:
-
-        - ``initial_guess`` - np.ndarray
-        - ``constraints`` - dict list
-        - ``opt_method`` - the optimisation algorithm to use. Defaults to SLSQP.
 
     - Output: ``weights`` - np.ndarray
 
@@ -42,7 +36,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``min_volatility()`` optimises for minimum volatility
-    - ``custom_objective()`` optimises for some custom objective function
+
+    - ``max_quadratic_utility()`` maximises the quadratic utility, giiven some risk aversion.
     - ``efficient_risk()`` maximises Sharpe for a given target risk
     - ``efficient_return()`` minimises risk for a given target return
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
@@ -127,97 +122,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             # Delete original constraints
             del self._constraints[0]
             del self._constraints[0]
-
-    def _solve_cvxpy_opt_problem(self):
-        """
-        Helper method to solve the cvxpy problem and check output,
-        once objectives and constraints have been defined
-
-        :raises exceptions.OptimizationError: if problem is not solvable by cvxpy
-        """
-        try:
-            opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
-            opt.solve()
-        except (TypeError, cp.DCPError):
-            raise exceptions.OptimizationError
-        if opt.status != "optimal":
-            raise exceptions.OptimizationError
-        self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
-
-    def add_objective(self, new_objective, **kwargs):
-        """
-        Add a new term into the objective function. This term must be convex,
-        and built from cvxpy atomic functions.
-
-        Example:
-
-        def L1_norm(w, k=1):
-            return k * cp.norm(w, 1)
-
-        ef.add_objective(L1_norm, k=2)
-
-        :param new_objective: the objective to be added
-        :type new_objective: cp.Expression (i.e function of cp.Variable)
-        """
-        self._additional_objectives.append(new_objective(self._w, **kwargs))
-
-    def add_constraint(self, new_constraint):
-        """
-        Add a new constraint to the optimisation problem. This constraint must be linear and
-        must be either an equality or simple inequality.
-
-        Examples:
-
-        ef.add_constraint(lambda x : x[0] == 0.02)
-        ef.add_constraint(lambda x : x >= 0.01)
-        ef.add_constraint(lambda x: x <= np.array([0.01, 0.08, ..., 0.5]))
-
-        :param new_constraint: the constraint to be added
-        :type constraintfunc: lambda function
-        """
-        if not callable(new_constraint):
-            raise TypeError("New constraint must be provided as a lambda function")
-
-        # Save raw constraint (needed for e.g max_sharpe)
-        self._additional_constraints_raw.append(new_constraint)
-        # Add constraint
-        self._constraints.append(new_constraint(self._w))
-
-    def convex_optimize(self, custom_objective, constraints):
-        # TODO: fix
-        # genera convex optimistion
-        pass
-
-    def nonconvex_optimize(self, custom_objective=None, constraints=None):
-        #  TODO: fix
-        # opt using scipy
-        args = (self.cov_matrix,)
-
-        initial_guess = np.array([1 / self.n_assets] * self.n_assets)
-
-        result = sco.minimize(
-            objective_functions.volatility,
-            x0=initial_guess,
-            args=args,
-            method="SLSQP",
-            bounds=[(0, 1)] * 20,
-            constraints=[{"type": "eq", "fun": lambda x: np.sum(x) - 1}],
-        )
-        self.weights = result["x"]
-
-        #  max sharpe
-        # args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
-        # result = sco.minimize(
-        #     objective_functions.negative_sharpe,
-        #     x0=self.initial_guess,
-        #     args=args,
-        #     method=self.opt_method,
-        #     bounds=self.bounds,
-        #     constraints=self.constraints,
-        # )
-        # self.weights = result["x"]
-
-        return dict(zip(self.tickers, self.weights))
 
     def min_volatility(self):
         """
@@ -323,29 +227,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._constraints.append(cp.sum(self._w) == 1)
 
         self._solve_cvxpy_opt_problem()
-        return dict(zip(self.tickers, self.weights))
-
-    # TODO: roll custom_objective into nonconvex_optimizer
-    def custom_objective(self, objective_function, *args):
-        """
-        Optimise some objective function. While an implicit requirement is that the function
-        can be optimised via a quadratic optimiser, this is not enforced. Thus there is a
-        decent chance of silent failure.
-
-        :param objective_function: function which maps (weight, args) -> cost
-        :type objective_function: function with signature (np.ndarray, args) -> float
-        :return: asset weights that optimise the custom objective
-        :rtype: dict
-        """
-        result = sco.minimize(
-            objective_function,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=self.constraints,
-        )
-        self.weights = result["x"]
         return dict(zip(self.tickers, self.weights))
 
     def efficient_risk(self, target_volatility, market_neutral=False):

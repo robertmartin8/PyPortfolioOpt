@@ -1,7 +1,7 @@
 """
-The ``base_optimizer`` module houses the parent classes ``BaseOptimizer`` and
-``BaseConvexOptimizer``, from which all optimisers will inherit. The later is for
-optimisers that use the scipy solver.
+The ``base_optimizer`` module houses the parent classes ``BaseOptimizer`` from which all
+optimisers will inherit. ``BaseConvexOptimizer`` is thebase class for all ``cvxpy`` (and ``scipy``)
+optimisation.
 
 Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
@@ -11,7 +11,9 @@ import json
 import numpy as np
 import pandas as pd
 import cvxpy as cp
+import scipy.optimize as sco
 from . import objective_functions
+from . import exceptions
 
 
 class BaseOptimizer:
@@ -100,16 +102,24 @@ class BaseOptimizer:
 class BaseConvexOptimizer(BaseOptimizer):
 
     """
+    The BaseConvexOptimizer contains many private variables for use by
+    ``cvxpy``. For example, the immutable optimisation variable for weights
+    is stored as self._w. Interacting directly with these variables is highly
+    discouraged.
+
     Instance variables:
 
     - ``n_assets`` - int
     - ``tickers`` - str list
     - ``weights`` - np.ndarray
-    - ``bounds`` - float tuple OR (float tuple) list
-    - ``constraints`` - dict list
 
     Public methods:
 
+    - ``add_objective()`` adds a (convex) objective to the optimisation problem
+    - ``add_constraint()`` adds a (linear) constraint to the optimisation problem
+    - ``convex_objective()`` solves for a generic convex objective with linear constraints
+    - ``nonconvex_objective()`` solves for a generic nonconvex objective using the scipy backend.
+      This is prone to getting stuck in local minima and is generally *not* recommended.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
     - ``clean_weights()`` rounds the weights and clips near-zeros.
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
@@ -174,12 +184,164 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._constraints.append(self._w >= self._lower_bounds)
         self._constraints.append(self._w <= self._upper_bounds)
 
-    @staticmethod
-    def _make_scipy_bounds():
+    def _solve_cvxpy_opt_problem(self):
         """
-        Convert the current cvxpy bounds to scipy bounds
+        Helper method to solve the cvxpy problem and check output,
+        once objectives and constraints have been defined
+
+        :raises exceptions.OptimizationError: if problem is not solvable by cvxpy
         """
-        raise NotImplementedError
+        try:
+            opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
+            opt.solve()
+        except (TypeError, cp.DCPError):
+            raise exceptions.OptimizationError
+        if opt.status != "optimal":
+            raise exceptions.OptimizationError
+        self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
+
+    def add_objective(self, new_objective, **kwargs):
+        """
+        Add a new term into the objective function. This term must be convex,
+        and built from cvxpy atomic functions.
+
+        Example:
+
+        def L1_norm(w, k=1):
+            return k * cp.norm(w, 1)
+
+        ef.add_objective(L1_norm, k=2)
+
+        :param new_objective: the objective to be added
+        :type new_objective: cp.Expression (i.e function of cp.Variable)
+        """
+        self._additional_objectives.append(new_objective(self._w, **kwargs))
+
+    def add_constraint(self, new_constraint):
+        """
+        Add a new constraint to the optimisation problem. This constraint must be linear and
+        must be either an equality or simple inequality.
+
+        Examples:
+
+        ef.add_constraint(lambda x : x[0] == 0.02)
+        ef.add_constraint(lambda x : x >= 0.01)
+        ef.add_constraint(lambda x: x <= np.array([0.01, 0.08, ..., 0.5]))
+
+        :param new_constraint: the constraint to be added
+        :type constraintfunc: lambda function
+        """
+        if not callable(new_constraint):
+            raise TypeError("New constraint must be provided as a lambda function")
+
+        # Save raw constraint (needed for e.g max_sharpe)
+        self._additional_constraints_raw.append(new_constraint)
+        # Add constraint
+        self._constraints.append(new_constraint(self._w))
+
+    def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
+        """
+        Optimise a custom convex objective function. Constraints should be added with
+        ``ef.add_constraint()``. Optimiser arguments *must* be passed as keyword-args. Example:
+
+        # Could define as a lambda function instead
+        def logarithmic_barrier(w, cov_matrix, k=0.1):
+            # 60 Years of Portfolio Optimisation, Kolm et al (2014)
+            return cp.quad_form(w, cov_matrix) - k * cp.sum(cp.log(w))
+
+        w = ef.convex_objective(logarithmic_barrier, cov_matrix=ef.cov_matrix)
+
+        :param custom_objective: an objective function to be MINIMISED. This should be written using
+                                 cvxpy atoms Should map (w, **kwargs) -> float.
+        :type custom_objective: function with signature (cp.Variable, **kwargs) -> cp.Expression
+        :param weights_sum_to_one: whether to add the default objective, defaults to True
+        :type weights_sum_to_one: bool, optional
+        :raises OptimizationError: if the objective is nonconvex or constraints nonlinear.
+        :return: asset weights for the efficient risk portfolio
+        :rtype: dict
+        """
+        # custom_objective must have the right signature (w, **kwargs)
+        self._objective = custom_objective(self._w, **kwargs)
+
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        if weights_sum_to_one:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        self._solve_cvxpy_opt_problem()
+        return dict(zip(self.tickers, self.weights))
+
+    def nonconvex_objective(
+        self,
+        custom_objective,
+        objective_args=None,
+        weights_sum_to_one=True,
+        constraints=None,
+        solver="SLSQP",
+    ):
+        """
+        Optimise some objective function using the scipy backend. This can
+        support nonconvex objectives and nonlinear constraints, but often gets stuck
+        at local minima. This method is not recommended – caveat emptor. Example:
+
+        # Market-neutral efficient risk
+        constraints = [
+            {"type": "eq", "fun": lambda w: np.sum(w)},  # weights sum to zero
+            {
+                "type": "eq",
+                "fun": lambda w: target_risk ** 2 - np.dot(w.T, np.dot(ef.cov_matrix, w)),
+            },  # risk = target_risk
+        ]
+        ef.nonconvex_objective(
+            lambda w, mu: -w.T.dot(mu),  # min negative return (i.e maximise return)
+            objective_args=(ef.expected_returns,),
+            weights_sum_to_one=False,
+            constraints=constraints,
+        )
+
+        :param objective_function: an objective function to be MINIMISED. This function
+                                   should map (weight, args) -> cost
+        :type objective_function: function with signature (np.ndarray, args) -> float
+        :param objective_args: arguments for the objective function (excluding weight)
+        :type objective_args: tuple of np.ndarrays
+        :param weights_sum_to_one: whether to add the default objective, defaults to True
+        :type weights_sum_to_one: bool, optional
+        :param constraints: list of constraints in the scipy format (i.e dicts)
+        :type constraints: dict list
+        :param solver: which SCIPY solver to use, e.g "SLSQP", "COBYLA", "BFGS".
+                       User beware: different optimisers require different inputs.
+        :type solver: string
+        :return: asset weights that optimise the custom objective
+        :rtype: dict
+        """
+        # Sanitise inputs
+        if not isinstance(objective_args, tuple):
+            objective_args = (objective_args,)
+
+        # Make scipy bounds
+        bound_array = np.vstack((self._lower_bounds, self._upper_bounds)).T
+        bounds = list(map(tuple, bound_array))
+
+        initial_guess = np.array([1 / self.n_assets] * self.n_assets)
+
+        # Construct constraints
+        final_constraints = []
+        if weights_sum_to_one:
+            final_constraints.append({"type": "eq", "fun": lambda x: np.sum(x) - 1})
+        if constraints is not None:
+            final_constraints += constraints
+
+        result = sco.minimize(
+            custom_objective,
+            x0=initial_guess,
+            args=objective_args,
+            method=solver,
+            bounds=bounds,
+            constraints=final_constraints,
+        )
+        self.weights = result["x"]
+        return dict(zip(self.tickers, self.weights))
 
 
 def portfolio_performance(

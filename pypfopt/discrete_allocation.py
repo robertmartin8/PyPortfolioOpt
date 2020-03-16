@@ -148,7 +148,8 @@ class DiscreteAllocation:
             # Construct long-only discrete allocations for each
             short_val = self.total_portfolio_value * self.short_ratio
 
-            print("\nAllocating long sub-portfolio:")
+            if verbose:
+                print("\nAllocating long sub-portfolio...")
             da1 = DiscreteAllocation(
                 longs,
                 self.latest_prices[longs.keys()],
@@ -156,7 +157,8 @@ class DiscreteAllocation:
             )
             long_alloc, long_leftover = da1.greedy_portfolio()
 
-            print("\nAllocating short sub-portfolio:")
+            if verbose:
+                print("\nAllocating short sub-portfolio...")
             da2 = DiscreteAllocation(
                 shorts,
                 self.latest_prices[shorts.keys()],
@@ -263,7 +265,8 @@ class DiscreteAllocation:
             # Construct long-only discrete allocations for each
             short_val = self.total_portfolio_value * self.short_ratio
 
-            print("\nAllocating long sub-portfolio:")
+            if verbose:
+                print("\nAllocating long sub-portfolio:")
             da1 = DiscreteAllocation(
                 longs,
                 self.latest_prices[longs.keys()],
@@ -271,7 +274,8 @@ class DiscreteAllocation:
             )
             long_alloc, long_leftover = da1.lp_portfolio()
 
-            print("\nAllocating short sub-portfolio:")
+            if verbose:
+                print("\nAllocating short sub-portfolio:")
             da2 = DiscreteAllocation(
                 shorts,
                 self.latest_prices[shorts.keys()],
