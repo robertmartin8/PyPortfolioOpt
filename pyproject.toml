@@ -44,7 +44,6 @@ rope = "^0.14.0"
 ipython = "^7.13.0"
 
 [tool.poetry.extras]
-noisyopt = ["^=0.2.2"]
 scikit-learn = ["^0.22"]
 [build-system]
 requires = ["poetry>=0.12"]

@@ -14,12 +14,24 @@ have any other feature requests, please raise them using GitHub
 
 - Optimising for higher moments (i.e skew and kurtosis)
 - Factor modelling: doable but not sure if it fits within the API.
-- Proper CVaR optimisation – remove NoisyOpt and use proper linear programming
+- Proper CVaR optimisation – remove NoisyOpt and use linear programming
 - Monte Carlo optimisation with custom distributions
 - Open-source backtests using either `Backtrader <https://www.backtrader.com/>`_ or
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Further support for different risk/return models
 
+1.0.0
+=====
+
+Please see HERE for full details 
+
+- Migrated backend from ``scipy`` to ``cvxpy``. 
+- changed portfolio_performance API 
+
+Breaking changes
+----------------
+
+- No more ``gamma`` parameter – you must add the appropriate ``L2_reg`` objective. 
 
 0.5.0
 =====

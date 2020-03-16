@@ -5,7 +5,7 @@ from pypfopt import risk_models
 from pypfopt import expected_returns
 from pypfopt.value_at_risk import CVAROpt
 from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
-from pypfopt.hierarchical_risk_parity import HRPOpt
+from pypfopt.hierarchical_portfolios import HRPOpt
 from pypfopt.cla import CLA
 from pypfopt import black_litterman
 from pypfopt.black_litterman import BlackLittermanModel
@@ -265,31 +265,3 @@ Annual volatility: 21.3%
 Sharpe Ratio: 1.43
 """
 
-
-# CVaR optimisation - very buggy
-vr = CVAROpt(returns)
-vr.min_cvar()
-print(vr.clean_weights())
-
-"""
-{'GOOG': 0.10886,
- 'AAPL': 0.0,
- 'FB': 0.02598,
- 'BABA': 0.57691,
- 'AMZN': 0.0,
- 'GE': 0.01049,
- 'AMD': 0.0138,
- 'WMT': 0.01581,
- 'BAC': 0.01049,
- 'GM': 0.03463,
- 'T': 0.01049,
- 'UAA': 0.07782,
- 'SHLD': 0.04184,
- 'XOM': 0.00931,
- 'RRC': 0.0,
- 'BBY': 0.01748,
- 'MA': 0.03782,
- 'PFE': 0.0,
- 'JPM': 0.0,
- 'SBUX': 0.00828}
- """
