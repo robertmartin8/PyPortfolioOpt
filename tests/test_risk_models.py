@@ -34,6 +34,7 @@ def test_sample_cov_real_data():
     assert S.index.equals(df.columns)
     assert S.index.equals(S.columns)
     assert S.notnull().all().all()
+    assert risk_models._is_positive_semidefinite(S)
 
 
 def test_sample_cov_type_warning():
@@ -67,6 +68,7 @@ def test_semicovariance():
     assert S.index.equals(df.columns)
     assert S.index.equals(S.columns)
     assert S.notnull().all().all()
+    assert risk_models._is_positive_semidefinite(S)
     S2 = risk_models.semicovariance(df, frequency=2)
     pd.testing.assert_frame_equal(S / 126, S2)
 
@@ -90,6 +92,7 @@ def test_exp_cov_matrix():
     assert S.index.equals(df.columns)
     assert S.index.equals(S.columns)
     assert S.notnull().all().all()
+    assert risk_models._is_positive_semidefinite(S)
     S2 = risk_models.exp_cov(df, frequency=2)
     pd.testing.assert_frame_equal(S / 126, S2)
 
@@ -112,6 +115,10 @@ def test_min_cov_det():
     assert S.index.equals(df.columns)
     assert S.index.equals(S.columns)
     assert S.notnull().all().all()
+    # Min cov det is NOT positive semidefinite for this example.
+    # Warning has been added to docs.
+    # assert risk_models._is_positive_semidefinite(S)
+
     S2 = risk_models.min_cov_determinant(df, frequency=2, random_state=8)
     pd.testing.assert_frame_equal(S / 126, S2)
 
@@ -146,6 +153,7 @@ def test_shrunk_covariance():
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
     assert not shrunk_cov.isnull().any().any()
+    assert risk_models._is_positive_semidefinite(shrunk_cov)
 
 
 def test_shrunk_covariance_extreme_delta():
@@ -180,6 +188,7 @@ def test_ledoit_wolf_default():
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
     assert not shrunk_cov.isnull().any().any()
+    assert risk_models._is_positive_semidefinite(shrunk_cov)
 
 
 def test_ledoit_wolf_single_index():
@@ -191,6 +200,7 @@ def test_ledoit_wolf_single_index():
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
     assert not shrunk_cov.isnull().any().any()
+    assert risk_models._is_positive_semidefinite(shrunk_cov)
 
 
 def test_ledoit_wolf_constant_correlation():
@@ -202,6 +212,7 @@ def test_ledoit_wolf_constant_correlation():
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
     assert not shrunk_cov.isnull().any().any()
+    assert risk_models._is_positive_semidefinite(shrunk_cov)
 
 
 def test_ledoit_wolf_raises_not_implemented():
@@ -220,3 +231,4 @@ def test_oracle_approximating():
     assert list(shrunk_cov.index) == list(df.columns)
     assert list(shrunk_cov.columns) == list(df.columns)
     assert not shrunk_cov.isnull().any().any()
+    assert risk_models._is_positive_semidefinite(shrunk_cov)

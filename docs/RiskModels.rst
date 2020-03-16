@@ -89,6 +89,12 @@ covariance.
         :py:mod:`sklearn.covariance` module, which is based on the algorithm presented in
         Rousseeuw 1999 [4]_.
 
+        .. caution::
+
+            Some of my tests have shown that ``min_cov_determinant`` does not always
+            result in positive definite matrices. Please use ``risk_models._is_positive_semidefinite()``
+            to check your covariance matrix before optimising portfolios.
+
     .. autofunction:: cov_to_corr
 
         .. note::

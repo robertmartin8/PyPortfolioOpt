@@ -27,6 +27,24 @@ import pandas as pd
 from .expected_returns import returns_from_prices
 
 
+def _is_positive_semidefinite(matrix):
+    """
+    Helper function to check if a given matrix is positive semidefinite.
+    Any method that requires inverting the covariance matrix will struggle
+    with a non-positive defininite matrix
+
+    :param matrix: (covariance) matrix to test
+    :type matrix: np.ndarray, pd.DataFrame
+    :return: whether matrix is positive semidefinite
+    :rtype: bool
+    """
+    try:
+        np.linalg.cholesky(matrix)
+        return True
+    except np.linalg.LinAlgError:
+        return False
+
+
 def sample_cov(prices, frequency=252):
     """
     Calculate the annualised sample covariance matrix of (daily) asset returns.
@@ -214,7 +232,7 @@ class CovarianceShrinkage:
         self.S = self.X.cov().values
         self.delta = None  # shrinkage constant
 
-    def format_and_annualise(self, raw_cov_array):
+    def _format_and_annualize(self, raw_cov_array):
         """
         Helper method which annualises the output of shrinkage calculations,
         and formats the result into a dataframe
@@ -247,7 +265,7 @@ class CovarianceShrinkage:
         F = np.identity(N) * mu
         # Shrinkage
         shrunk_cov = delta * F + (1 - delta) * self.S
-        return self.format_and_annualise(shrunk_cov)
+        return self._format_and_annualize(shrunk_cov)
 
     def ledoit_wolf(self, shrinkage_target="constant_variance"):
         """
@@ -272,7 +290,7 @@ class CovarianceShrinkage:
         else:
             raise NotImplementedError
 
-        return self.format_and_annualise(shrunk_cov)
+        return self._format_and_annualize(shrunk_cov)
 
     def _ledoit_wolf_single_factor(self):
         """
@@ -391,4 +409,4 @@ class CovarianceShrinkage:
         """
         X = np.nan_to_num(self.X.values)
         shrunk_cov, self.delta = self.sklearn.covariance.oas(X)
-        return self.format_and_annualise(shrunk_cov)
+        return self._format_and_annualize(shrunk_cov)
