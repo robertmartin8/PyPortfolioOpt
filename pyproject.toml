@@ -31,7 +31,7 @@ packages = [ {include = "pypfopt"} ]
 
 [tool.poetry.dependencies]
 python = "^3.6.0"
-numpy = "^=1.14.3"
+numpy = "^=1.17.0"
 scipy = "^=1.1.0"
 pandas = "^0.25.3"
 cvxpy = "^1.0.28"
