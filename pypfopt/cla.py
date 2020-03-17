@@ -21,8 +21,8 @@ class CLA(base_optimizer.BaseOptimizer):
         - ``n_assets`` - int
         - ``tickers`` - str list
         - ``mean`` - np.ndarray
-        - ``cov_matrix`` - pd.DataFrame
-        - ``expected_returns`` - pd.Series
+        - ``cov_matrix`` - np.ndarray
+        - ``expected_returns`` - np.ndarray
         - ``lb`` - np.ndarray
         - ``ub`` - np.ndarray
 
@@ -447,9 +447,9 @@ class CLA(base_optimizer.BaseOptimizer):
         :rtype: (float, float, float)
         """
         return base_optimizer.portfolio_performance(
+            self.weights,
             self.expected_returns,
             self.cov_matrix,
-            self.weights,
             verbose,
             risk_free_rate,
         )

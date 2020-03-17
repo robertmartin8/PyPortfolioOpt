@@ -1,6 +1,6 @@
 """
 The ``base_optimizer`` module houses the parent classes ``BaseOptimizer`` from which all
-optimisers will inherit. ``BaseConvexOptimizer`` is thebase class for all ``cvxpy`` (and ``scipy``)
+optimisers will inherit. ``BaseConvexOptimizer`` is the base class for all ``cvxpy`` (and ``scipy``)
 optimisation.
 
 Additionally, we define a general utility function ``portfolio_performance`` to
@@ -205,12 +205,12 @@ class BaseConvexOptimizer(BaseOptimizer):
         Add a new term into the objective function. This term must be convex,
         and built from cvxpy atomic functions.
 
-        Example:
+        Example::
 
-        def L1_norm(w, k=1):
-            return k * cp.norm(w, 1)
+            def L1_norm(w, k=1):
+                return k * cp.norm(w, 1)
 
-        ef.add_objective(L1_norm, k=2)
+            ef.add_objective(L1_norm, k=2)
 
         :param new_objective: the objective to be added
         :type new_objective: cp.Expression (i.e function of cp.Variable)
@@ -222,11 +222,11 @@ class BaseConvexOptimizer(BaseOptimizer):
         Add a new constraint to the optimisation problem. This constraint must be linear and
         must be either an equality or simple inequality.
 
-        Examples:
+        Examples::
 
-        ef.add_constraint(lambda x : x[0] == 0.02)
-        ef.add_constraint(lambda x : x >= 0.01)
-        ef.add_constraint(lambda x: x <= np.array([0.01, 0.08, ..., 0.5]))
+            ef.add_constraint(lambda x : x[0] == 0.02)
+            ef.add_constraint(lambda x : x >= 0.01)
+            ef.add_constraint(lambda x: x <= np.array([0.01, 0.08, ..., 0.5]))
 
         :param new_constraint: the constraint to be added
         :type constraintfunc: lambda function
@@ -242,14 +242,14 @@ class BaseConvexOptimizer(BaseOptimizer):
     def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
         """
         Optimise a custom convex objective function. Constraints should be added with
-        ``ef.add_constraint()``. Optimiser arguments *must* be passed as keyword-args. Example:
+        ``ef.add_constraint()``. Optimiser arguments *must* be passed as keyword-args. Example::
 
-        # Could define as a lambda function instead
-        def logarithmic_barrier(w, cov_matrix, k=0.1):
-            # 60 Years of Portfolio Optimisation, Kolm et al (2014)
-            return cp.quad_form(w, cov_matrix) - k * cp.sum(cp.log(w))
+            # Could define as a lambda function instead
+            def logarithmic_barrier(w, cov_matrix, k=0.1):
+                # 60 Years of Portfolio Optimisation, Kolm et al (2014)
+                return cp.quad_form(w, cov_matrix) - k * cp.sum(cp.log(w))
 
-        w = ef.convex_objective(logarithmic_barrier, cov_matrix=ef.cov_matrix)
+            w = ef.convex_objective(logarithmic_barrier, cov_matrix=ef.cov_matrix)
 
         :param custom_objective: an objective function to be MINIMISED. This should be written using
                                  cvxpy atoms Should map (w, **kwargs) -> float.
@@ -283,22 +283,22 @@ class BaseConvexOptimizer(BaseOptimizer):
         """
         Optimise some objective function using the scipy backend. This can
         support nonconvex objectives and nonlinear constraints, but often gets stuck
-        at local minima. This method is not recommended – caveat emptor. Example:
+        at local minima. This method is not recommended – caveat emptor. Example::
 
-        # Market-neutral efficient risk
-        constraints = [
-            {"type": "eq", "fun": lambda w: np.sum(w)},  # weights sum to zero
-            {
-                "type": "eq",
-                "fun": lambda w: target_risk ** 2 - np.dot(w.T, np.dot(ef.cov_matrix, w)),
-            },  # risk = target_risk
-        ]
-        ef.nonconvex_objective(
-            lambda w, mu: -w.T.dot(mu),  # min negative return (i.e maximise return)
-            objective_args=(ef.expected_returns,),
-            weights_sum_to_one=False,
-            constraints=constraints,
-        )
+            # Market-neutral efficient risk
+            constraints = [
+                {"type": "eq", "fun": lambda w: np.sum(w)},  # weights sum to zero
+                {
+                    "type": "eq",
+                    "fun": lambda w: target_risk ** 2 - np.dot(w.T, np.dot(ef.cov_matrix, w)),
+                },  # risk = target_risk
+            ]
+            ef.nonconvex_objective(
+                lambda w, mu: -w.T.dot(mu),  # min negative return (i.e maximise return)
+                objective_args=(ef.expected_returns,),
+                weights_sum_to_one=False,
+                constraints=constraints,
+            )
 
         :param objective_function: an objective function to be MINIMISED. This function
                                    should map (weight, args) -> cost
