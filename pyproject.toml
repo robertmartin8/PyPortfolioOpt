@@ -36,6 +36,7 @@ scipy = "^=1.1.0"
 pandas = "^0.25.3"
 cvxpy = "^1.0.28"
 
+
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
 flake8 = "^3.7"
@@ -45,6 +46,8 @@ ipython = "^7.13.0"
 
 [tool.poetry.extras]
 scikit-learn = ["^0.22"]
+seaborn = ["^0.10.0"]
+matplotlib = ["^3.2.0"]
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"

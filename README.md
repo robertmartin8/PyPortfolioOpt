@@ -1,5 +1,5 @@
 <p align="center">
-    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v2.png">
+    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v1.png">
 </p>
 
 <!-- buttons -->
@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v0.5.5brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v0.5.5-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -227,6 +227,12 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
 - Minimum Covariance Determinant:
     - a robust estimate of the covariance
     - implemented in `sklearn.covariance`
+
+<p align="center">
+    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/corrplot.png">
+</p>
+
+(This plot was generated using `risk_models.correlation_plot`)
 
 ### Objective functions
 

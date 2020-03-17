@@ -1,8 +1,6 @@
 """
 The ``risk_models`` module provides functions for estimating the covariance matrix given
-historical returns. Because of the complexity of estimating covariance matrices
-(and the importance of efficient computations), this module mostly provides a convenient
-wrapper around the underrated `sklearn.covariance` module.
+historical returns.
 
 The format of the data input is the same as that in :ref:`expected-returns`.
 
@@ -195,6 +193,38 @@ def cov_to_corr(cov_matrix):
     Dinv = np.diag(1 / np.sqrt(np.diag(cov_matrix)))
     corr = np.dot(Dinv, np.dot(cov_matrix, Dinv))
     return pd.DataFrame(corr, index=cov_matrix.index, columns=cov_matrix.index)
+
+
+def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True):
+    """
+    Generate a basic plot of the correlation matrix, given a covariance matrix.
+
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: pd.DataFrame or np.ndarray
+    :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
+                         defaults to True
+    :type show_tickers: bool, optional
+    :param filename: name of the file to save to, defaults to None (doesn't save)
+    :type filename: str, optional
+    :param showfig: whether to plt.show() the figure, defaults to True
+    :type showfig: bool, optional
+    :raises ImportError: if matplotlib or seaborn is not installed
+    """
+    try:
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+    except (ModuleNotFoundError, ImportError):
+        raise ImportError("Please install matplotlib and seaborn via pip or poetry")
+
+    corr = cov_to_corr(cov_matrix)
+    if show_tickers:
+        sns.heatmap(corr)
+    else:
+        sns.heatmap(corr, xticklabels=False, yticklabels=False)
+    if filename:
+        plt.savefig(fname=filename, dpi=300)
+    if showfig:
+        plt.show()
 
 
 class CovarianceShrinkage:
