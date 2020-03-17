@@ -17,7 +17,6 @@ import pandas as pd
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as ssd
 
-from .expected_returns import mean_historical_return
 from . import base_optimizer
 
 
