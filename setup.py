@@ -9,7 +9,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="PyPortfolioOpt",
-    version="0.5.5",
+    version="1.0.0",
     description="Financial portfolio optimisation in python",
     long_description=desc,
     long_description_content_type="text/markdown",
@@ -26,6 +26,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3 :: Only",
@@ -34,7 +35,7 @@ setup(
         "Topic :: Scientific/Engineering :: Mathematics",
     ],
     keywords="portfolio finance optimization quant trading investing",
-    install_requires=["numpy", "pandas", "scipy"],
+    install_requires=["numpy", "pandas", "scipy", "cvxpy"],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     python_requires=">=3.6",
