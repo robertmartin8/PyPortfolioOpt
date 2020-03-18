@@ -7,7 +7,6 @@ import warnings
 import numpy as np
 import pandas as pd
 import cvxpy as cp
-import scipy.optimize as sco
 
 from . import objective_functions, base_optimizer
 
@@ -37,10 +36,16 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``min_volatility()`` optimises for minimum volatility
-
     - ``max_quadratic_utility()`` maximises the quadratic utility, giiven some risk aversion.
     - ``efficient_risk()`` maximises Sharpe for a given target risk
     - ``efficient_return()`` minimises risk for a given target return
+
+    - ``add_objective()`` adds a (convex) objective to the optimisation problem
+    - ``add_constraint()`` adds a (linear) constraint to the optimisation problem
+    - ``convex_objective()`` solves for a generic convex objective with linear constraints
+    - ``nonconvex_objective()`` solves for a generic nonconvex objective using the scipy backend.
+      This is prone to getting stuck in local minima and is generally *not* recommended.
+
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
@@ -148,7 +153,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         as it is the portfolio for which the capital market line is tangent to the efficient frontier.
 
         This is a convex optimisation problem after making a certain variable substitution. See
-        `Cornuejols and Tutuncu 2006 <http://web.math.ku.dk/~rolf/CT_FinOpt.pdf>`_ for more.
+        `Cornuejols and Tutuncu (2006) <http://web.math.ku.dk/~rolf/CT_FinOpt.pdf>`_ for more.
 
         :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
                                The period of the risk-free rate should correspond to the
@@ -211,6 +216,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
+        :return: asset weights for the maximum-utility portfolio
+        :rtype: dict
         """
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")

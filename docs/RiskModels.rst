@@ -84,7 +84,7 @@ covariance.
         recent data when calculating covariance, in the same way that the exponential
         moving average price is often preferred to the simple average price. For a full
         explanation of how this estimator works, please refer to the
-        `blog post <http://reasonabledeviations.com/2018/08/15/exponential-covariance/>`_
+        `blog post <https://reasonabledeviations.com/2018/08/15/exponential-covariance/>`_
         on my academic website.
 
     .. autofunction:: min_cov_determinant
@@ -102,11 +102,6 @@ covariance.
 
     .. autofunction:: cov_to_corr
 
-        .. note::
-
-            This is especially useful when it comes to visualise the 'correlation matrices' that
-            are associated with (shrunk) covariance matrices, using Matplotlib's ``imshow`` or
-            Seaborn's ``heatmap``.
 
     .. autofunction:: correlation_plot
 

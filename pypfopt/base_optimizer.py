@@ -242,7 +242,7 @@ class BaseConvexOptimizer(BaseOptimizer):
     def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
         """
         Optimise a custom convex objective function. Constraints should be added with
-        ``ef.add_constraint()``. Optimiser arguments *must* be passed as keyword-args. Example::
+        ``ef.add_constraint()``. Optimiser arguments must be passed as keyword-args. Example::
 
             # Could define as a lambda function instead
             def logarithmic_barrier(w, cov_matrix, k=0.1):

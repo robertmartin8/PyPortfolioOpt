@@ -20,7 +20,7 @@ offered. But for now, we will continue with the Efficient Frontier.
 PyPortfolioOpt is designed with modularity in mind; the below flowchart sums up the
 current functionality and overall layout of PyPortfolioOpt.
 
-.. image:: ../media/conceptual_flowchart_v1-grey.png
+.. image:: ../media/conceptual_flowchart_v2-grey.png
 
 Processing historical prices
 ============================
@@ -211,38 +211,39 @@ From experience, I have found that efficient frontier optimisation often sets ma
 of the asset weights to be zero. This may not be ideal if you need to have a certain
 number of positions in your portfolio, for diversification purposes or otherwise.
 
-To combat this, I have introduced an experimental feature, which borrows the idea of
+To combat this, I have introduced an objective function which borrows the idea of
 regularisation from machine learning. Essentially, by adding an additional cost
 function to the objective, you can 'encourage' the optimiser to choose different
 weights (mathematical details are provided in the :ref:`L2-Regularisation` section).
 To use this feature, change the ``gamma`` parameter::
 
-    ef = EfficientFrontier(mu, S, gamma=1)
-    ef.max_sharpe()
+    ef = EfficientFrontier(mu, S)
+    ef.add_objective(objective_functions.L2_reg, gamma=0.1)
+    w = ef.max_sharpe()
     print(ef.clean_weights())
 
 The result of this has far fewer negligible weights than before::
 
-    {'GOOG': 0.05664,
-    'AAPL': 0.087,
-    'FB': 0.1591,
-    'BABA': 0.09784,
-    'AMZN': 0.06986,
+    {'GOOG': 0.06366,
+    'AAPL': 0.09947,
+    'FB': 0.15742,
+    'BABA': 0.08701,
+    'AMZN': 0.09454,
     'GE': 0.0,
     'AMD': 0.0,
-    'WMT': 0.03649,
+    'WMT': 0.01766,
     'BAC': 0.0,
     'GM': 0.0,
-    'T': 0.02204,
+    'T': 0.00398,
     'UAA': 0.0,
     'SHLD': 0.0,
-    'XOM': 0.04812,
-    'RRC': 0.0045,
-    'BBY': 0.06389,
-    'MA': 0.16382,
-    'PFE': 0.1358,
+    'XOM': 0.03072,
+    'RRC': 0.00737,
+    'BBY': 0.07572,
+    'MA': 0.1769,
+    'PFE': 0.12346,
     'JPM': 0.0,
-    'SBUX': 0.05489}
+    'SBUX': 0.06209}
 
 Post-processing weights
 -----------------------
@@ -260,38 +261,40 @@ further in :ref:`post-processing`, but we provide an example below::
 
 These are the quantitites of shares that should be bought to have a $20,000 portfolio::
 
-    {'GOOG': 1,
-     'AAPL': 10,
-     'FB': 19,
-     'BABA': 11,
-     'AMZN': 1,
-     'WMT': 9,
-     'T': 13,
-     'XOM': 13,
-     'BBY': 19,
-     'MA': 19,
-     'PFE': 76,
-     'SBUX': 19}
+    {'AAPL': 2.0,
+    'FB': 12.0,
+    'BABA': 14.0,
+    'GE': 18.0,
+    'WMT': 40.0,
+    'GM': 58.0,
+    'T': 97.0,
+    'SHLD': 1.0,
+    'XOM': 47.0,
+    'RRC': 3.0,
+    'BBY': 1.0,
+    'PFE': 47.0,
+    'SBUX': 5.0}
 
 
 Improving performance
----------------------
+=====================
 
-Let us say you have conducted backtests and the results aren't spectacular. What
+Let's say you have conducted backtests and the results aren't spectacular. What
 should you try?
 
-- Drop the expected returns. There is a large body of research that suggests that
-  minimum variance portfolios consistently outperform maximum Sharpe ratio portfolios
-  out-of-sample, because of the dififuclty of forecasting expected returns.
+- Try the Hierarchical Risk Parity model (see :ref:`other-optimisers`) – which seems
+  to robustly outperform mean-variance optimisation out of sample.
+- Use the Black-Litterman model to construct a more stable model of expected returns.
+  Alternatively, just drop the expected returns altogether!. There is a large body of research
+  that suggests that minimum variance portfolios (``ef.min_volatility()``) consistently outperform
+  maximum Sharpe ratio portfolios out-of-sample, because of the dififuclty of forecasting expected returns.
 - Try different risk models: different asset classes may require different risk models.
-- Tune the L2 regularisation parameter to see how diversification affects the
-  performance.
-- Try a different optimiser: see the :ref:`other-optimisers` section for some
-  possibilities.
+- Add some new objective terms or constraints. Tune the L2 regularisation parameter to see how diversification
+  affects the performance.
 
 This concludes the guided tour. Head over to the appropriate sections
 in the sidebar to learn more about the parameters and theoretical details of the
-different functionality offered by PyPortfolioOpt. If you have any questions, please
+different models offered by PyPortfolioOpt. If you have any questions, please
 raise an issue on GitHub and I will try to respond promptly.
 
 

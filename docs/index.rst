@@ -144,7 +144,7 @@ Contents
 Advantages over existing implementations
 ========================================
 
-- Includes both classical methods (Markowitz 1952), suggested best practices
+- Includes both classical methods (Markowitz 1952 and Black-Litterman), suggested best practices
   (e.g covariance shrinkage), along with many recent developments and novel
   features, like L2 regularisation, shrunk covariance, hierarchical risk parity.
 - Native support for pandas dataframes: easily input your daily prices data.

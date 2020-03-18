@@ -14,7 +14,7 @@ given weights. ``_objective_value()`` automatically chooses between the two beha
 ``objective_functions`` defaults to objectives for minimisation. In the cases of objectives
 that clearly should be maximised (e.g Sharpe Ratio, portfolio return), the objective function
 actually returns the negative quantity, since minimising the negative is equivalent to maximising
-the positive. This behaviour is controlled by the negative=True optional argument.
+the positive. This behaviour is controlled by the ``negative=True`` optional argument.
 
 Currently implemented:
 
@@ -23,6 +23,7 @@ Currently implemented:
 - Sharpe ratio
 - L2 regularisation (minimising this reduces nonzero weights)
 - Quadratic utility
+- Transaction cost model (a simple one)
 """
 
 import numpy as np
@@ -113,8 +114,8 @@ def sharpe_ratio(w, expected_returns, cov_matrix, risk_free_rate=0.02, negative=
 
 
 def L2_reg(w, gamma=1):
-    """
-    L2 regularisation, i.e gamma * ||w||^2, to increase the number of nonzero weights.
+    r"""
+    L2 regularisation, i.e :math:`\gamma ||w||^2`, to increase the number of nonzero weights.
 
     :param w: asset weights in the portfolio
     :type w: np.ndarray OR cp.Variable
@@ -129,8 +130,8 @@ def L2_reg(w, gamma=1):
 
 
 def quadratic_utility(w, expected_returns, cov_matrix, risk_aversion, negative=True):
-    """
-    Quadratic utility function, i.e mu - 0.5 * risk_aversion * variance
+    r"""
+    Quadratic utility function, i.e :math:`\mu - \frac 1 2 \delta  w^T \Sigma w`.
 
     :param w: asset weights in the portfolio
     :type w: np.ndarray OR cp.Variable
@@ -156,7 +157,8 @@ def quadratic_utility(w, expected_returns, cov_matrix, risk_aversion, negative=T
 def transaction_cost(w, w_prev, k=0.001):
     """
     A very simple transaction cost model: sum all the weight changes
-    and multiply by a given fraction (default to 10bps).
+    and multiply by a given fraction (default to 10bps). This simulates
+    a fixed percentage commission from your broker.
 
     :param w: asset weights in the portfolio
     :type w: np.ndarray OR cp.Variable

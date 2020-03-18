@@ -23,15 +23,23 @@ have any other feature requests, please raise them using GitHub
 1.0.0
 =====
 
-Please see HERE for full details 
+- Migrated backend from ``scipy`` to ``cvxpy`` and made significant breaking changes to the API
 
-- Migrated backend from ``scipy`` to ``cvxpy``. 
-- changed portfolio_performance API 
+  - PyPortfolioOpt is now significantly more robust and numerically stable.
+  - These changes will not affect basic users, who can still access features like ``max_sharpe()``.
+  - However, additional objectives and constraints (including L2 regularisation) are now 
+    explicitly added before optimising some 'primary' objective.
 
-Breaking changes
-----------------
+- Added basic plotting capabilities for the efficient frontier, hierarchical clusters, 
+  and HRP dendrograms.
+- Added a basic transaction cost objective.
+- Made breaking changes to some modules and classes so that PyPortfolioOpt is easier to extend
+  in future:
+  
+  - Replaced ``BaseScipyOptimizer`` with ``BaseConvexOptimizer``
+  - ``hierarchical_risk_parity`` was replaced by ``hierarchical_portfolios`` to leave the door open for other hierarchical methods.
+  - Sadly, removed CVaR optimisation for the time being until I can properly fix it.
 
-- No more ``gamma`` parameter – you must add the appropriate ``L2_reg`` objective. 
 
 0.5.0
 =====
@@ -127,7 +135,7 @@ fixing a bug in the arguments of a call to ``portfolio_performance``.
 0.3.3
 -----
 
-Migrated the project internally to use the ``poetry`` dependency manager. Will still keep ``setup.py`` and ``requirements.txt``, but ``poetry`` is now the recommended way to interact with ``PyPortfolioOpt``
+Migrated the project internally to use the ``poetry`` dependency manager. Will still keep ``setup.py`` and ``requirements.txt``, but ``poetry`` is now the recommended way to interact with PyPortfolioOpt.
 
 0.3.4
 -----
