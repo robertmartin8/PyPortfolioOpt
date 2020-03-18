@@ -553,10 +553,9 @@ testing = ["jaraco.itertools", "func-timeout"]
 [extras]
 matplotlib = []
 scikit-learn = []
-seaborn = []
 
 [metadata]
-content-hash = "e87301c0153caf7dfb81748d1271da159c5b89f0873df0d32909420e446ffc67"
+content-hash = "b610210272bfbe1a6f01415f73802e560f0661db58b0f98efcaf8a2694b2b6dd"
 python-versions = "^3.6.0"
 
 [metadata.files]

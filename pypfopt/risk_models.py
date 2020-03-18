@@ -17,6 +17,7 @@ The format of the data input is the same as that in :ref:`expected-returns`.
     - Oracle Approximating shrinkage
 
 - covariance to correlation matrix
+- plot of the covariance matrix
 """
 
 import warnings
@@ -208,23 +209,34 @@ def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True)
     :type filename: str, optional
     :param showfig: whether to plt.show() the figure, defaults to True
     :type showfig: bool, optional
-    :raises ImportError: if matplotlib or seaborn is not installed
+    :raises ImportError: if matplotlib is not installed
+    :return: matplotlib axis
+    :rtype: matplotlib.axes object
     """
     try:
         import matplotlib.pyplot as plt
-        import seaborn as sns
     except (ModuleNotFoundError, ImportError):
-        raise ImportError("Please install matplotlib and seaborn via pip or poetry")
+        raise ImportError("Please install matplotlib via pip or poetry")
 
     corr = cov_to_corr(cov_matrix)
+    fig, ax = plt.subplots()
+
+    cax = ax.imshow(corr)
+    fig.colorbar(cax)
+
     if show_tickers:
-        sns.heatmap(corr)
-    else:
-        sns.heatmap(corr, xticklabels=False, yticklabels=False)
+        ax.set_xticks(np.arange(0, corr.shape[0], 1))
+        ax.set_xticklabels(corr.index)
+        ax.set_yticks(np.arange(0, corr.shape[0], 1))
+        ax.set_yticklabels(corr.index)
+        plt.xticks(rotation=90)
+
     if filename:
         plt.savefig(fname=filename, dpi=300)
     if showfig:
         plt.show()
+
+    return ax
 
 
 class CovarianceShrinkage:

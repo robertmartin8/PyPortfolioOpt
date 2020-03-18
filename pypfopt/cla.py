@@ -33,13 +33,17 @@ class CLA(base_optimizer.BaseOptimizer):
         - ``g`` - float list
         - ``f`` - float list list
 
-    - Outputs: ``weights`` - np.ndarray
+    - Outputs:
+
+        - ``weights`` - np.ndarray
+        - ``frontier_values`` - (float list, float list, np.ndarray list)
 
     Public methods:
 
     - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``min_volatility()`` optimises for minimum volatility
     - ``efficient_frontier()`` computes the entire efficient frontier
+    - ``plot_efficient_frontier()`` to plot the efficient frontier.
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
@@ -85,6 +89,8 @@ class CLA(base_optimizer.BaseOptimizer):
         self.ls = []  # lambdas
         self.g = []  # gammas
         self.f = []  # free weights
+
+        self.frontier_values = None  # result of computing efficient frontier
 
         if isinstance(expected_returns, pd.Series):
             tickers = list(expected_returns.index)
@@ -383,7 +389,7 @@ class CLA(base_optimizer.BaseOptimizer):
             a, b = self._golden_section(self._eval_sr, 0, 1, **kargs)
             w_sr.append(a * w0 + (1 - a) * w1)
             sr.append(b)
-        # return max(sr), w_sr[sr.index(max(sr))]
+
         self.weights = w_sr[sr.index(max(sr))].reshape((self.n_assets,))
         return dict(zip(self.tickers, self.weights))
 
@@ -431,7 +437,65 @@ class CLA(base_optimizer.BaseOptimizer):
                 weights.append(np.copy(w))
                 mu.append(np.dot(w.T, self.mean)[0, 0])
                 sigma.append(np.dot(np.dot(w.T, self.cov_matrix), w)[0, 0] ** 0.5)
+
+        self.frontier_values = (mu, sigma, weights)
         return mu, sigma, weights
+
+    def plot_efficient_frontier(
+        self, points=100, show_assets=True, filename=None, showfig=True
+    ):
+        """
+        Plot the efficient frontier
+
+        :param points: number of points to plot, defaults to 100
+        :type points: int, optional
+        :param show_assets: whether we should plot the asset risks/returns also, defaults to True
+        :type show_assets: bool, optional
+        :param filename: name of the file to save to, defaults to None (doesn't save)
+        :type filename: str, optional
+        :param showfig: whether to plt.show() the figure, defaults to True
+        :type showfig: bool, optional
+        :raises ImportError: if matplotlib is not installed
+        :return: matplotlib axis
+        :rtype: matplotlib.axes object
+        """
+        try:
+            import matplotlib.pyplot as plt
+        except (ModuleNotFoundError, ImportError):
+            raise ImportError("Please install matplotlib via pip or poetry")
+
+        optimal_ret, optimal_risk, _ = self.portfolio_performance()
+
+        if self.frontier_values is None:
+            self.efficient_frontier(points=points)
+
+        mus, sigmas, _ = self.frontier_values
+
+        fig, ax = plt.subplots()
+        ax.plot(sigmas, mus, label="Efficient frontier")
+
+        if show_assets:
+            ax.scatter(
+                np.sqrt(np.diag(self.cov_matrix)),
+                self.expected_returns,
+                s=30,
+                color="k",
+                label="assets",
+            )
+
+        ax.scatter(
+            optimal_risk, optimal_ret, marker="x", s=100, color="r", label="optimal"
+        )
+        ax.legend()
+        ax.set_xlabel("Volatility")
+        ax.set_ylabel("Return")
+
+        if filename:
+            plt.savefig(fname=filename, dpi=300)
+
+        if showfig:
+            plt.show()
+        return ax
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """

@@ -33,11 +33,15 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         - ``tickers`` - str list
         - ``returns`` - pd.Series
 
-    - Output: ``weights`` - np.ndarray
+    - Output:
+
+        - ``weights`` - np.ndarray
+        - ``clusters`` - linkage matrix corresponding to clustered assets.
 
     Public methods:
 
-    - ``hrp_portfolio()`` calculates weights using HRP
+    - ``optimize()`` calculates weights using HRP
+    - ``plot_dendrogram()`` plots the clusters
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
@@ -55,6 +59,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
             raise TypeError("returns are not a dataframe")
 
         self.returns = returns
+        self.clusters = None
         tickers = list(returns.columns)
         super().__init__(len(tickers), tickers)
 
@@ -150,13 +155,53 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         # per https://stackoverflow.com/questions/18952587/
         dist = ssd.squareform(((1 - corr) / 2) ** 0.5)
 
-        link = sch.linkage(dist, "single")
-        sort_ix = HRPOpt._get_quasi_diag(link)
+        self.clusters = sch.linkage(dist, "single")
+        sort_ix = HRPOpt._get_quasi_diag(self.clusters)
         ordered_tickers = corr.index[sort_ix].tolist()
         hrp = HRPOpt._raw_hrp_allocation(cov, ordered_tickers)
         weights = dict(hrp.sort_index())
         self.set_weights(weights)
         return weights
+
+    def plot_dendrogram(self, show_tickers=True, filename=None, showfig=True):
+        """
+        Plot the clusters in the form of a dendrogram.
+
+        :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
+                            defaults to True
+        :type show_tickers: bool, optional
+        :param filename: name of the file to save to, defaults to None (doesn't save)
+        :type filename: str, optional
+        :param showfig: whether to plt.show() the figure, defaults to True
+        :type showfig: bool, optional
+        :raises ImportError: if matplotlib is not installed
+        :return: matplotlib axis
+        :rtype: matplotlib.axes object
+        """
+
+        try:
+            import matplotlib.pyplot as plt
+        except (ModuleNotFoundError, ImportError):
+            raise ImportError("Please install matplotlib via pip or poetry")
+
+        if self.clusters is None:
+            self.optimize()
+
+        fig, ax = plt.subplots()
+        if show_tickers:
+            sch.dendrogram(self.clusters, labels=self.tickers, ax=ax)
+            plt.xticks(rotation=90)
+            plt.tight_layout()
+        else:
+            sch.dendrogram(self.clusters, ax=ax)
+
+        if filename:
+            plt.savefig(fname=filename, dpi=300)
+
+        if showfig:
+            plt.show()
+
+        return ax
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02, frequency=252):
         """
