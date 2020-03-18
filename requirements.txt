@@ -1,6 +1,6 @@
 joblib==0.14.1
-noisyopt==0.2.2
-numpy==1.16.5
+matplotlib==3.2.0
+numpy==1.17.3
 pandas==0.25.3
 pyparsing==2.4.5
 python-dateutil==2.8.1

@@ -6,16 +6,18 @@ generates optimal portfolios for various possible objective functions and parame
 import warnings
 import numpy as np
 import pandas as pd
-import scipy.optimize as sco
+import cvxpy as cp
+
 from . import objective_functions, base_optimizer
 
 
-class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
+class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     """
-    An EfficientFrontier object (inheriting from BaseScipyOptimizer) contains multiple
+    An EfficientFrontier object (inheriting from BaseConvexOptimizer) contains multiple
     optimisation methods that can be called (corresponding to different objective
-    functions) with various parameters.
+    functions) with various parameters. Note: a new EfficientFrontier object should
+    be instantiated if you want to make any change to objectives/constraints/bounds/parameters.
 
     Instance variables:
 
@@ -24,14 +26,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         - ``n_assets`` - int
         - ``tickers`` - str list
         - ``bounds`` - float tuple OR (float tuple) list
-        - ``cov_matrix`` - pd.DataFrame
-        - ``expected_returns`` - pd.Series
+        - ``cov_matrix`` - np.ndarray
+        - ``expected_returns`` - np.ndarray
 
-    - Optimisation parameters:
-
-        - ``initial_guess`` - np.ndarray
-        - ``constraints`` - dict list
-        - ``opt_method`` - the optimisation algorithm to use. Defaults to SLSQP.
 
     - Output: ``weights`` - np.ndarray
 
@@ -39,9 +36,16 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
 
     - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``min_volatility()`` optimises for minimum volatility
-    - ``custom_objective()`` optimises for some custom objective function
+    - ``max_quadratic_utility()`` maximises the quadratic utility, giiven some risk aversion.
     - ``efficient_risk()`` maximises Sharpe for a given target risk
     - ``efficient_return()`` minimises risk for a given target return
+
+    - ``add_objective()`` adds a (convex) objective to the optimisation problem
+    - ``add_constraint()`` adds a (linear) constraint to the optimisation problem
+    - ``convex_objective()`` solves for a generic convex objective with linear constraints
+    - ``nonconvex_objective()`` solves for a generic nonconvex objective using the scipy backend.
+      This is prone to getting stuck in local minima and is generally *not* recommended.
+
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
@@ -67,33 +71,89 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
         # Inputs
-        self.cov_matrix = cov_matrix
-        if expected_returns is not None:
-            if not isinstance(expected_returns, (pd.Series, list, np.ndarray)):
-                raise TypeError("expected_returns is not a series, list or array")
-            if not isinstance(cov_matrix, (pd.DataFrame, np.ndarray)):
-                raise TypeError("cov_matrix is not a dataframe or array")
-            self.expected_returns = expected_returns
+        self.cov_matrix = EfficientFrontier._validate_cov_matrix(cov_matrix)
+        self.expected_returns = EfficientFrontier._validate_expected_returns(
+            expected_returns
+        )
+
+        # Labels
         if isinstance(expected_returns, pd.Series):
             tickers = list(expected_returns.index)
         elif isinstance(cov_matrix, pd.DataFrame):
             tickers = list(cov_matrix.columns)
-        else:
+        else:  # use integer labels
             tickers = list(range(len(expected_returns)))
+
+        if cov_matrix.shape != (len(expected_returns), len(expected_returns)):
+            raise ValueError("Covariance matrix does not match expected returns")
 
         super().__init__(len(tickers), tickers, weight_bounds)
 
-        if not isinstance(gamma, (int, float)):
-            raise ValueError("gamma should be numeric")
-        if gamma < 0:
-            warnings.warn("in most cases, gamma should be positive", UserWarning)
-        self.gamma = gamma
+    @staticmethod
+    def _validate_expected_returns(expected_returns):
+        if expected_returns is None:
+            raise ValueError("expected_returns must be provided")
+        elif isinstance(expected_returns, pd.Series):
+            return expected_returns.values
+        elif isinstance(expected_returns, list):
+            return np.array(expected_returns)
+        elif isinstance(expected_returns, np.ndarray):
+            return expected_returns.ravel()
+        else:
+            raise TypeError("expected_returns is not a series, list or array")
+
+    @staticmethod
+    def _validate_cov_matrix(cov_matrix):
+        if cov_matrix is None:
+            raise ValueError("cov_matrix must be provided")
+        elif isinstance(cov_matrix, pd.DataFrame):
+            return cov_matrix.values
+        elif isinstance(cov_matrix, np.ndarray):
+            return cov_matrix
+        else:
+            raise TypeError("cov_matrix is not a series, list or array")
+
+    def _market_neutral_bounds_check(self):
+        """
+        Helper method to make sure bounds are suitable for a market neutral
+        optimisation.
+        """
+        portfolio_possible = np.any(self._lower_bounds < 0)
+        if not portfolio_possible:
+            warnings.warn(
+                "Market neutrality requires shorting - bounds have been amended",
+                RuntimeWarning,
+            )
+            self._map_bounds_to_constraints((-1, 1))
+            # Delete original constraints
+            del self._constraints[0]
+            del self._constraints[0]
+
+    def min_volatility(self):
+        """
+        Minimise volatility.
+
+        :return: asset weights for the volatility-minimising portfolio
+        :rtype: dict
+        """
+        self._objective = objective_functions.portfolio_variance(
+            self._w, self.cov_matrix
+        )
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints.append(cp.sum(self._w) == 1)
+
+        self._solve_cvxpy_opt_problem()
+        return dict(zip(self.tickers, self.weights))
 
     def max_sharpe(self, risk_free_rate=0.02):
         """
         Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
-        as it is the tangent to the efficient frontier curve that intercepts the risk-free
-        rate.
+        as it is the portfolio for which the capital market line is tangent to the efficient frontier.
+
+        This is a convex optimisation problem after making a certain variable substitution. See
+        `Cornuejols and Tutuncu (2006) <http://web.math.ku.dk/~rolf/CT_FinOpt.pdf>`_ for more.
 
         :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
                                The period of the risk-free rate should correspond to the
@@ -106,150 +166,114 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
 
-        args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
-        result = sco.minimize(
-            objective_functions.negative_sharpe,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=self.constraints,
-        )
-        self.weights = result["x"]
+        # max_sharpe requires us to make a variable transformation.
+        # Here we treat w as the transformed variable.
+        self._objective = cp.quad_form(self._w, self.cov_matrix)
+        k = cp.Variable()
+
+        # Note: objectives are not scaled by k. Hence there are subtle differences
+        # between how these objectives work for max_sharpe vs min_volatility
+        if len(self._additional_objectives) > 0:
+            warnings.warn(
+                "max_sharpe transforms the optimisation problem so additional objectives may not work as expected."
+            )
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        # Overwrite original constraints with suitable constraints
+        # for the transformed max_sharpe problem
+        self._constraints = [
+            (self.expected_returns - risk_free_rate).T * self._w == 1,
+            cp.sum(self._w) == k,
+            k >= 0,
+        ]
+        #  Rebuild original constraints with scaling factor
+        for raw_constr in self._additional_constraints_raw:
+            self._constraints.append(raw_constr(self._w / k))
+        # Sharpe ratio is invariant w.r.t scaled weights, so we must
+        # replace infinities and negative infinities
+        # new_lower_bound = np.nan_to_num(self._lower_bounds, neginf=-1)
+        # new_upper_bound = np.nan_to_num(self._upper_bounds, posinf=1)
+        self._constraints.append(self._w >= k * self._lower_bounds)
+        self._constraints.append(self._w <= k * self._upper_bounds)
+
+        self._solve_cvxpy_opt_problem()
+        # Inverse-transform
+        self.weights = (self._w.value / k.value).round(16) + 0.0
         return dict(zip(self.tickers, self.weights))
 
-    def min_volatility(self):
-        """
-        Minimise volatility.
-
-        :return: asset weights for the volatility-minimising portfolio
-        :rtype: dict
-        """
-        args = (self.cov_matrix, self.gamma)
-        result = sco.minimize(
-            objective_functions.volatility,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=self.constraints,
-        )
-        self.weights = result["x"]
-        return dict(zip(self.tickers, self.weights))
-
-    def max_unconstrained_utility(self, risk_aversion=1):
+    def max_quadratic_utility(self, risk_aversion=1, market_neutral=False):
         r"""
-        Solve for weights in the unconstrained maximisation problem:
+        Maximise the given quadratic utility, i.e:
 
         .. math::
 
             \max_w w^T \mu - \frac \delta 2 w^T \Sigma w
 
-        This has an analytic solution, so scipy.optimize is not needed.
-        Note: this method ignores most of the parameters passed in the
-        constructor, including bounds and gamma. Because this is unconstrained,
-        resulting weights may be negative or greater than 1. It is completely up
-        to the user to decide how the resulting weights should be normalised.
-
         :param risk_aversion: risk aversion parameter (must be greater than 0),
                               defaults to 1
         :type risk_aversion: positive float
-        """
-        if risk_aversion <= 0:
-            raise ValueError("risk aversion coefficient must be greater than zero")
-        A = risk_aversion * self.cov_matrix
-        b = self.expected_returns
-        self.weights = np.linalg.solve(A, b)
-        return dict(zip(self.tickers, self.weights))
-
-    def custom_objective(self, objective_function, *args):
-        """
-        Optimise some objective function. While an implicit requirement is that the function
-        can be optimised via a quadratic optimiser, this is not enforced. Thus there is a
-        decent chance of silent failure.
-
-        :param objective_function: function which maps (weight, args) -> cost
-        :type objective_function: function with signature (np.ndarray, args) -> float
-        :return: asset weights that optimise the custom objective
-        :rtype: dict
-        """
-        result = sco.minimize(
-            objective_function,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=self.constraints,
-        )
-        self.weights = result["x"]
-        return dict(zip(self.tickers, self.weights))
-
-    def efficient_risk(self, target_risk, risk_free_rate=0.02, market_neutral=False):
-        """
-        Calculate the Sharpe-maximising portfolio for a given volatility (i.e max return
-        for a target risk).
-
-        :param target_risk: the desired volatility of the resulting portfolio.
-        :type target_risk: float
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
-                               The period of the risk-free rate should correspond to the
-                               frequency of expected returns.
-        :type risk_free_rate: float, optional
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
-        :raises ValueError: if ``target_risk`` is not a positive float
-        :raises ValueError: if no portfolio can be found with volatility equal to ``target_risk``
+        :return: asset weights for the maximum-utility portfolio
+        :rtype: dict
+        """
+        if risk_aversion <= 0:
+            raise ValueError("risk aversion coefficient must be greater than zero")
+
+        self._objective = objective_functions.quadratic_utility(
+            self._w, self.expected_returns, self.cov_matrix, risk_aversion=risk_aversion
+        )
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        self._solve_cvxpy_opt_problem()
+        return dict(zip(self.tickers, self.weights))
+
+    def efficient_risk(self, target_volatility, market_neutral=False):
+        """
+        Maximise return for a target risk.
+
+        :param target_volatility: the desired volatility of the resulting portfolio.
+        :type target_volatility: float
+        :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
+                               defaults to False. Requires negative lower weight bound.
+        :param market_neutral: bool, optional
+        :raises ValueError: if ``target_volatility`` is not a positive float
+        :raises ValueError: if no portfolio can be found with volatility equal to ``target_volatility``
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the efficient risk portfolio
         :rtype: dict
         """
-        if not isinstance(target_risk, float) or target_risk < 0:
-            raise ValueError("target_risk should be a positive float")
-        if not isinstance(risk_free_rate, (int, float)):
-            raise ValueError("risk_free_rate should be numeric")
+        if not isinstance(target_volatility, float) or target_volatility < 0:
+            raise ValueError("target_volatility should be a positive float")
 
-        args = (self.expected_returns, self.cov_matrix, self.gamma, risk_free_rate)
-        target_constraint = {
-            "type": "eq",
-            "fun": lambda w: target_risk ** 2
-            - objective_functions.volatility(w, self.cov_matrix),
-        }
+        self._objective = objective_functions.portfolio_return(
+            self._w, self.expected_returns
+        )
+        variance = objective_functions.portfolio_variance(self._w, self.cov_matrix)
+
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints.append(variance <= target_volatility ** 2)
+
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
         if market_neutral:
-            portfolio_possible = any(b[0] < 0 for b in self.bounds if b[0] is not None)
-            if not portfolio_possible:
-                warnings.warn(
-                    "Market neutrality requires shorting - bounds have been amended",
-                    RuntimeWarning,
-                )
-                self.bounds = self._make_valid_bounds((-1, 1))
-            constraints = [
-                {"type": "eq", "fun": lambda x: np.sum(x)},
-                target_constraint,
-            ]
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
         else:
-            constraints = self.constraints + [target_constraint]
+            self._constraints.append(cp.sum(self._w) == 1)
 
-        result = sco.minimize(
-            objective_functions.negative_sharpe,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=constraints,
-        )
-        self.weights = result["x"]
-
-        if not np.isclose(
-            objective_functions.volatility(self.weights, self.cov_matrix),
-            target_risk ** 2,
-        ):
-            raise ValueError(
-                "Optimisation was not succesful. Please increase target_risk"
-            )
-
+        self._solve_cvxpy_opt_problem()
         return dict(zip(self.tickers, self.weights))
 
     def efficient_return(self, target_return, market_neutral=False):
@@ -268,42 +292,36 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
+        if target_return > self.expected_returns.max():
+            raise ValueError(
+                "target_return must be lower than the largest expected return"
+            )
 
-        args = (self.cov_matrix, self.gamma)
-        target_constraint = {
-            "type": "eq",
-            "fun": lambda w: w.dot(self.expected_returns) - target_return,
-        }
+        self._objective = objective_functions.portfolio_variance(
+            self._w, self.cov_matrix
+        )
+        ret = objective_functions.portfolio_return(
+            self._w, self.expected_returns, negative=False
+        )
+
+        self.objective = cp.quad_form(self._w, self.cov_matrix)
+        ret = self.expected_returns.T @ self._w
+
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints.append(ret >= target_return)
+
         # The equality constraint is either "weights sum to 1" (default), or
         # "weights sum to 0" (market neutral).
         if market_neutral:
-            portfolio_possible = any(b[0] < 0 for b in self.bounds if b[0] is not None)
-            if not portfolio_possible:
-                warnings.warn(
-                    "Market neutrality requires shorting - bounds have been amended",
-                    RuntimeWarning,
-                )
-                self.bounds = self._make_valid_bounds((-1, 1))
-            constraints = [
-                {"type": "eq", "fun": lambda x: np.sum(x)},
-                target_constraint,
-            ]
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
         else:
-            constraints = self.constraints + [target_constraint]
+            self._constraints.append(cp.sum(self._w) == 1)
 
-        result = sco.minimize(
-            objective_functions.volatility,
-            x0=self.initial_guess,
-            args=args,
-            method=self.opt_method,
-            bounds=self.bounds,
-            constraints=constraints,
-        )
-        self.weights = result["x"]
-        if not np.isclose(self.weights.dot(self.expected_returns), target_return):
-            raise ValueError(
-                "Optimisation was not succesful. Please reduce target_return"
-            )
+        self._solve_cvxpy_opt_problem()
+
         return dict(zip(self.tickers, self.weights))
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
@@ -322,9 +340,9 @@ class EfficientFrontier(base_optimizer.BaseScipyOptimizer):
         :rtype: (float, float, float)
         """
         return base_optimizer.portfolio_performance(
+            self.weights,
             self.expected_returns,
             self.cov_matrix,
-            self.weights,
             verbose,
             risk_free_rate,
         )

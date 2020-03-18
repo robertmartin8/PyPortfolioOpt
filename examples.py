@@ -1,14 +1,15 @@
 import pandas as pd
 import numpy as np
-from pypfopt.efficient_frontier import EfficientFrontier
+import cvxpy as cp
 from pypfopt import risk_models
 from pypfopt import expected_returns
-from pypfopt.value_at_risk import CVAROpt
+from pypfopt import EfficientFrontier
+from pypfopt import objective_functions
 from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
-from pypfopt.hierarchical_risk_parity import HRPOpt
-from pypfopt.cla import CLA
+from pypfopt import HRPOpt
+from pypfopt import CLA
 from pypfopt import black_litterman
-from pypfopt.black_litterman import BlackLittermanModel
+from pypfopt import BlackLittermanModel
 
 
 # Reading in the data; preparing expected returns and a risk model
@@ -33,43 +34,41 @@ Expected annual return: 33.0%
 Annual volatility: 21.7%
 Sharpe Ratio: 1.43
 
-11 out of 20 tickers were removed
-Discrete allocation: {'GOOG': 0, 'AAPL': 5, 'FB': 11, 'BABA': 5, 'AMZN': 1,
-                      'BBY': 7, 'MA': 14, 'PFE': 50, 'SBUX': 5}
+Discrete allocation: {'AAPL': 5.0, 'FB': 11.0, 'BABA': 5.0, 'AMZN': 1.0, 
+                      'BBY': 7.0, 'MA': 14.0, 'PFE': 50.0, 'SBUX': 5.0}
 Funds remaining: $8.42
 """
 
 # Long-only minimum volatility portfolio, with a weight cap and regularisation
 # e.g if we want at least 15/20 tickers to have non-neglible weights, and no
 # asset should have a weight greater than 10%
-ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.10), gamma=1)
+ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.10))
+ef.add_objective(objective_functions.L2_reg, gamma=0.1)
 weights = ef.min_volatility()
 print(weights)
 ef.portfolio_performance(verbose=True)
 
 """
-{
-    "GOOG": 0.07350956640872872,
-    "AAPL": 0.030014017863649482,
-    "FB": 0.1,
-    "BABA": 0.1,
-    "AMZN": 0.020555866446753328,
-    "GE": 0.04052056082259943,
-    "AMD": 0.00812443078787937,
-    "WMT": 0.06506870608367901,
-    "BAC": 0.008164561664321555,
-    "GM": 0.1,
-    "T": 0.06581732376444831,
-    "UAA": 0.04764331094366604,
-    "SHLD": 0.04233556511047908,
-    "XOM": 0.06445358180591973,
-    "RRC": 0.0313848213281047,
-    "BBY": 0.02218378020003044,
-    "MA": 0.068553464907087,
-    "PFE": 0.059025401478094965,
-    "JPM": 0.015529411963789761,
-    "SBUX": 0.03711562842076907,
-}
+{'GOOG': 0.0584267903998156,
+ 'AAPL': 0.0369081348579286,
+ 'FB': 0.0997609043032782,
+ 'BABA': 0.1,
+ 'AMZN': 0.0,
+ 'GE': 0.0646457157900559,
+ 'AMD': 0.0,
+ 'WMT': 0.1,
+ 'BAC': 0.0,
+ 'GM': 0.1,
+ 'T': 0.1,
+ 'UAA': 0.0,
+ 'SHLD': 0.0117118726759767,
+ 'XOM': 0.1,
+ 'RRC': 0.0301579098568917,
+ 'BBY': 0.0250450148540626,
+ 'MA': 0.0236174643376172,
+ 'PFE': 0.1,
+ 'JPM': 0.0044154412364586,
+ 'SBUX': 0.0453107516879149}
 
 Expected annual return: 22.7%
 Annual volatility: 12.7%
@@ -85,14 +84,18 @@ weights = ef.efficient_risk(target_risk=0.10)
 ef.portfolio_performance(verbose=True)
 
 """
-Expected annual return: 29.8%
-Annual volatility: 10.0%
-Sharpe Ratio: 2.77
+Expected annual return: 21.0%
+Annual volatility: 16.8%
+Sharpe Ratio: 1.13
 """
 
 # A market-neutral Markowitz portfolio finding the minimum volatility
-# for a target return of 20%
+# for a target return of 20%, taking into account transaction costs.
 ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
+
+# pretend we were initially equal-weighted
+old_weights = np.array([1 / ef.n_assets] * ef.n_assets)
+ef.add_objective(objective_functions.transaction_cost, w_prev=old_weights)
 weights = ef.efficient_return(target_return=0.20, market_neutral=True)
 ef.portfolio_performance(verbose=True)
 
@@ -103,30 +106,39 @@ Sharpe Ratio: 1.09
 """
 
 
-# Custom objective
-def utility_obj(weights, mu, cov_matrix, k=1):
-    return -weights.dot(mu) + k * np.dot(weights.T, np.dot(cov_matrix, weights))
+# Custom convex objective from 60 Years of Portfolio Optimisation, Kolm et al (2014)
+def logarithmic_barrier(w, cov_matrix, k=0.1):
+    log_sum = cp.sum(cp.log(w))
+    var = cp.quad_form(w, cov_matrix)
+    return var - k * log_sum
 
 
 ef = EfficientFrontier(mu, S)
-ef.custom_objective(utility_obj, ef.expected_returns, ef.cov_matrix, 1)
+weights = ef.convex_objective(logarithmic_barrier, cov_matrix=ef.cov_matrix)
 ef.portfolio_performance(verbose=True)
 
 """
-Expected annual return: 40.1%
-Annual volatility: 29.2%
-Sharpe Ratio: 1.30
+Expected annual return: 24.0%
+Annual volatility: 21.1%
+Sharpe Ratio: 1.04
 """
 
-ef.custom_objective(utility_obj, ef.expected_returns, ef.cov_matrix, 2)
+
+# Now try with a nonconvex objective from  Kolm et al (2014)
+def deviation_risk_parity(w, cov_matrix):
+    diff = w * np.dot(cov_matrix, w) - (w * np.dot(cov_matrix, w)).reshape(-1, 1)
+    return (diff ** 2).sum().sum()
+
+
+ef = EfficientFrontier(mu, S)
+weights = ef.nonconvex_objective(deviation_risk_parity, ef.cov_matrix)
 ef.portfolio_performance(verbose=True)
 
 """
-Expected annual return: 36.6%
-Annual volatility: 24.7%
-Sharpe Ratio: 1.39
+Expected annual return: 22.9%
+Annual volatility: 19.2%
+Sharpe Ratio: 1.09
 """
-
 
 # Black-Litterman
 spy_prices = pd.read_csv(
@@ -206,10 +218,16 @@ Sharpe Ratio: 0.46
 
 # Hierarchical risk parity
 hrp = HRPOpt(returns)
-weights = hrp.hrp_portfolio()
+weights = hrp.optimize()
+hrp.portfolio_performance(verbose=True)
 print(weights)
+hrp.plot_dendrogram()  # to plot dendrogram
 
 """
+Expected annual return: 10.8%
+Annual volatility: 13.2%
+Sharpe Ratio: 0.66
+
 {'AAPL': 0.022258941278778397,
  'AMD': 0.02229402179669211,
  'AMZN': 0.016086842079875,
@@ -237,6 +255,7 @@ print(weights)
 cla = CLA(mu, S)
 print(cla.max_sharpe())
 cla.portfolio_performance(verbose=True)
+cla.plot_efficient_frontier()  # to plot
 
 """
 {'GOOG': 0.020889868669945022,
@@ -264,32 +283,3 @@ Expected annual return: 32.5%
 Annual volatility: 21.3%
 Sharpe Ratio: 1.43
 """
-
-
-# CVaR optimisation - very buggy
-vr = CVAROpt(returns)
-vr.min_cvar()
-print(vr.clean_weights())
-
-"""
-{'GOOG': 0.10886,
- 'AAPL': 0.0,
- 'FB': 0.02598,
- 'BABA': 0.57691,
- 'AMZN': 0.0,
- 'GE': 0.01049,
- 'AMD': 0.0138,
- 'WMT': 0.01581,
- 'BAC': 0.01049,
- 'GM': 0.03463,
- 'T': 0.01049,
- 'UAA': 0.07782,
- 'SHLD': 0.04184,
- 'XOM': 0.00931,
- 'RRC': 0.0,
- 'BBY': 0.01748,
- 'MA': 0.03782,
- 'PFE': 0.0,
- 'JPM': 0.0,
- 'SBUX': 0.00828}
- """

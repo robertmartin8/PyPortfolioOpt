@@ -10,7 +10,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v0.5.5-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v1.0.0-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
@@ -144,7 +144,7 @@ Contents
 Advantages over existing implementations
 ========================================
 
-- Includes both classical methods (Markowitz 1952), suggested best practices
+- Includes both classical methods (Markowitz 1952 and Black-Litterman), suggested best practices
   (e.g covariance shrinkage), along with many recent developments and novel
   features, like L2 regularisation, shrunk covariance, hierarchical risk parity.
 - Native support for pandas dataframes: easily input your daily prices data.

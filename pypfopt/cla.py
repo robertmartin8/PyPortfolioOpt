@@ -11,18 +11,6 @@ import pandas as pd
 from . import base_optimizer
 
 
-def _infnone(x):
-    """
-    Helper method to map None to float infinity.
-
-    :param x: argument
-    :type x: float
-    :return: infinity if the argmument was None otherwise x
-    :rtype: float
-    """
-    return float("-inf") if x is None else x
-
-
 class CLA(base_optimizer.BaseOptimizer):
 
     """
@@ -33,8 +21,8 @@ class CLA(base_optimizer.BaseOptimizer):
         - ``n_assets`` - int
         - ``tickers`` - str list
         - ``mean`` - np.ndarray
-        - ``cov_matrix`` - pd.DataFrame
-        - ``expected_returns`` - pd.Series
+        - ``cov_matrix`` - np.ndarray
+        - ``expected_returns`` - np.ndarray
         - ``lb`` - np.ndarray
         - ``ub`` - np.ndarray
 
@@ -45,13 +33,17 @@ class CLA(base_optimizer.BaseOptimizer):
         - ``g`` - float list
         - ``f`` - float list list
 
-    - Outputs: ``weights`` - np.ndarray
+    - Outputs:
+
+        - ``weights`` - np.ndarray
+        - ``frontier_values`` - (float list, float list, np.ndarray list)
 
     Public methods:
 
     - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``min_volatility()`` optimises for minimum volatility
     - ``efficient_frontier()`` computes the entire efficient frontier
+    - ``plot_efficient_frontier()`` to plot the efficient frontier.
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
@@ -98,11 +90,25 @@ class CLA(base_optimizer.BaseOptimizer):
         self.g = []  # gammas
         self.f = []  # free weights
 
+        self.frontier_values = None  # result of computing efficient frontier
+
         if isinstance(expected_returns, pd.Series):
             tickers = list(expected_returns.index)
         else:
             tickers = list(range(len(self.mean)))
         super().__init__(len(tickers), tickers)
+
+    @staticmethod
+    def _infnone(x):
+        """
+        Helper method to map None to float infinity.
+
+        :param x: argument
+        :type x: float
+        :return: infinity if the argmument was None otherwise x
+        :rtype: float
+        """
+        return float("-inf") if x is None else x
 
     def _init_algo(self):
         # Initialize the algo
@@ -193,13 +199,13 @@ class CLA(base_optimizer.BaseOptimizer):
         # Reduce a matrix to the provided list of rows and columns
         if len(listX) == 0 or len(listY) == 0:
             return
-        matrix_ = matrix[:, listY[0]: listY[0] + 1]
+        matrix_ = matrix[:, listY[0] : listY[0] + 1]
         for i in listY[1:]:
-            a = matrix[:, i: i + 1]
+            a = matrix[:, i : i + 1]
             matrix_ = np.append(matrix_, a, 1)
-        matrix__ = matrix_[listX[0]: listX[0] + 1, :]
+        matrix__ = matrix_[listX[0] : listX[0] + 1, :]
         for i in listX[1:]:
-            a = matrix_[i: i + 1, :]
+            a = matrix_[i : i + 1, :]
             matrix__ = np.append(matrix__, a, 0)
         return matrix__
 
@@ -313,7 +319,7 @@ class CLA(base_optimizer.BaseOptimizer):
                     l, bi = self._compute_lambda(
                         covarF_inv, covarFB, meanF, wB, j, [self.lB[i], self.uB[i]]
                     )
-                    if _infnone(l) > _infnone(l_in):
+                    if CLA._infnone(l) > CLA._infnone(l_in):
                         l_in, i_in, bi_in = l, i, bi
                     j += 1
             # 2) case b): Free one bounded weight
@@ -331,7 +337,9 @@ class CLA(base_optimizer.BaseOptimizer):
                         meanF.shape[0] - 1,
                         self.w[-1][i],
                     )
-                    if (self.ls[-1] is None or l < self.ls[-1]) and l > _infnone(l_out):
+                    if (self.ls[-1] is None or l < self.ls[-1]) and l > CLA._infnone(
+                        l_out
+                    ):
                         l_out, i_out = l, i
             if (l_in is None or l_in < 0) and (l_out is None or l_out < 0):
                 # 3) compute minimum variance solution
@@ -341,7 +349,7 @@ class CLA(base_optimizer.BaseOptimizer):
                 meanF = np.zeros(meanF.shape)
             else:
                 # 4) decide lambda
-                if _infnone(l_in) > _infnone(l_out):
+                if CLA._infnone(l_in) > CLA._infnone(l_out):
                     self.ls.append(l_in)
                     f.remove(i_in)
                     w[i_in] = bi_in  # set value at the correct boundary
@@ -364,7 +372,12 @@ class CLA(base_optimizer.BaseOptimizer):
         self._purge_excess()
 
     def max_sharpe(self):
-        """Get the max Sharpe ratio portfolio"""
+        """
+        Maximise the sharpe ratio.
+
+        :return: asset weights for the volatility-minimising portfolio
+        :rtype: dict
+        """
         if not self.w:
             self._solve()
         # 1) Compute the local max SR portfolio between any two neighbor turning points
@@ -376,12 +389,17 @@ class CLA(base_optimizer.BaseOptimizer):
             a, b = self._golden_section(self._eval_sr, 0, 1, **kargs)
             w_sr.append(a * w0 + (1 - a) * w1)
             sr.append(b)
-        # return max(sr), w_sr[sr.index(max(sr))]
+
         self.weights = w_sr[sr.index(max(sr))].reshape((self.n_assets,))
         return dict(zip(self.tickers, self.weights))
 
     def min_volatility(self):
-        """Get the minimum variance solution"""
+        """
+        Minimise volatility.
+
+        :return: asset weights for the volatility-minimising portfolio
+        :rtype: dict
+        """
         if not self.w:
             self._solve()
         var = []
@@ -419,7 +437,65 @@ class CLA(base_optimizer.BaseOptimizer):
                 weights.append(np.copy(w))
                 mu.append(np.dot(w.T, self.mean)[0, 0])
                 sigma.append(np.dot(np.dot(w.T, self.cov_matrix), w)[0, 0] ** 0.5)
+
+        self.frontier_values = (mu, sigma, weights)
         return mu, sigma, weights
+
+    def plot_efficient_frontier(
+        self, points=100, show_assets=True, filename=None, showfig=True
+    ):
+        """
+        Plot the efficient frontier
+
+        :param points: number of points to plot, defaults to 100
+        :type points: int, optional
+        :param show_assets: whether we should plot the asset risks/returns also, defaults to True
+        :type show_assets: bool, optional
+        :param filename: name of the file to save to, defaults to None (doesn't save)
+        :type filename: str, optional
+        :param showfig: whether to plt.show() the figure, defaults to True
+        :type showfig: bool, optional
+        :raises ImportError: if matplotlib is not installed
+        :return: matplotlib axis
+        :rtype: matplotlib.axes object
+        """
+        try:
+            import matplotlib.pyplot as plt
+        except (ModuleNotFoundError, ImportError):
+            raise ImportError("Please install matplotlib via pip or poetry")
+
+        optimal_ret, optimal_risk, _ = self.portfolio_performance()
+
+        if self.frontier_values is None:
+            self.efficient_frontier(points=points)
+
+        mus, sigmas, _ = self.frontier_values
+
+        fig, ax = plt.subplots()
+        ax.plot(sigmas, mus, label="Efficient frontier")
+
+        if show_assets:
+            ax.scatter(
+                np.sqrt(np.diag(self.cov_matrix)),
+                self.expected_returns,
+                s=30,
+                color="k",
+                label="assets",
+            )
+
+        ax.scatter(
+            optimal_risk, optimal_ret, marker="x", s=100, color="r", label="optimal"
+        )
+        ax.legend()
+        ax.set_xlabel("Volatility")
+        ax.set_ylabel("Return")
+
+        if filename:
+            plt.savefig(fname=filename, dpi=300)
+
+        if showfig:
+            plt.show()
+        return ax
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """
@@ -435,9 +511,9 @@ class CLA(base_optimizer.BaseOptimizer):
         :rtype: (float, float, float)
         """
         return base_optimizer.portfolio_performance(
+            self.weights,
             self.expected_returns,
             self.cov_matrix,
-            self.weights,
             verbose,
             risk_free_rate,
         )

@@ -14,11 +14,31 @@ have any other feature requests, please raise them using GitHub
 
 - Optimising for higher moments (i.e skew and kurtosis)
 - Factor modelling: doable but not sure if it fits within the API.
-- Proper CVaR optimisation – remove NoisyOpt and use proper linear programming
+- Proper CVaR optimisation – remove NoisyOpt and use linear programming
 - Monte Carlo optimisation with custom distributions
 - Open-source backtests using either `Backtrader <https://www.backtrader.com/>`_ or
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Further support for different risk/return models
+
+1.0.0
+=====
+
+- Migrated backend from ``scipy`` to ``cvxpy`` and made significant breaking changes to the API
+
+  - PyPortfolioOpt is now significantly more robust and numerically stable.
+  - These changes will not affect basic users, who can still access features like ``max_sharpe()``.
+  - However, additional objectives and constraints (including L2 regularisation) are now 
+    explicitly added before optimising some 'primary' objective.
+
+- Added basic plotting capabilities for the efficient frontier, hierarchical clusters, 
+  and HRP dendrograms.
+- Added a basic transaction cost objective.
+- Made breaking changes to some modules and classes so that PyPortfolioOpt is easier to extend
+  in future:
+  
+  - Replaced ``BaseScipyOptimizer`` with ``BaseConvexOptimizer``
+  - ``hierarchical_risk_parity`` was replaced by ``hierarchical_portfolios`` to leave the door open for other hierarchical methods.
+  - Sadly, removed CVaR optimisation for the time being until I can properly fix it.
 
 
 0.5.0
@@ -115,7 +135,7 @@ fixing a bug in the arguments of a call to ``portfolio_performance``.
 0.3.3
 -----
 
-Migrated the project internally to use the ``poetry`` dependency manager. Will still keep ``setup.py`` and ``requirements.txt``, but ``poetry`` is now the recommended way to interact with ``PyPortfolioOpt``
+Migrated the project internally to use the ``poetry`` dependency manager. Will still keep ``setup.py`` and ``requirements.txt``, but ``poetry`` is now the recommended way to interact with PyPortfolioOpt.
 
 0.3.4
 -----

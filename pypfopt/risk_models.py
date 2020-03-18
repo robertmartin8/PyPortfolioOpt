@@ -1,8 +1,6 @@
 """
 The ``risk_models`` module provides functions for estimating the covariance matrix given
-historical returns. Because of the complexity of estimating covariance matrices
-(and the importance of efficient computations), this module mostly provides a convenient
-wrapper around the underrated `sklearn.covariance` module.
+historical returns.
 
 The format of the data input is the same as that in :ref:`expected-returns`.
 
@@ -19,12 +17,31 @@ The format of the data input is the same as that in :ref:`expected-returns`.
     - Oracle Approximating shrinkage
 
 - covariance to correlation matrix
+- plot of the covariance matrix
 """
 
 import warnings
 import numpy as np
 import pandas as pd
 from .expected_returns import returns_from_prices
+
+
+def _is_positive_semidefinite(matrix):
+    """
+    Helper function to check if a given matrix is positive semidefinite.
+    Any method that requires inverting the covariance matrix will struggle
+    with a non-positive defininite matrix
+
+    :param matrix: (covariance) matrix to test
+    :type matrix: np.ndarray, pd.DataFrame
+    :return: whether matrix is positive semidefinite
+    :rtype: bool
+    """
+    try:
+        np.linalg.cholesky(matrix)
+        return True
+    except np.linalg.LinAlgError:
+        return False
 
 
 def sample_cov(prices, frequency=252):
@@ -179,6 +196,49 @@ def cov_to_corr(cov_matrix):
     return pd.DataFrame(corr, index=cov_matrix.index, columns=cov_matrix.index)
 
 
+def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True):
+    """
+    Generate a basic plot of the correlation matrix, given a covariance matrix.
+
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: pd.DataFrame or np.ndarray
+    :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
+                         defaults to True
+    :type show_tickers: bool, optional
+    :param filename: name of the file to save to, defaults to None (doesn't save)
+    :type filename: str, optional
+    :param showfig: whether to plt.show() the figure, defaults to True
+    :type showfig: bool, optional
+    :raises ImportError: if matplotlib is not installed
+    :return: matplotlib axis
+    :rtype: matplotlib.axes object
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except (ModuleNotFoundError, ImportError):
+        raise ImportError("Please install matplotlib via pip or poetry")
+
+    corr = cov_to_corr(cov_matrix)
+    fig, ax = plt.subplots()
+
+    cax = ax.imshow(corr)
+    fig.colorbar(cax)
+
+    if show_tickers:
+        ax.set_xticks(np.arange(0, corr.shape[0], 1))
+        ax.set_xticklabels(corr.index)
+        ax.set_yticks(np.arange(0, corr.shape[0], 1))
+        ax.set_yticklabels(corr.index)
+        plt.xticks(rotation=90)
+
+    if filename:
+        plt.savefig(fname=filename, dpi=300)
+    if showfig:
+        plt.show()
+
+    return ax
+
+
 class CovarianceShrinkage:
     """
     Provide methods for computing shrinkage estimates of the covariance matrix, using the
@@ -214,7 +274,7 @@ class CovarianceShrinkage:
         self.S = self.X.cov().values
         self.delta = None  # shrinkage constant
 
-    def format_and_annualise(self, raw_cov_array):
+    def _format_and_annualize(self, raw_cov_array):
         """
         Helper method which annualises the output of shrinkage calculations,
         and formats the result into a dataframe
@@ -247,7 +307,7 @@ class CovarianceShrinkage:
         F = np.identity(N) * mu
         # Shrinkage
         shrunk_cov = delta * F + (1 - delta) * self.S
-        return self.format_and_annualise(shrunk_cov)
+        return self._format_and_annualize(shrunk_cov)
 
     def ledoit_wolf(self, shrinkage_target="constant_variance"):
         """
@@ -272,7 +332,7 @@ class CovarianceShrinkage:
         else:
             raise NotImplementedError
 
-        return self.format_and_annualise(shrunk_cov)
+        return self._format_and_annualize(shrunk_cov)
 
     def _ledoit_wolf_single_factor(self):
         """
@@ -391,4 +451,4 @@ class CovarianceShrinkage:
         """
         X = np.nan_to_num(self.X.values)
         shrunk_cov, self.delta = self.sklearn.covariance.oas(X)
-        return self.format_and_annualise(shrunk_cov)
+        return self._format_and_annualize(shrunk_cov)

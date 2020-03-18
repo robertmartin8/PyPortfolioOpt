@@ -5,18 +5,23 @@ Risk Models
 ###########
 
 In addition to the expected returns, mean-variance optimisation requires a
-**risk model**, some way of quantifying asset risk. The most commonly-use risk model
+**risk model**, some way of quantifying asset risk. The most commonly-used risk model
 is the covariance matrix, a statistical entity that describes the
 volatility of asset returns and how they vary with one another. This is
 important because one of the principles of diversification is that risk can be
 reduced by making many uncorrelated bets (and correlation is just normalised
 covariance).
 
+.. image:: ../media/corrplot.png
+   :align: center
+   :width: 60%
+
+
 In many ways, the subject of risk models is far more important than that of
 expected returns because historical variance is generally a much more predictive
 statistic than mean historical returns. In fact, research by Kritzman et
-al. (2010) [1]_ suggests that minimum variance portfolios, which neglect to
-provide expected returns, actually perform much better out of sample.
+al. (2010) [1]_ suggests that minimum variance portfolios, formed by optimising
+wthout providing expected returns, actually perform much better out of sample.
 
 The problem, however, is that in practice we do not have access to the covariance
 matrix (in the same way that we don't have access to expected returns) – the only
@@ -25,15 +30,15 @@ approach is to just calculate the **sample covariance matrix** based on historic
 returns, but relatively recent (post-2000) research indicates that there are much
 more robust statistical estimators of the covariance matrix. In addition to
 providing a wrapper around the estimators in ``sklearn``, PyPortfolioOpt
-provides some novel alternatives such as semicovariance and exponentially weighted
+provides some experimental alternatives such as semicovariance and exponentially weighted
 covariance.
 
 .. attention::
 
     Estimation of the covariance matrix is a very deep and actively-researched
     topic that involves statistics, econometrics, and numerical/computational
-    approaches. Please note that I am not an expert, but I have made an effort
-    to familiarise myself with the seminal papers in the field.
+    approaches. I have made an effort to familiarise myself with the seminal papers in the field
+    and implement a few basic options, but there are many more advanced models that could be used.
 
 
 .. automodule:: pypfopt.risk_models
@@ -79,7 +84,7 @@ covariance.
         recent data when calculating covariance, in the same way that the exponential
         moving average price is often preferred to the simple average price. For a full
         explanation of how this estimator works, please refer to the
-        `blog post <http://reasonabledeviations.com/2018/08/15/exponential-covariance/>`_
+        `blog post <https://reasonabledeviations.com/2018/08/15/exponential-covariance/>`_
         on my academic website.
 
     .. autofunction:: min_cov_determinant
@@ -89,13 +94,21 @@ covariance.
         :py:mod:`sklearn.covariance` module, which is based on the algorithm presented in
         Rousseeuw 1999 [4]_.
 
+        .. caution::
+
+            Some of my tests have shown that ``min_cov_determinant`` does not always
+            result in positive definite matrices. Please use ``risk_models._is_positive_semidefinite()``
+            to check your covariance matrix before optimising portfolios.
+
     .. autofunction:: cov_to_corr
 
-        .. note::
 
-            This is especially useful when it comes to visualise the 'correlation matrices' that
-            are associated with (shrunk) covariance matrices, using Matplotlib's ``imshow`` or
-            Seaborn's ``heatmap``.
+    .. autofunction:: correlation_plot
+
+        An example of a correlation plot is shown at the top of the page.
+
+
+
 
 Shrinkage estimators
 ====================

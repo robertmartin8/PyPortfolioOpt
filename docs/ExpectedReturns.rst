@@ -27,13 +27,8 @@ superior models and feed them into the optimiser.
     .. autofunction:: mean_historical_return
 
         This is probably the default textbook approach. It is intuitive and easily interpretable,
-        however the estimates are unlikely to be accurate. This is a problem especially in the
-        context of a quadratic optimiser, which will maximise the erroneous inputs, In some informal
-        backtests, I've found that vanilla efficient frontier portfolios (using mean historical
-        returns and sample covariance) actually do have a statistically significant outperformance
-        over the S&P500 (in the order of 3-5%), though the same isn't true for cryptoasset portfolios.
-        At some stage, I may redo these backtests rigorously and add them to the repo
-        (see the :ref:`roadmap` page for more).
+        however the estimates are subject to large uncertainty. This is a problem especially in the
+        context of a quadratic optimiser, which will maximise the erroneous inputs.
 
 
     .. autofunction:: ema_historical_return

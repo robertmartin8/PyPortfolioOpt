@@ -1,15 +1,22 @@
 """
-The ``hierarchical_risk_parity`` module implements the HRP portfolio from Marcos Lopez de Prado.
-It has the same interface as ``EfficientFrontier``. Call the ``hrp_portfolio()`` method
-to generate a portfolio.
+The ``hierarchical_portfolio`` module seeks to implement one of the recent advances in
+portfolio optimisation – the application of hierarchical clustering models in allocation.
 
-The code has been reproduced with modification from Lopez de Prado (2016).
+All of the hierarchical classes have a similar API to ``EfficientFrontier``, though since
+many hierarchical models currently don't support different objectives, the actual allocation
+happens with a call to `optimize()`.
+
+Currently implemented:
+
+- ``HRPOpt`` implements the Hierarchical Risk Parity (HRP) portfolio. Code reproduced with
+  permission from Marcos Lopez de Prado (2016).
 """
 
 import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as ssd
+
 from . import base_optimizer
 
 
@@ -26,11 +33,15 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         - ``tickers`` - str list
         - ``returns`` - pd.Series
 
-    - Output: ``weights`` - np.ndarray
+    - Output:
+
+        - ``weights`` - np.ndarray
+        - ``clusters`` - linkage matrix corresponding to clustered assets.
 
     Public methods:
 
-    - ``hrp_portfolio()`` calculates weights using HRP
+    - ``optimize()`` calculates weights using HRP
+    - ``plot_dendrogram()`` plots the clusters
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
@@ -48,6 +59,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
             raise TypeError("returns are not a dataframe")
 
         self.returns = returns
+        self.clusters = None
         tickers = list(returns.columns)
         super().__init__(len(tickers), tickers)
 
@@ -130,7 +142,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
                 w[second_cluster] *= 1 - alpha  # weight 2
         return w
 
-    def hrp_portfolio(self):
+    def optimize(self):
         """
         Construct a hierarchical risk parity portfolio
 
@@ -143,18 +155,59 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         # per https://stackoverflow.com/questions/18952587/
         dist = ssd.squareform(((1 - corr) / 2) ** 0.5)
 
-        link = sch.linkage(dist, "single")
-        sort_ix = HRPOpt._get_quasi_diag(link)
+        self.clusters = sch.linkage(dist, "single")
+        sort_ix = HRPOpt._get_quasi_diag(self.clusters)
         ordered_tickers = corr.index[sort_ix].tolist()
         hrp = HRPOpt._raw_hrp_allocation(cov, ordered_tickers)
         weights = dict(hrp.sort_index())
         self.set_weights(weights)
         return weights
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+    def plot_dendrogram(self, show_tickers=True, filename=None, showfig=True):
+        """
+        Plot the clusters in the form of a dendrogram.
+
+        :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
+                            defaults to True
+        :type show_tickers: bool, optional
+        :param filename: name of the file to save to, defaults to None (doesn't save)
+        :type filename: str, optional
+        :param showfig: whether to plt.show() the figure, defaults to True
+        :type showfig: bool, optional
+        :raises ImportError: if matplotlib is not installed
+        :return: matplotlib axis
+        :rtype: matplotlib.axes object
+        """
+
+        try:
+            import matplotlib.pyplot as plt
+        except (ModuleNotFoundError, ImportError):
+            raise ImportError("Please install matplotlib via pip or poetry")
+
+        if self.clusters is None:
+            self.optimize()
+
+        fig, ax = plt.subplots()
+        if show_tickers:
+            sch.dendrogram(self.clusters, labels=self.tickers, ax=ax)
+            plt.xticks(rotation=90)
+            plt.tight_layout()
+        else:
+            sch.dendrogram(self.clusters, ax=ax)
+
+        if filename:
+            plt.savefig(fname=filename, dpi=300)
+
+        if showfig:
+            plt.show()
+
+        return ax
+
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.02, frequency=252):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
-        portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
+        portfolio. Currently calculates expected return, volatility, and the Sharpe ratio
+        assuming returns are daily
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
@@ -162,14 +215,17 @@ class HRPOpt(base_optimizer.BaseOptimizer):
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional
+        :param frequency: number of time periods in a year, defaults to 252 (the number
+                            of trading days in a year)
+        :type frequency: int, optional
         :raises ValueError: if weights have not been calcualted yet
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """
         return base_optimizer.portfolio_performance(
-            self.returns.mean(),
-            self.returns.cov(),
             self.weights,
+            self.returns.mean() * frequency,
+            self.returns.cov() * frequency,
             verbose,
             risk_free_rate,
         )

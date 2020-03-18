@@ -87,7 +87,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
 
     - Inputs:
 
-        - ``cov_matrix`` - pd.DataFrame
+        - ``cov_matrix`` - np.ndarray
         - ``n_assets`` - int
         - ``tickers`` - str list
         - ``Q`` - np.ndarray
@@ -341,9 +341,9 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         if self.posterior_cov is None:
             self.posterior_cov = self.bl_cov()
         return base_optimizer.portfolio_performance(
+            self.weights,
             self.posterior_rets,
             self.posterior_cov,
-            self.weights,
             verbose,
             risk_free_rate,
         )

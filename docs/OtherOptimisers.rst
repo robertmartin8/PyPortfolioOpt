@@ -11,7 +11,7 @@ though please note that the implementations may be slightly unstable.
 
 .. note::
     As of v0.4, these other optimisers now inherit from ``BaseOptimizer`` or
-    ``BaseScipyOptimizer``, so you no longer have to implement pre-processing and
+    ``BaseConvexOptimizer``, so you no longer have to implement pre-processing and
     post-processing methods on your own. You can thus easily swap out, say,
     ``EfficientFrontier`` for ``HRPOpt``.
 
@@ -36,8 +36,12 @@ The advantages of this are that it does not require inversion of the covariance
 matrix as with traditional quadratic optimisers, and seems to produce diverse
 portfolios that perform well out of sample.
 
+.. image:: ../media/dendrogram.png
+   :width: 80%
+   :align: center
 
-.. automodule:: pypfopt.hierarchical_risk_parity
+
+.. automodule:: pypfopt.hierarchical_portfolio
 
     .. autoclass:: HRPOpt
         :members:
@@ -53,6 +57,10 @@ This is a robust alternative to the quadratic solver used to find mean-variance 
 that is especially advantageous when we apply linear inequalities. Unlike generic quadratic optimisers, 
 the CLA is specially designed for portfolio optimisation. It is guaranteed to converge after a certain
 number of iterations, and can efficiently derive the entire efficient frontier.
+
+.. image:: ../media/cla_plot.png
+   :width: 80%
+   :align: center
 
 .. tip:: 
 
@@ -74,13 +82,13 @@ the same API, though as of v0.5.0 we only support ``max_sharpe()`` and ``min_vol
 Implementing your own optimiser
 ===============================
 
-Please note that this is quite different to implementing :ref:`custom-objectives`, because in
-that case we are still using the same quadratic optimiser. However, HRP and CVaR optimisation
+Please note that this is quite different to implementing :ref:`custom-optimisation`, because in
+that case we are still using the same quadratic optimiser. However, HRP and CLA optimisation
 have a fundamentally different optimisation method. In general, these are much more difficult
 to code up compared to custom objective functions.
 
 To implement a custom optimiser that is compatible with the rest of PyPortfolioOpt, just
-extend ``BaseOptimizer`` (or ``BaseScipyOptimizer`` if you want to use scipy.optimize),
+extend ``BaseOptimizer`` (or ``BaseConvexOptimizer`` if you want to use ``cvxpy``),
 both of which can be found in ``base_optimizer.py``. This gives you access to utility
 methods like ``clean_weights()``, as well as making sure that any output is compatible
 with ``portfolio_performance()`` and post-processing methods.
@@ -92,7 +100,7 @@ with ``portfolio_performance()`` and post-processing methods.
 
         .. automethod:: __init__
 
-    .. autoclass:: BaseScipyOptimizer
+    .. autoclass:: BaseConvexOptimizer
         :members:
         :private-members:
 
@@ -151,4 +159,3 @@ References
 
 .. [1] López de Prado, M. (2016). `Building Diversified Portfolios that Outperform Out of Sample <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2708678>`_. The Journal of Portfolio Management, 42(4), 59–69.
 .. [2] Bailey and Loópez de Prado (2013). `An Open-Source Implementation of the Critical-Line Algorithm for Portfolio Optimization <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2197616>`_ 
-.. [3] Rockafellar and Uryasev (2011) `Optimization of conditional value-at-risk <http://www.ise.ufl.edu/uryasev/files/2011/11/CVaR1_JOR.pdf>`_.
