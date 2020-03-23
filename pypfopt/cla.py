@@ -4,8 +4,7 @@ generates optimal portfolios using the Critical Line Algorithm as implemented
 by Marcos Lopez de Prado and David Bailey.
 """
 
-from math import log, ceil
-import numbers
+import math
 import numpy as np
 import pandas as pd
 from . import base_optimizer
@@ -46,7 +45,6 @@ class CLA(base_optimizer.BaseOptimizer):
     - ``plot_efficient_frontier()`` to plot the efficient frontier.
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
-    - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
     - ``clean_weights()`` rounds the weights and clips near-zeros.
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
@@ -72,15 +70,17 @@ class CLA(base_optimizer.BaseOptimizer):
         self.cov_matrix = np.asarray(cov_matrix)
 
         # Bounds
-        if len(weight_bounds) == len(self.mean):
+        if len(weight_bounds) == len(self.mean) and not isinstance(
+            weight_bounds[0], (float, int)
+        ):
             self.lB = np.array([b[0] for b in weight_bounds]).reshape(-1, 1)
             self.uB = np.array([b[1] for b in weight_bounds]).reshape(-1, 1)
         else:
-            if isinstance(weight_bounds[0], numbers.Real):
+            if isinstance(weight_bounds[0], (float, int)):
                 self.lB = np.ones(self.mean.shape) * weight_bounds[0]
             else:
                 self.lB = np.array(weight_bounds[0]).reshape(self.mean.shape)
-            if isinstance(weight_bounds[0], numbers.Real):
+            if isinstance(weight_bounds[0], (float, int)):
                 self.uB = np.ones(self.mean.shape) * weight_bounds[1]
             else:
                 self.uB = np.array(weight_bounds[1]).reshape(self.mean.shape)
@@ -267,7 +267,7 @@ class CLA(base_optimizer.BaseOptimizer):
             sign = -1
         if "args" in kargs:
             args = kargs["args"]
-        numIter = int(ceil(-2.078087 * log(tol / abs(b - a))))
+        numIter = int(math.ceil(-2.078087 * math.log(tol / abs(b - a))))
         r = 0.618033989
         c = 1.0 - r
         # Initialize
@@ -421,7 +421,7 @@ class CLA(base_optimizer.BaseOptimizer):
         :rtype: (float list, float list, np.ndarray list)
         """
         if not self.w:
-            raise ValueError("Weights not yet computed")
+            self._solve()
 
         mu, sigma, weights = [], [], []
         # remove the 1, to avoid duplications
@@ -496,6 +496,10 @@ class CLA(base_optimizer.BaseOptimizer):
         if showfig:
             plt.show()
         return ax
+
+    def set_weights(self, _):
+        # Overrides parent method since set_weights does nothing.
+        raise NotImplementedError("set_weights does nothing for CLA")
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """

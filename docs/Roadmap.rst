@@ -40,6 +40,11 @@ have any other feature requests, please raise them using GitHub
   - ``hierarchical_risk_parity`` was replaced by ``hierarchical_portfolios`` to leave the door open for other hierarchical methods.
   - Sadly, removed CVaR optimisation for the time being until I can properly fix it.
 
+1.0.1
+-----
+
+Fixed minor issues in CLA: weight bound bug, ``efficient_frontier`` needed weights to be called, ``set_weights`` not needed.
+
 
 0.5.0
 =====

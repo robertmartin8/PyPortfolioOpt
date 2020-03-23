@@ -76,6 +76,19 @@ def test_cla_min_volatility():
     )
 
 
+def test_cla_error():
+    cla = setup_cla()
+    w = cla.min_volatility()
+    with pytest.raises(NotImplementedError):
+        cla.set_weights(w)
+
+
+def test_cla_two_assets():
+    mu = np.array([[0.02569294], [0.16203987]])
+    cov = np.array([[0.0012765, -0.00212724], [-0.00212724, 0.01616983]])
+    assert CLA(mu, cov)
+
+
 def test_cla_max_sharpe_semicovariance():
     df = get_data()
     cla = setup_cla()
@@ -120,10 +133,9 @@ def test_cla_min_volatility_exp_cov_short():
 
 def test_cla_efficient_frontier():
     cla = setup_cla()
-    with pytest.raises(ValueError):
-        cla.efficient_frontier()
 
-    cla.max_sharpe()
+    cla.efficient_frontier()
+
     mu, sigma, weights = cla.efficient_frontier()
     assert len(mu) == len(sigma) and len(sigma) == len(weights)
     # higher return = higher risk
