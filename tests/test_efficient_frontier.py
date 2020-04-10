@@ -65,6 +65,19 @@ def test_min_volatility():
     )
 
 
+def test_min_volatility_no_rets():
+    # Should work with no rets, see issue #82
+    df = get_data()
+    S = risk_models.sample_cov(df)
+    ef = EfficientFrontier(None, S)
+    w = ef.min_volatility()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
+    np.testing.assert_almost_equal(ef.portfolio_performance()[1], 0.15915084514118694)
+
+
 def test_min_volatility_tx_costs():
     # Baseline
     ef = setup_efficient_frontier()

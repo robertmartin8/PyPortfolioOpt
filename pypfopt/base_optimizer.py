@@ -374,6 +374,7 @@ def portfolio_performance(
         else:
             tickers = list(range(len(expected_returns)))
         new_weights = np.zeros(len(tickers))
+
         for i, k in enumerate(tickers):
             if k in weights:
                 new_weights[i] = weights[k]
@@ -385,25 +386,25 @@ def portfolio_performance(
         raise ValueError("Weights is None")
 
     sigma = np.sqrt(objective_functions.portfolio_variance(new_weights, cov_matrix))
-    mu = objective_functions.portfolio_return(
-        new_weights, expected_returns, negative=False
-    )
-    # new_weights.dot(expected_returns)
 
-    # sharpe = -objective_functions.negative_sharpe(
-    #     new_weights, expected_returns, cov_matrix, risk_free_rate=risk_free_rate
-    # )
+    if expected_returns is not None:
+        mu = objective_functions.portfolio_return(
+            new_weights, expected_returns, negative=False
+        )
 
-    sharpe = objective_functions.sharpe_ratio(
-        new_weights,
-        expected_returns,
-        cov_matrix,
-        risk_free_rate=risk_free_rate,
-        negative=False,
-    )
-
-    if verbose:
-        print("Expected annual return: {:.1f}%".format(100 * mu))
-        print("Annual volatility: {:.1f}%".format(100 * sigma))
-        print("Sharpe Ratio: {:.2f}".format(sharpe))
-    return mu, sigma, sharpe
+        sharpe = objective_functions.sharpe_ratio(
+            new_weights,
+            expected_returns,
+            cov_matrix,
+            risk_free_rate=risk_free_rate,
+            negative=False,
+        )
+        if verbose:
+            print("Expected annual return: {:.1f}%".format(100 * mu))
+            print("Annual volatility: {:.1f}%".format(100 * sigma))
+            print("Sharpe Ratio: {:.2f}".format(sharpe))
+        return mu, sigma, sharpe
+    else:
+        if verbose:
+            print("Annual volatility: {:.1f}%".format(100 * sigma))
+        return None, sigma, None
