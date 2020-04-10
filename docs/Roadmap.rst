@@ -45,6 +45,11 @@ have any other feature requests, please raise them using GitHub
 
 Fixed minor issues in CLA: weight bound bug, ``efficient_frontier`` needed weights to be called, ``set_weights`` not needed.
 
+1.0.2
+-----
+
+Fixed small but important bug where passing ``expected_returns=None`` fails. According to the docs, users
+should be able to only pass covariance if they want to only optimise min volatility.
 
 0.5.0
 =====

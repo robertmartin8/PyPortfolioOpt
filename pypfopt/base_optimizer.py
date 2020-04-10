@@ -351,8 +351,8 @@ def portfolio_performance(
     After optimising, calculate (and optionally print) the performance of the optimal
     portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
 
-    :param expected_returns: expected returns for each asset. Set to None if
-                             optimising for volatility only.
+    :param expected_returns: expected returns for each asset. Can be None if
+                             optimising for volatility only (but not recommended).
     :type expected_returns: np.ndarray or pd.Series
     :param cov_matrix: covariance of returns for each asset
     :type cov_matrix: np.array or pd.DataFrame
