@@ -50,7 +50,7 @@ def prices_from_returns(returns):
     return ret.cumprod()
 
 
-def mean_historical_return(prices, frequency=252):
+def mean_historical_return(prices, frequency=252, compounded=False):
     """
     Calculate annualised mean (daily) historical return from input (daily) asset prices.
 
@@ -66,8 +66,13 @@ def mean_historical_return(prices, frequency=252):
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    returns = returns_from_prices(prices)
-    return returns.mean() * frequency
+    meanReturns = returns_from_prices(prices).mean()
+    if compounded:
+        meanReturns = meanReturns.apply(lambda x: pow(1 + x, frequency) - 1)
+    else:
+        meanReturns = meanReturns * frequency
+
+    return meanReturns
 
 
 def ema_historical_return(prices, frequency=252, span=500):
