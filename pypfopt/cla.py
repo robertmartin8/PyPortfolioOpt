@@ -5,6 +5,7 @@ by Marcos Lopez de Prado and David Bailey.
 """
 
 import math
+import warnings
 import numpy as np
 import pandas as pd
 from . import base_optimizer
@@ -464,6 +465,10 @@ class CLA(base_optimizer.BaseOptimizer):
         except (ModuleNotFoundError, ImportError):
             raise ImportError("Please install matplotlib via pip or poetry")
 
+        warnings.warn(
+            "This method is deprecated and will be removed in v1.2.0. "
+            "Please use pypfopt.plotting instead"
+        )
         optimal_ret, optimal_risk, _ = self.portfolio_performance()
 
         if self.frontier_values is None:

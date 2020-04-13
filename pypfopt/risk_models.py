@@ -218,6 +218,11 @@ def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True)
     except (ModuleNotFoundError, ImportError):
         raise ImportError("Please install matplotlib via pip or poetry")
 
+    warnings.warn(
+        "This method is deprecated and will be removed in v1.2.0. "
+        "Please use pypfopt.plotting instead"
+    )
+
     corr = cov_to_corr(cov_matrix)
     fig, ax = plt.subplots()
 
