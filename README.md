@@ -48,6 +48,7 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
 - [Getting started](#getting-started)
   - [For development](#for-development)
 - [A quick example](#a-quick-example)
+- [What's new](#whats-new)
 - [An overview of classical portfolio optimisation methods](#an-overview-of-classical-portfolio-optimisation-methods)
 - [Features](#features)
   - [Expected returns](#expected-returns)
@@ -176,6 +177,25 @@ Funds remaining: $8.42
 
 *Disclaimer: nothing about this project constitues investment advice, and the author bears no responsibiltiy for your subsequent investment decisions. Please refer to the [license](https://github.com/robertmartin8/PyPortfolioOpt/blob/master/LICENSE.txt) for more information.*
 
+## What's new
+
+As of v1.1.0:
+
+- Multiple additions and improvements to `risk_models`:
+  - Introduced a new API, in which the function `risk_models.risk_matrix(method="...")` allows
+    all the different risk models to be called. This should make testing easier.
+  - All methods now accept returns data instead of prices, if you set the flag `returns_data=True`.
+- Automatically fix non-positive semidefinite covariance matrices!
+- Additions and improvements to `expected_returns`:
+  - Introduced a new API, in which the function `expected_returns.return_model(method="...")` allows
+    all the different return models to be called. This should make testing easier.
+  - Added option to 'properly' compound returns.
+  - James-Stein shrinkage estimator
+  - CAPM return model.
+- `from pypfopt import Plotting`: moved all plotting functionality into a new class and added
+  new plots. All other plotting functions (scattered in different classes) have been retained,
+  but are now deprecated.
+
 ## An overview of classical portfolio optimisation methods
 
 Harry Markowitz's 1952 paper is the undeniable classic, which turned portfolio optimisation from an art into a science. The key insight is that by combining assets with different expected returns and volatilities, one can decide on a mathematically optimal allocation which minimises the risk for a target return – the set of all such optimal portfolios is referred to as the **efficient frontier**.
@@ -212,6 +232,12 @@ A far more comprehensive version of this can be found on [ReadTheDocs](https://p
 - Exponentially weighted mean historical returns:
     - similar to mean historical returns, except it gives exponentially more weight to recent prices
     - it is likely the case that an asset's most recent returns hold more weight than returns from 10 years ago when it comes to estimating future returns.
+- James-Stein shrinkage:
+    - a slightly more robust estimate of future returns
+    - by shrinking mean returns to the grand average, we can reduce loss.
+- Capital Asset Pricing Model (CAPM):
+    - a simple model to predict returns based on the beta to the market
+    - this is used all over finance!
 
 ### Risk models (covariance)
 
