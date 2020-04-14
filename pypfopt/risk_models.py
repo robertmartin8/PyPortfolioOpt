@@ -6,6 +6,8 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 
 **Currently implemented:**
 
+- fix non-positive semidefnite matrices
+- general risk matrix function, allowing you to run any risk model from one function.
 - sample covariance
 - semicovariance
 - exponentially weighted covariance
@@ -17,7 +19,7 @@ The format of the data input is the same as that in :ref:`expected-returns`.
     - Oracle Approximating shrinkage
 
 - covariance to correlation matrix
-- plot of the covariance matrix
+- plot of the covariance matrix (deprecated)
 """
 
 import warnings
@@ -30,7 +32,7 @@ def _is_positive_semidefinite(matrix):
     """
     Helper function to check if a given matrix is positive semidefinite.
     Any method that requires inverting the covariance matrix will struggle
-    with a non-positive defininite matrix
+    with a non-positive semidefinite matrix
 
     :param matrix: (covariance) matrix to test
     :type matrix: np.ndarray, pd.DataFrame
@@ -44,13 +46,115 @@ def _is_positive_semidefinite(matrix):
         return False
 
 
-def sample_cov(prices, frequency=252):
+def fix_nonpositive_semidefinite(matrix, fix_method="spectral"):
+    """
+    Check if a covariance matrix is positive semidefinite, and if not, fix it
+    with the chosen method.
+
+    The ``spectral`` method sets negative eigenvalues to zero then rebuilds the matrix,
+    while the ``diag`` method adds a small positive value to the diagonal.
+
+    :param matrix: raw covariance matrix (may not be PSD)
+    :type matrix: pd.DataFrame
+    :param fix_method: {"spectral", "diag"}, defaults to "spectral"
+    :type fix_method: str, optional
+    :raises NotImplementedError: if a method is passed that isn't implemented
+    :return: positive semidefinite covariance matrix
+    :rtype: pd.DataFrame
+    """
+    if _is_positive_semidefinite(matrix):
+        return matrix
+    else:
+        warnings.warn(
+            "The covariance matrix is non positive semidefinite. Amending eigenvalues."
+        )
+
+        # Eigendecomposition
+        q, V = np.linalg.eigh(matrix)
+
+        if fix_method == "spectral":
+            # Remove negative eigenvalues
+            q = np.where(q > 0, q, 0)
+            # Reconstruct matrix
+            fixed_matrix = V @ np.diag(q) @ V.T
+        elif fix_method == "diag":
+            min_eig = np.min(q)
+            if min_eig < 0:
+                fixed_matrix = matrix - 1.1 * min_eig * np.eye(len(matrix))
+        else:
+            raise NotImplementedError("Method {} not implemented".format(fix_method))
+
+        if not _is_positive_semidefinite(fixed_matrix):
+            warnings.warn("Could not fix matrix. Please try a different risk model.")
+
+        # Rebuild labels if provided
+        if isinstance(matrix, pd.DataFrame):
+            tickers = matrix.index
+            return pd.DataFrame(fixed_matrix, index=tickers, columns=tickers)
+        else:
+            return fixed_matrix
+
+
+def risk_matrix(prices, method="sample_cov", **kwargs):
+    """
+    Compute a covariance matrix, using the risk model supplied in the ``method``
+    parameter.
+
+    :param prices: adjusted closing prices of the asset, each row is a date
+                   and each column is a ticker/id.
+    :type prices: pd.DataFrame
+    :param returns_data: if true, the first argument is returns instead of prices.
+    :type returns_data: bool, defaults to False.
+    :param method: the risk model to use. Should be one of:
+
+        - ``sample_cov``
+        - ``semicovariance``
+        - ``exp_cov``
+        - ``min_cov_determinant``
+        - ``ledoit_wolf``
+        - ``ledoit_wolf_constant_variance``
+        - ``ledoit_wolf_single_factor``
+        - ``ledoit_wolf_constant_correlation``
+        - ``oracle_approximating``
+
+    :type method: str, optional
+    :raises NotImplementedError: if the supplied method is not recognised
+    :return: annualised sample covariance matrix
+    :rtype: pd.DataFrame
+    """
+    if method == "sample_cov":
+        return sample_cov(prices, **kwargs)
+    elif method == "semicovariance":
+        return semicovariance(prices, **kwargs)
+    elif method == "exp_cov":
+        return exp_cov(prices, **kwargs)
+    elif method == "min_cov_determinant":
+        return min_cov_determinant(prices, **kwargs)
+    elif method == "ledoit_wolf" or method == "ledoit_wolf_constant_variance":
+        return CovarianceShrinkage(prices, **kwargs).ledoit_wolf()
+    elif method == "ledoit_wolf_single_factor":
+        return CovarianceShrinkage(prices, **kwargs).ledoit_wolf(
+            shrinkage_target="single_factor"
+        )
+    elif method == "ledoit_wolf_constant_correlation":
+        return CovarianceShrinkage(prices, **kwargs).ledoit_wolf(
+            shrinkage_target="constant_correlation"
+        )
+    elif method == "oracle_approximating":
+        return CovarianceShrinkage(prices, **kwargs).oracle_approximating()
+    else:
+        raise NotImplementedError("Risk model {} not implemented".format(method))
+
+
+def sample_cov(prices, returns_data=False, frequency=252, **kwargs):
     """
     Calculate the annualised sample covariance matrix of (daily) asset returns.
 
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
+    :param returns_data: if true, the first argument is returns instead of prices.
+    :type returns_data: bool, defaults to False.
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
@@ -58,13 +162,20 @@ def sample_cov(prices, frequency=252):
     :rtype: pd.DataFrame
     """
     if not isinstance(prices, pd.DataFrame):
-        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        warnings.warn("data is not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    returns = returns_from_prices(prices)
-    return returns.cov() * frequency
+    if returns_data:
+        returns = prices
+    else:
+        returns = returns_from_prices(prices)
+    return fix_nonpositive_semidefinite(
+        returns.cov() * frequency, kwargs.get("fix_method", "spectral")
+    )
 
 
-def semicovariance(prices, benchmark=0.000079, frequency=252):
+def semicovariance(
+    prices, returns_data=False, benchmark=0.000079, frequency=252, **kwargs
+):
     """
     Estimate the semicovariance matrix, i.e the covariance given that
     the returns are less than the benchmark.
@@ -74,6 +185,8 @@ def semicovariance(prices, benchmark=0.000079, frequency=252):
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
+    :param returns_data: if true, the first argument is returns instead of prices.
+    :type returns_data: bool, defaults to False.
     :param benchmark: the benchmark return, defaults to the daily risk-free rate, i.e
                       :math:`1.02^{(1/252)} -1`.
     :type benchmark: float
@@ -85,11 +198,16 @@ def semicovariance(prices, benchmark=0.000079, frequency=252):
     :rtype: pd.DataFrame
     """
     if not isinstance(prices, pd.DataFrame):
-        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        warnings.warn("data is not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    returns = returns_from_prices(prices)
+    if returns_data:
+        returns = prices
+    else:
+        returns = returns_from_prices(prices)
     drops = np.fmin(returns - benchmark, 0)
-    return drops.cov() * frequency
+    return fix_nonpositive_semidefinite(
+        drops.cov() * frequency, kwargs.get("fix_method", "spectral")
+    )
 
 
 def _pair_exp_cov(X, Y, span=180):
@@ -112,7 +230,7 @@ def _pair_exp_cov(X, Y, span=180):
     return covariation.ewm(span=span).mean()[-1]
 
 
-def exp_cov(prices, span=180, frequency=252):
+def exp_cov(prices, returns_data=False, span=180, frequency=252, **kwargs):
     """
     Estimate the exponentially-weighted covariance matrix, which gives
     greater weight to more recent data.
@@ -120,6 +238,8 @@ def exp_cov(prices, span=180, frequency=252):
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
+    :param returns_data: if true, the first argument is returns instead of prices.
+    :type returns_data: bool, defaults to False.
     :param span: the span of the exponential weighting function, defaults to 180
     :type span: int, optional
     :param frequency: number of time periods in a year, defaults to 252 (the number
@@ -129,10 +249,13 @@ def exp_cov(prices, span=180, frequency=252):
     :rtype: pd.DataFrame
     """
     if not isinstance(prices, pd.DataFrame):
-        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        warnings.warn("data is not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
     assets = prices.columns
-    returns = returns_from_prices(prices)
+    if returns_data:
+        returns = prices
+    else:
+        returns = returns_from_prices(prices)
     N = len(assets)
 
     # Loop over matrix, filling entries with the pairwise exp cov
@@ -142,10 +265,14 @@ def exp_cov(prices, span=180, frequency=252):
             S[i, j] = S[j, i] = _pair_exp_cov(
                 returns.iloc[:, i], returns.iloc[:, j], span
             )
-    return pd.DataFrame(S * frequency, columns=assets, index=assets)
+    cov = pd.DataFrame(S * frequency, columns=assets, index=assets)
+
+    return fix_nonpositive_semidefinite(cov, kwargs.get("fix_method", "spectral"))
 
 
-def min_cov_determinant(prices, frequency=252, random_state=None):
+def min_cov_determinant(
+    prices, returns_data=False, frequency=252, random_state=None, **kwargs
+):
     """
     Calculate the minimum covariance determinant, an estimator of the covariance matrix
     that is more robust to noise.
@@ -153,6 +280,8 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
+    :param returns_data: if true, the first argument is returns instead of prices.
+    :type returns_data: bool, defaults to False.
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
@@ -162,7 +291,7 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
     :rtype: pd.DataFrame
     """
     if not isinstance(prices, pd.DataFrame):
-        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        warnings.warn("data is not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
 
     # Extra dependency
@@ -172,10 +301,15 @@ def min_cov_determinant(prices, frequency=252, random_state=None):
         raise ImportError("Please install scikit-learn via pip or poetry")
 
     assets = prices.columns
-    X = prices.pct_change().dropna(how="all")
+
+    if returns_data:
+        X = prices.dropna(how="all")
+    else:
+        X = prices.pct_change().dropna(how="all")
     X = np.nan_to_num(X.values)
     raw_cov_array = sklearn.covariance.fast_mcd(X, random_state=random_state)[1]
-    return pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
+    cov = pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
+    return fix_nonpositive_semidefinite(cov, kwargs.get("fix_method", "spectral"))
 
 
 def cov_to_corr(cov_matrix):
@@ -196,47 +330,22 @@ def cov_to_corr(cov_matrix):
     return pd.DataFrame(corr, index=cov_matrix.index, columns=cov_matrix.index)
 
 
-def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True):
+def corr_to_cov(corr_matrix, stdevs):
     """
-    Generate a basic plot of the correlation matrix, given a covariance matrix.
+    Convert a correlation matrix to a covariance matrix
 
-    :param cov_matrix: covariance matrix
-    :type cov_matrix: pd.DataFrame or np.ndarray
-    :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
-                         defaults to True
-    :type show_tickers: bool, optional
-    :param filename: name of the file to save to, defaults to None (doesn't save)
-    :type filename: str, optional
-    :param showfig: whether to plt.show() the figure, defaults to True
-    :type showfig: bool, optional
-    :raises ImportError: if matplotlib is not installed
-    :return: matplotlib axis
-    :rtype: matplotlib.axes object
+    :param corr_matrix: correlation matrix
+    :type corr_matrix: pd.DataFrame
+    :param stdevs: vector of standard deviations
+    :type stdevs: array-like
+    :return: covariance matrix
+    :rtype: pd.DataFrame
     """
-    try:
-        import matplotlib.pyplot as plt
-    except (ModuleNotFoundError, ImportError):
-        raise ImportError("Please install matplotlib via pip or poetry")
+    if not isinstance(corr_matrix, pd.DataFrame):
+        warnings.warn("cov_matrix is not a dataframe", RuntimeWarning)
+        corr_matrix = pd.DataFrame(corr_matrix)
 
-    corr = cov_to_corr(cov_matrix)
-    fig, ax = plt.subplots()
-
-    cax = ax.imshow(corr)
-    fig.colorbar(cax)
-
-    if show_tickers:
-        ax.set_xticks(np.arange(0, corr.shape[0], 1))
-        ax.set_xticklabels(corr.index)
-        ax.set_yticks(np.arange(0, corr.shape[0], 1))
-        ax.set_yticklabels(corr.index)
-        plt.xticks(rotation=90)
-
-    if filename:
-        plt.savefig(fname=filename, dpi=300)
-    if showfig:
-        plt.show()
-
-    return ax
+    return corr_matrix * np.outer(stdevs, stdevs)
 
 
 class CovarianceShrinkage:
@@ -259,18 +368,26 @@ class CovarianceShrinkage:
     except (ModuleNotFoundError, ImportError):
         raise ImportError("Please install scikit-learn via pip or poetry")
 
-    def __init__(self, prices, frequency=252):
+    def __init__(self, prices, returns_data=False, frequency=252):
         """
         :param prices: adjusted closing prices of the asset, each row is a date and each column is a ticker/id.
         :type prices: pd.DataFrame
+        :param returns_data: if true, the first argument is returns instead of prices.
+        :type returns_data: bool, defaults to False.
         :param frequency: number of time periods in a year, defaults to 252 (the number of trading days in a year)
         :type frequency: int, optional
         """
         if not isinstance(prices, pd.DataFrame):
-            warnings.warn("prices are not in a dataframe", RuntimeWarning)
+            warnings.warn("data is not in a dataframe", RuntimeWarning)
             prices = pd.DataFrame(prices)
+
         self.frequency = frequency
-        self.X = prices.pct_change().dropna(how="all")
+
+        if returns_data:
+            self.X = prices.dropna(how="all")
+        else:
+            self.X = prices.pct_change().dropna(how="all")
+
         self.S = self.X.cov().values
         self.delta = None  # shrinkage constant
 
@@ -285,9 +402,8 @@ class CovarianceShrinkage:
         :rtype: pd.DataFrame
         """
         assets = self.X.columns
-        return (
-            pd.DataFrame(raw_cov_array, index=assets, columns=assets) * self.frequency
-        )
+        cov = pd.DataFrame(raw_cov_array, index=assets, columns=assets) * self.frequency
+        return fix_nonpositive_semidefinite(cov, fix_method="spectral")
 
     def shrunk_covariance(self, delta=0.2):
         """
@@ -330,7 +446,9 @@ class CovarianceShrinkage:
         elif shrinkage_target == "constant_correlation":
             shrunk_cov, self.delta = self._ledoit_wolf_constant_correlation()
         else:
-            raise NotImplementedError
+            raise NotImplementedError(
+                "Shrinkage target {} not recognised".format(shrinkage_target)
+            )
 
         return self._format_and_annualize(shrunk_cov)
 
@@ -452,3 +570,51 @@ class CovarianceShrinkage:
         X = np.nan_to_num(self.X.values)
         shrunk_cov, self.delta = self.sklearn.covariance.oas(X)
         return self._format_and_annualize(shrunk_cov)
+
+
+def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True):
+    """
+    Generate a basic plot of the correlation matrix, given a covariance matrix.
+
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: pd.DataFrame or np.ndarray
+    :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
+                         defaults to True
+    :type show_tickers: bool, optional
+    :param filename: name of the file to save to, defaults to None (doesn't save)
+    :type filename: str, optional
+    :param showfig: whether to plt.show() the figure, defaults to True
+    :type showfig: bool, optional
+    :raises ImportError: if matplotlib is not installed
+    :return: matplotlib axis
+    :rtype: matplotlib.axes object
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except (ModuleNotFoundError, ImportError):
+        raise ImportError("Please install matplotlib via pip or poetry")
+
+    warnings.warn(
+        "This method is deprecated and will be removed in v1.2.0. "
+        "Please use Plotting.plot_covariance(cov) instead"
+    )
+
+    corr = cov_to_corr(cov_matrix)
+    fig, ax = plt.subplots()
+
+    cax = ax.imshow(corr)
+    fig.colorbar(cax)
+
+    if show_tickers:
+        ax.set_xticks(np.arange(0, corr.shape[0], 1))
+        ax.set_xticklabels(corr.index)
+        ax.set_yticks(np.arange(0, corr.shape[0], 1))
+        ax.set_yticklabels(corr.index)
+        plt.xticks(rotation=90)
+
+    if filename:
+        plt.savefig(fname=filename, dpi=300)
+    if showfig:
+        plt.show()
+
+    return ax

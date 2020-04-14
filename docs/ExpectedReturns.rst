@@ -24,6 +24,11 @@ superior models and feed them into the optimiser.
 
 .. automodule:: pypfopt.expected_returns
 
+    .. note::
+
+        For any of these methods, if you would prefer to pass returns (the default is prices),
+        set the boolean flag ``returns_data=True``
+
     .. autofunction:: mean_historical_return
 
         This is probably the default textbook approach. It is intuitive and easily interpretable,
@@ -41,6 +46,30 @@ superior models and feed them into the optimiser.
         the mean historical return. However, if you plan on rebalancing much more frequently,
         there is a case to be made for lowering the span in order to capture recent trends.
 
+    .. autofunction:: james_stein_shrinkage
+
+        A surprising result in statistics is that the the MLE estimator for a 3+ dimensional
+        Normal distribution is an *inadmissible* estimator. That is, there exists an estimator
+        :math:`\hat{\mu}^{JS}` such that:
+
+        .. math::
+
+            E\{ \lVert \hat{\mu}^{JS} - \mu \rVert^2 \} < E \{ \lVert \bar{\mu} - \mu \rVert^2 \}
+
+        In essence, to reduce account for the fact that our sample may not be representative and
+        thus reduce loss, we shrink the sample means to the "grand average" (mean of means). For
+        a more detailed explanation, refer to Efron and Hastie (2010) [1]_
+
+    .. autofunction:: capm_return
+
     .. autofunction:: returns_from_prices
 
+    .. autofunction:: log_returns_from_prices
+
     .. autofunction:: prices_from_returns
+
+
+References
+==========
+
+.. [1] Efron and Hastie (2010) `Empirical Bayes and the James–Stein Estimator <http://statweb.stanford.edu/~ckirby/brad/LSI/chapter1.pdf>`_.

@@ -10,6 +10,7 @@ from pypfopt import HRPOpt
 from pypfopt import CLA
 from pypfopt import black_litterman
 from pypfopt import BlackLittermanModel
+from pypfopt import Plotting
 
 
 # Reading in the data; preparing expected returns and a risk model
@@ -221,7 +222,7 @@ hrp = HRPOpt(returns)
 weights = hrp.optimize()
 hrp.portfolio_performance(verbose=True)
 print(weights)
-hrp.plot_dendrogram()  # to plot dendrogram
+Plotting.plot_dendrogram(hrp)  # to plot dendrogram
 
 """
 Expected annual return: 10.8%
@@ -255,7 +256,7 @@ Sharpe Ratio: 0.66
 cla = CLA(mu, S)
 print(cla.max_sharpe())
 cla.portfolio_performance(verbose=True)
-cla.plot_efficient_frontier()  # to plot
+Plotting.plot_efficient_frontier(cla)  # to plot
 
 """
 {'GOOG': 0.020889868669945022,

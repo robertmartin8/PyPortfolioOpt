@@ -22,19 +22,25 @@ def test_portfolio_performance():
     with pytest.raises(ValueError):
         hrp.portfolio_performance()
     hrp.optimize()
-    assert hrp.portfolio_performance()
+    np.testing.assert_allclose(
+        hrp.portfolio_performance(),
+        (0.21353402380950973, 0.17844159743748936, 1.084579081272277),
+    )
 
 
 def test_cluster_var():
-    #  TODO
-    pass
+    df = get_data()
+    returns = df.pct_change().dropna(how="all")
+    cov = returns.cov()
+    tickers = ["SHLD", "AMD", "BBY", "RRC", "FB", "WMT", "T", "BABA", "PFE", "UAA"]
+    var = HRPOpt._get_cluster_var(cov, tickers)
+    np.testing.assert_almost_equal(var, 0.00012842967106653283)
 
 
 def test_quasi_dag():
-    # TODO
-    pass
-
-
-def test_raw_allocation():
-    # TODO
-    pass
+    df = get_data()
+    returns = df.pct_change().dropna(how="all")
+    hrp = HRPOpt(returns)
+    hrp.optimize()
+    clusters = hrp.clusters
+    assert HRPOpt._get_quasi_diag(clusters)[:5] == [12, 6, 15, 14, 2]

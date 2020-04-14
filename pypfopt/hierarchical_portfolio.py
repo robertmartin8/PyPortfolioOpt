@@ -12,6 +12,7 @@ Currently implemented:
   permission from Marcos Lopez de Prado (2016).
 """
 
+import warnings
 import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch
@@ -41,7 +42,6 @@ class HRPOpt(base_optimizer.BaseOptimizer):
     Public methods:
 
     - ``optimize()`` calculates weights using HRP
-    - ``plot_dendrogram()`` plots the clusters
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
@@ -90,28 +90,32 @@ class HRPOpt(base_optimizer.BaseOptimizer):
 
         :param link: linkage matrix after clustering
         :type link: np.ndarray
-        :return: sorted list of tickers
+        :return: sorted list of indices
         :rtype: list
         """
         link = link.astype(int)
-        sort_ix = pd.Series([link[-1, 0], link[-1, 1]])
-        num_items = link[-1, -1]  # number of original items
-        while sort_ix.max() >= num_items:
-            sort_ix.index = range(0, sort_ix.shape[0] * 2, 2)  # make space
-            df0 = sort_ix[sort_ix >= num_items]  # find clusters
-            i = df0.index
-            j = df0.values - num_items
-            sort_ix[i] = link[j, 0]  # item 1
-            df0 = pd.Series(link[j, 1], index=i + 1)
-            sort_ix = sort_ix.append(df0)  # item 2
-            sort_ix = sort_ix.sort_index()  # re-sort
-            sort_ix.index = range(sort_ix.shape[0])  # re-index
-        return sort_ix.tolist()
+        # The new clusters formed
+        c = np.arange(link.shape[0]) + link[-1, 3]
+        root_id = c[-1]
+        d = dict(list(zip(c, link[:, 0:2].tolist())))
+
+        # Unpacks the linkage matrix recursively.
+        def recursive_unlink(curr, d):
+            """ Start this with curr = root integer """
+            if curr in d:
+                return [
+                    node for parent in d[curr] for node in recursive_unlink(parent, d)
+                ]
+            else:
+                return [curr]
+
+        return recursive_unlink(root_id, d)
 
     @staticmethod
     def _raw_hrp_allocation(cov, ordered_tickers):
         """
-        Given the clusters, compute the portfolio that minimises risk.
+        Given the clusters, compute the portfolio that minimises risk by
+        recursively traversing the hierarchical tree from the top.
 
         :param cov: covariance matrix
         :type cov: np.ndarray
@@ -164,25 +168,15 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         return weights
 
     def plot_dendrogram(self, show_tickers=True, filename=None, showfig=True):
-        """
-        Plot the clusters in the form of a dendrogram.
-
-        :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
-                            defaults to True
-        :type show_tickers: bool, optional
-        :param filename: name of the file to save to, defaults to None (doesn't save)
-        :type filename: str, optional
-        :param showfig: whether to plt.show() the figure, defaults to True
-        :type showfig: bool, optional
-        :raises ImportError: if matplotlib is not installed
-        :return: matplotlib axis
-        :rtype: matplotlib.axes object
-        """
-
         try:
             import matplotlib.pyplot as plt
         except (ModuleNotFoundError, ImportError):
             raise ImportError("Please install matplotlib via pip or poetry")
+
+        warnings.warn(
+            "This method is deprecated and will be removed in v1.2.0. "
+            "Please use pypfopt.plotting instead"
+        )
 
         if self.clusters is None:
             self.optimize()

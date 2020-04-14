@@ -45,6 +45,8 @@ portfolios that perform well out of sample.
 
     .. autoclass:: HRPOpt
         :members:
+        :exclude-members: plot_dendrogram
+
 
         .. automethod:: __init__
 
@@ -76,6 +78,7 @@ the same API, though as of v0.5.0 we only support ``max_sharpe()`` and ``min_vol
 
     .. autoclass:: CLA
         :members:
+        :exclude-members: plot_efficient_frontier
 
         .. automethod:: __init__
 

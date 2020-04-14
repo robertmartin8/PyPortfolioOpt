@@ -234,6 +234,7 @@ def test_min_volatility_vs_max_sharpe():
     ef.min_volatility()
     vol_min_vol = ef.portfolio_performance(risk_free_rate=0.00)[1]
 
+    ef = EfficientFrontier(expected_returns_daily, covariance_matrix)
     ef.max_sharpe(risk_free_rate=0.00)
     vol_max_sharpe = ef.portfolio_performance(risk_free_rate=0.00)[1]
 

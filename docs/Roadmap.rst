@@ -20,6 +20,29 @@ have any other feature requests, please raise them using GitHub
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Further support for different risk/return models
 
+1.1.0
+=====
+
+- Multiple additions and improvements to ``risk_models``:
+    
+  - Introduced a new API, in which the function ``risk_models.risk_matrix(method="...")`` allows
+    all the different risk models to be called. This should make testing easier.
+  - All methods now accept returns data instead of prices, if you set the flag ``returns_data=True``.
+- Automatically fix non-positive semidefinite covariance matrices!
+
+- Additions and improvements to ``expected_returns``:
+
+  - Introduced a new API, in which the function ``expected_returns.return_model(method="...")`` allows
+    all the different return models to be called. This should make testing easier.
+  - Added option to 'properly' compound returns.
+  - Added the James-Stein shrinkage estimator
+  - Added the CAPM return model.
+
+- ``from pypfopt import Plotting``: moved all plotting functionality into a new class and added
+  new plots. All other plotting functions (scattered in different classes) have been retained,
+  but are now deprecated.
+
+
 1.0.0
 =====
 
@@ -50,6 +73,7 @@ Fixed minor issues in CLA: weight bound bug, ``efficient_frontier`` needed weigh
 
 Fixed small but important bug where passing ``expected_returns=None`` fails. According to the docs, users
 should be able to only pass covariance if they want to only optimise min volatility.
+
 
 0.5.0
 =====

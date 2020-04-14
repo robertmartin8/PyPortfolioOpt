@@ -58,7 +58,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :param expected_returns: expected returns for each asset. Can be None if
                                 optimising for volatility only (but not recommended).
         :type expected_returns: pd.Series, list, np.ndarray
-        :param cov_matrix: covariance of returns for each asset
+        :param cov_matrix: covariance of returns for each asset. This **must** be
+                           positive semidefinite, otherwise optimisation will fail.
         :type cov_matrix: pd.DataFrame or np.array
         :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
                               if all identical, defaults to (0, 1). Must be changed to (-1, 1)

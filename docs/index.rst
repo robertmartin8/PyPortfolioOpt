@@ -10,7 +10,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v1.0.2-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v1.1.0-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
@@ -137,6 +137,11 @@ Contents
     BlackLitterman
     OtherOptimisers
     Postprocessing
+    Plotting
+
+.. toctree::
+    :caption: Other information
+    
     Roadmap
     Contributing
     About
