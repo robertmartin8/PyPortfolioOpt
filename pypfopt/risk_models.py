@@ -95,7 +95,7 @@ def fix_nonpositive_semidefinite(matrix, fix_method="spectral"):
             return fixed_matrix
 
 
-def risk_matrix(prices, returns_data=False, method="sample_cov", **kwargs):
+def risk_matrix(prices, method="sample_cov", **kwargs):
     """
     Compute a covariance matrix, using the risk model supplied in the ``method``
     parameter.
@@ -123,25 +123,25 @@ def risk_matrix(prices, returns_data=False, method="sample_cov", **kwargs):
     :rtype: pd.DataFrame
     """
     if method == "sample_cov":
-        return sample_cov(prices, returns_data, **kwargs)
+        return sample_cov(prices, **kwargs)
     elif method == "semicovariance":
-        return semicovariance(prices, returns_data, **kwargs)
+        return semicovariance(prices, **kwargs)
     elif method == "exp_cov":
-        return exp_cov(prices, returns_data, **kwargs)
+        return exp_cov(prices, **kwargs)
     elif method == "min_cov_determinant":
-        return min_cov_determinant(prices, returns_data, **kwargs)
+        return min_cov_determinant(prices, **kwargs)
     elif method == "ledoit_wolf" or method == "ledoit_wolf_constant_variance":
-        return CovarianceShrinkage(prices, returns_data).ledoit_wolf()
+        return CovarianceShrinkage(prices, **kwargs).ledoit_wolf()
     elif method == "ledoit_wolf_single_factor":
-        return CovarianceShrinkage(prices, returns_data).ledoit_wolf(
+        return CovarianceShrinkage(prices, **kwargs).ledoit_wolf(
             shrinkage_target="single_factor"
         )
     elif method == "ledoit_wolf_constant_correlation":
-        return CovarianceShrinkage(prices, returns_data).ledoit_wolf(
+        return CovarianceShrinkage(prices, **kwargs).ledoit_wolf(
             shrinkage_target="constant_correlation"
         )
     elif method == "oracle_approximating":
-        return CovarianceShrinkage(prices, returns_data).oracle_approximating()
+        return CovarianceShrinkage(prices, **kwargs).oracle_approximating()
     else:
         raise NotImplementedError("Risk model {} not implemented".format(method))
 
@@ -346,54 +346,6 @@ def corr_to_cov(corr_matrix, stdevs):
         corr_matrix = pd.DataFrame(corr_matrix)
 
     return corr_matrix * np.outer(stdevs, stdevs)
-
-
-def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True):
-    """
-    Generate a basic plot of the correlation matrix, given a covariance matrix.
-
-    :param cov_matrix: covariance matrix
-    :type cov_matrix: pd.DataFrame or np.ndarray
-    :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
-                         defaults to True
-    :type show_tickers: bool, optional
-    :param filename: name of the file to save to, defaults to None (doesn't save)
-    :type filename: str, optional
-    :param showfig: whether to plt.show() the figure, defaults to True
-    :type showfig: bool, optional
-    :raises ImportError: if matplotlib is not installed
-    :return: matplotlib axis
-    :rtype: matplotlib.axes object
-    """
-    try:
-        import matplotlib.pyplot as plt
-    except (ModuleNotFoundError, ImportError):
-        raise ImportError("Please install matplotlib via pip or poetry")
-
-    warnings.warn(
-        "This method is deprecated and will be removed in v1.2.0. "
-        "Please use pypfopt.plotting instead"
-    )
-
-    corr = cov_to_corr(cov_matrix)
-    fig, ax = plt.subplots()
-
-    cax = ax.imshow(corr)
-    fig.colorbar(cax)
-
-    if show_tickers:
-        ax.set_xticks(np.arange(0, corr.shape[0], 1))
-        ax.set_xticklabels(corr.index)
-        ax.set_yticks(np.arange(0, corr.shape[0], 1))
-        ax.set_yticklabels(corr.index)
-        plt.xticks(rotation=90)
-
-    if filename:
-        plt.savefig(fname=filename, dpi=300)
-    if showfig:
-        plt.show()
-
-    return ax
 
 
 class CovarianceShrinkage:
@@ -618,3 +570,51 @@ class CovarianceShrinkage:
         X = np.nan_to_num(self.X.values)
         shrunk_cov, self.delta = self.sklearn.covariance.oas(X)
         return self._format_and_annualize(shrunk_cov)
+
+
+def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True):
+    """
+    Generate a basic plot of the correlation matrix, given a covariance matrix.
+
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: pd.DataFrame or np.ndarray
+    :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
+                         defaults to True
+    :type show_tickers: bool, optional
+    :param filename: name of the file to save to, defaults to None (doesn't save)
+    :type filename: str, optional
+    :param showfig: whether to plt.show() the figure, defaults to True
+    :type showfig: bool, optional
+    :raises ImportError: if matplotlib is not installed
+    :return: matplotlib axis
+    :rtype: matplotlib.axes object
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except (ModuleNotFoundError, ImportError):
+        raise ImportError("Please install matplotlib via pip or poetry")
+
+    warnings.warn(
+        "This method is deprecated and will be removed in v1.2.0. "
+        "Please use pypfopt.plotting instead"
+    )
+
+    corr = cov_to_corr(cov_matrix)
+    fig, ax = plt.subplots()
+
+    cax = ax.imshow(corr)
+    fig.colorbar(cax)
+
+    if show_tickers:
+        ax.set_xticks(np.arange(0, corr.shape[0], 1))
+        ax.set_xticklabels(corr.index)
+        ax.set_yticks(np.arange(0, corr.shape[0], 1))
+        ax.set_yticklabels(corr.index)
+        plt.xticks(rotation=90)
+
+    if filename:
+        plt.savefig(fname=filename, dpi=300)
+    if showfig:
+        plt.show()
+
+    return ax

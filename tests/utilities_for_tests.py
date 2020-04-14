@@ -9,6 +9,10 @@ def get_data():
     return pd.read_csv("tests/stock_prices.csv", parse_dates=True, index_col="date")
 
 
+def get_benchmark_data():
+    return pd.read_csv("tests/spy_prices.csv", parse_dates=True, index_col="date")
+
+
 def setup_efficient_frontier(data_only=False):
     df = get_data()
     mean_return = expected_returns.mean_historical_return(df)

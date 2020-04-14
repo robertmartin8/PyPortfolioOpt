@@ -24,6 +24,11 @@ superior models and feed them into the optimiser.
 
 .. automodule:: pypfopt.expected_returns
 
+    .. note::
+
+        For any of these methods, if you would prefer to pass returns (the default is prices),
+        set the boolean flag ``returns_data=True``
+
     .. autofunction:: mean_historical_return
 
         This is probably the default textbook approach. It is intuitive and easily interpretable,
@@ -54,6 +59,8 @@ superior models and feed them into the optimiser.
         In essence, to reduce account for the fact that our sample may not be representative and
         thus reduce loss, we shrink the sample means to the "grand average" (mean of means). For
         a more detailed explanation, refer to Efron and Hastie (2010) [1]_
+
+    .. autofunction:: capm_returns
 
     .. autofunction:: returns_from_prices
 

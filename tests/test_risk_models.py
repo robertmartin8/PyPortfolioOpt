@@ -261,7 +261,7 @@ def test_oracle_approximating():
     assert risk_models._is_positive_semidefinite(shrunk_cov)
 
 
-def test_risk_matrix():
+def test_risk_matrix_and_returns_data():
     # Test the switcher method for simple calls
     df = get_data()
 
@@ -269,23 +269,20 @@ def test_risk_matrix():
         "sample_cov",
         "semicovariance",
         "exp_cov",
-        "min_cov_determinant",
         "ledoit_wolf",
         "ledoit_wolf_constant_variance",
         "ledoit_wolf_single_factor",
         "ledoit_wolf_constant_correlation",
         "oracle_approximating",
     }:
-        S = risk_models.risk_matrix(df, method=method, random_state=8)
+
+        S = risk_models.risk_matrix(df, method=method)
         assert S.shape == (20, 20)
         assert S.notnull().all().all()
         assert risk_models._is_positive_semidefinite(S)
 
         S2 = risk_models.risk_matrix(
-            expected_returns.returns_from_prices(df),
-            returns_data=True,
-            method=method,
-            random_state=8,
+            expected_returns.returns_from_prices(df), returns_data=True, method=method
         )
         pd.testing.assert_frame_equal(S, S2)
 
@@ -313,3 +310,9 @@ def test_risk_matrix_additional_kwargs():
     assert S.shape == (20, 20)
     assert S.notnull().all().all()
     assert risk_models._is_positive_semidefinite(S)
+
+
+def test_risk_matrix_not_implemented():
+    df = get_data()
+    with pytest.raises(NotImplementedError):
+        risk_models.risk_matrix(df, method="fancy_new!")
