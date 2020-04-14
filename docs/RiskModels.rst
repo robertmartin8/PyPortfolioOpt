@@ -45,9 +45,15 @@ covariance.
 
     .. note::
 
-        If you only have returns (no prices), fear not. The ``expected_returns`` module contains
-        a helper function called ``prices_from_returns`` that computes 'pseudoprices' which
-        work with these methods.
+        For any of these methods, if you would prefer to pass returns (the default is prices),
+        set the boolean flag ``returns_data=True``
+
+    .. autofunction:: risk_matrix
+
+    .. autofunction:: fix_nonpositive_semidefinite
+
+        Not all the calculated covariance matrices will be positive semidefinite (PSD). This method
+        checks if a matrix is PSD and fixes it if not.
 
     .. autofunction:: sample_cov
 
@@ -72,7 +78,7 @@ covariance.
         possible ways of defining a semicovariance matrix, the main differences lying in
         the 'pairwise' nature, i.e whether we should sum over :math:`\min(r_i,B)\min(r_j,B)`
         or :math:`\min(r_ir_j, B)`. In this implementation, we have followed the advice of
-        Estrada 2007 [2]_, preferring:
+        Estrada (2007) [2]_, preferring:
 
         .. math::
             \frac{1}{n}\sum_{i = 1}^n {\sum_{j = 1}^n {\min \left( {{r_i},B} \right)} }
@@ -92,21 +98,11 @@ covariance.
         The minimum covariance determinant (MCD) estimator is designed to be robust to
         outliers and 'contaminated' data [3]_. An efficient estimator is implemented in the
         :py:mod:`sklearn.covariance` module, which is based on the algorithm presented in
-        Rousseeuw 1999 [4]_.
-
-        .. caution::
-
-            Some of my tests have shown that ``min_cov_determinant`` does not always
-            result in positive definite matrices. Please use ``risk_models._is_positive_semidefinite()``
-            to check your covariance matrix before optimising portfolios.
+        Rousseeuw (1999) [4]_.
 
     .. autofunction:: cov_to_corr
 
-
-    .. autofunction:: correlation_plot
-
-        An example of a correlation plot is shown at the top of the page.
-
+    .. autofunction:: corr_to_cov
 
 
 
@@ -155,7 +151,7 @@ the following shrinkage methods:
     finance.
 
 
-My implementations have been translated the Matlab code on
+My implementations have been translated from the Matlab code on
 `Michael Wolf's webpage <https://www.econ.uzh.ch/en/people/faculty/wolf/publications.html>`_, with
 the help of `xtuanta <https://github.com/robertmartin8/PyPortfolioOpt/issues/20>`_. 
 
