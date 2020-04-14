@@ -185,7 +185,7 @@ def test_james_stein():
 
 def test_capm_no_benchmark():
     df = get_data()
-    mu = expected_returns.capm_returns(df)
+    mu = expected_returns.capm_return(df)
     assert isinstance(mu, pd.Series)
     assert list(mu.index) == list(df.columns)
     assert mu.notnull().all()
@@ -220,7 +220,7 @@ def test_capm_no_benchmark():
 def test_capm_with_benchmark():
     df = get_data()
     mkt_df = get_benchmark_data()
-    mu = expected_returns.capm_returns(df, market_prices=mkt_df, compounding=True)
+    mu = expected_returns.capm_return(df, market_prices=mkt_df, compounding=True)
 
     assert isinstance(mu, pd.Series)
     assert list(mu.index) == list(df.columns)
@@ -261,7 +261,7 @@ def test_risk_matrix_and_returns_data():
         "mean_historical_return",
         "ema_historical_return",
         "james_stein_shrinkage",
-        "capm_returns",
+        "capm_return",
     }:
         mu = expected_returns.return_model(df, method=method)
 
@@ -281,9 +281,9 @@ def test_return_model_additional_kwargs():
     mkt_prices = get_benchmark_data()
 
     mu1 = expected_returns.return_model(
-        df, method="capm_returns", market_prices=mkt_prices, risk_free_rate=0.03
+        df, method="capm_return", market_prices=mkt_prices, risk_free_rate=0.03
     )
-    mu2 = expected_returns.capm_returns(
+    mu2 = expected_returns.capm_return(
         df, market_prices=mkt_prices, risk_free_rate=0.03
     )
     pd.testing.assert_series_equal(mu1, mu2)

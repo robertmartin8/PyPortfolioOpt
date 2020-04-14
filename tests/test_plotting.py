@@ -24,7 +24,7 @@ def test_dendrogram_plot():
     assert len(ax.findobj()) == 185
     assert type(ax.findobj()[0]) == matplotlib.collections.LineCollection
 
-    ax = Plotting.plot_dendrogram(hrp, show_tickers=False)
+    ax = Plotting.plot_dendrogram(hrp, show_tickers=False, showfig=False)
     assert len(ax.findobj()) == 65
     assert type(ax.findobj()[0]) == matplotlib.collections.LineCollection
 
@@ -49,4 +49,3 @@ def test_weight_plot():
 
     ax = Plotting.plot_weights(w, showfig=False)
     assert len(ax.findobj()) == 197
-    assert type(ax.findobj()[-1]) == matplotlib.axes._subplots.AxesSubplot
