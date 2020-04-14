@@ -137,6 +137,11 @@ Contents
     BlackLitterman
     OtherOptimisers
     Postprocessing
+    Plotting
+
+.. toctree::
+    :caption: Other information
+    
     Roadmap
     Contributing
     About

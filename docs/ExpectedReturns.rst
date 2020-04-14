@@ -60,7 +60,7 @@ superior models and feed them into the optimiser.
         thus reduce loss, we shrink the sample means to the "grand average" (mean of means). For
         a more detailed explanation, refer to Efron and Hastie (2010) [1]_
 
-    .. autofunction:: capm_returns
+    .. autofunction:: capm_return
 
     .. autofunction:: returns_from_prices
 

@@ -5,8 +5,6 @@ Plotting
 ########
 
 
-
-
 .. automodule:: pypfopt.plotting
 
     .. autoclass:: Plotting
