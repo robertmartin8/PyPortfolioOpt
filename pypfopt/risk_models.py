@@ -596,7 +596,7 @@ def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True)
 
     warnings.warn(
         "This method is deprecated and will be removed in v1.2.0. "
-        "Please use pypfopt.plotting instead"
+        "Please use Plotting.plot_covariance(cov) instead"
     )
 
     corr = cov_to_corr(cov_matrix)

@@ -43,7 +43,6 @@ class CLA(base_optimizer.BaseOptimizer):
     - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``min_volatility()`` optimises for minimum volatility
     - ``efficient_frontier()`` computes the entire efficient frontier
-    - ``plot_efficient_frontier()`` to plot the efficient frontier.
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``clean_weights()`` rounds the weights and clips near-zeros.
@@ -445,21 +444,6 @@ class CLA(base_optimizer.BaseOptimizer):
     def plot_efficient_frontier(
         self, points=100, show_assets=True, filename=None, showfig=True
     ):
-        """
-        Plot the efficient frontier
-
-        :param points: number of points to plot, defaults to 100
-        :type points: int, optional
-        :param show_assets: whether we should plot the asset risks/returns also, defaults to True
-        :type show_assets: bool, optional
-        :param filename: name of the file to save to, defaults to None (doesn't save)
-        :type filename: str, optional
-        :param showfig: whether to plt.show() the figure, defaults to True
-        :type showfig: bool, optional
-        :raises ImportError: if matplotlib is not installed
-        :return: matplotlib axis
-        :rtype: matplotlib.axes object
-        """
         try:
             import matplotlib.pyplot as plt
         except (ModuleNotFoundError, ImportError):

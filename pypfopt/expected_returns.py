@@ -82,7 +82,7 @@ def return_model(prices, method="mean_historical_return", **kwargs):
         - ``mean_historical_return``
         - ``ema_historical_return``
         - ``james_stein_shrinkage``
-        - ``capm_returns``
+        - ``capm_return``
 
     :type method: str, optional
     :raises NotImplementedError: if the supplied method is not recognised
@@ -95,8 +95,8 @@ def return_model(prices, method="mean_historical_return", **kwargs):
         return ema_historical_return(prices, **kwargs)
     elif method == "james_stein_shrinkage":
         return james_stein_shrinkage(prices, **kwargs)
-    elif method == "capm_returns":
-        return capm_returns(prices, **kwargs)
+    elif method == "capm_return":
+        return capm_return(prices, **kwargs)
     else:
         raise NotImplementedError("Return model {} not implemented".format(method))
 
@@ -214,7 +214,7 @@ def james_stein_shrinkage(prices, returns_data=False, compounding=False, frequen
         return theta_js * frequency
 
 
-def capm_returns(
+def capm_return(
     prices,
     market_prices=None,
     returns_data=False,

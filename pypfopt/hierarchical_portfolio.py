@@ -42,7 +42,6 @@ class HRPOpt(base_optimizer.BaseOptimizer):
     Public methods:
 
     - ``optimize()`` calculates weights using HRP
-    - ``plot_dendrogram()`` plots the clusters
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
@@ -169,21 +168,6 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         return weights
 
     def plot_dendrogram(self, show_tickers=True, filename=None, showfig=True):
-        """
-        Plot the clusters in the form of a dendrogram.
-
-        :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
-                            defaults to True
-        :type show_tickers: bool, optional
-        :param filename: name of the file to save to, defaults to None (doesn't save)
-        :type filename: str, optional
-        :param showfig: whether to plt.show() the figure, defaults to True
-        :type showfig: bool, optional
-        :raises ImportError: if matplotlib is not installed
-        :return: matplotlib axis
-        :rtype: matplotlib.axes object
-        """
-
         try:
             import matplotlib.pyplot as plt
         except (ModuleNotFoundError, ImportError):

@@ -252,8 +252,8 @@ class BaseConvexOptimizer(BaseOptimizer):
             w = ef.convex_objective(logarithmic_barrier, cov_matrix=ef.cov_matrix)
 
         :param custom_objective: an objective function to be MINIMISED. This should be written using
-                                 cvxpy atoms Should map (w, **kwargs) -> float.
-        :type custom_objective: function with signature (cp.Variable, **kwargs) -> cp.Expression
+                                 cvxpy atoms Should map (w, `**kwargs`) -> float.
+        :type custom_objective: function with signature (cp.Variable, `**kwargs`) -> cp.Expression
         :param weights_sum_to_one: whether to add the default objective, defaults to True
         :type weights_sum_to_one: bool, optional
         :raises OptimizationError: if the objective is nonconvex or constraints nonlinear.

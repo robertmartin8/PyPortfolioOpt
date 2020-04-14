@@ -1,5 +1,5 @@
 """
-The ``cla`` module houses all the functions to generate various plots.
+The ``plotting`` module houses all the functions to generate various plots.
 
 Currently implemented:
 
@@ -111,7 +111,7 @@ class Plotting:
     @staticmethod
     def plot_efficient_frontier(cla, points=100, show_assets=True, **kwargs):
         """
-        Plot the efficient frontier based on a cla object
+        Plot the efficient frontier based on a CLA object
 
         :param points: number of points to plot, defaults to 100
         :type points: int, optional
@@ -157,6 +157,14 @@ class Plotting:
 
     @staticmethod
     def plot_weights(weights, **kwargs):
+        """
+        Plot the portfolio weights as a horizontal bar chart
+
+        :param weights: the weights outputted by any PyPortfolioOpt optimiser
+        :type weights: {ticker: weight} dict
+        :return: matplotlib axis
+        :rtype: matplotlib.axes object
+        """
         desc = sorted(weights.items(), key=lambda x: x[1], reverse=True)
         labels = [i[0] for i in desc]
         vals = [i[1] for i in desc]
