@@ -19,6 +19,7 @@ Additionally, we provide utility functions to convert from returns to prices and
 
 import warnings
 import pandas as pd
+import numpy as np
 
 
 def returns_from_prices(prices):
@@ -32,6 +33,19 @@ def returns_from_prices(prices):
     :rtype: pd.DataFrame
     """
     return prices.pct_change().dropna(how="all")
+
+
+def log_returns_from_prices(prices):
+    """
+    Calculate the log returns given prices.
+
+    :param prices: adjusted (daily) closing prices of the asset, each row is a
+                   date and each column is a ticker/id.
+    :type prices: pd.DataFrame
+    :return: (daily) returns
+    :rtype: pd.DataFrame
+    """
+    return np.log(1 + prices.pct_change()).dropna(how="all")
 
 
 def prices_from_returns(returns):
@@ -50,13 +64,15 @@ def prices_from_returns(returns):
     return ret.cumprod()
 
 
-def mean_historical_return(prices, frequency=252):
+def mean_historical_return(prices, compounding=False, frequency=252):
     """
     Calculate annualised mean (daily) historical return from input (daily) asset prices.
 
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
+    :param compunded: whether to properly compound the returns, optional.
+    :type compounding: bool, defaults to False
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
@@ -67,10 +83,13 @@ def mean_historical_return(prices, frequency=252):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
     returns = returns_from_prices(prices)
-    return returns.mean() * frequency
+    if compounding:
+        return (1 + returns.mean()) ** frequency - 1
+    else:
+        return returns.mean() * frequency
 
 
-def ema_historical_return(prices, frequency=252, span=500):
+def ema_historical_return(prices, compounding=False, span=500, frequency=252):
     """
     Calculate the exponentially-weighted mean of (daily) historical returns, giving
     higher weight to more recent data.
@@ -78,6 +97,8 @@ def ema_historical_return(prices, frequency=252, span=500):
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
+    :param compounding: whether to properly compound the returns, optional.
+    :type compounding: bool, defaults to False
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
@@ -90,4 +111,48 @@ def ema_historical_return(prices, frequency=252, span=500):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
     returns = returns_from_prices(prices)
-    return returns.ewm(span=span).mean().iloc[-1] * frequency
+
+    if compounding:
+        return (1 + returns.ewm(span=span).mean().iloc[-1]) ** frequency - 1
+    else:
+        return returns.ewm(span=span).mean().iloc[-1] * frequency
+
+
+def james_stein_shrinkage(prices, compounding=False, frequency=252):
+    r"""
+    Compute the James-Stein shrinkage estimator, i.e
+
+    .. math::
+
+        \hat{\mu}_i^{JS} = \hat{\kappa} \bar{\mu} + (1-\hat{\kappa}) \mu_i,
+
+    where :math:`\kappa` is the shrinkage parameter, :math:`\bar{\mu}` is the shrinkage
+    target (grand average), and :math:`\mu` is the vector of mean returns.
+
+    :param prices: adjusted closing prices of the asset, each row is a date
+                   and each column is a ticker/id.
+    :type prices: pd.DataFrame
+    :param compunded: whether to properly compound the returns, optional.
+    :type compounding: bool, defaults to False
+    :param frequency: number of time periods in a year, defaults to 252 (the number
+                      of trading days in a year)
+    :type frequency: int, optional
+    :return: James-Stein estimate of annualised return
+    :rtype: pd.Series
+    """
+    if not isinstance(prices, pd.DataFrame):
+        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        prices = pd.DataFrame(prices)
+    returns = returns_from_prices(prices)
+
+    T, n = returns.shape
+    mu = returns.mean(axis=0)
+    mu_bar = mu.mean()
+    sigma_squared = 1 / T * mu_bar * (1 - mu_bar)  # binomial estimate
+    kappa = 1 - (n - 3) * sigma_squared / np.sum((mu - mu_bar) ** 2)
+    theta_js = (1 - kappa) * mu + kappa * mu_bar
+
+    if compounding:
+        return (1 + theta_js) ** frequency - 1
+    else:
+        return theta_js * frequency
