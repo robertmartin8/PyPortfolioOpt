@@ -57,7 +57,7 @@ For example, adding a regularisation objective (explained below) to a minimum vo
 
 .. tip::
     
-    If you would like to plot the efficeint frontier, take a look at the :ref:`cla`.
+    If you would like to plot the efficient frontier, take a look at the :ref:`plotting` module.
 
 Basic Usage
 ===========

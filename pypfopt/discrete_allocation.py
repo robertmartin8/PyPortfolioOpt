@@ -89,7 +89,7 @@ class DiscreteAllocation:
     def _allocation_rmse_error(self, verbose=True):
         """
         Utility function to calculate and print RMSE error between discretised
-        weights and continuous weights. RMSE was usen instead of MAE because we
+        weights and continuous weights. RMSE was used instead of MAE because we
         want to penalise large variations.
 
         :param verbose: print weight discrepancies?

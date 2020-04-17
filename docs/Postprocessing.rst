@@ -43,7 +43,7 @@ allocations with very little money left over (e.g $12 left on a $10,000 portfoli
 
 That being said, we can see that on the test dataset (for a standard ``max_sharpe``
 portfolio), the allocation method may deviate rather widely from the desired weights,
-particuarly for companies with a high share price (e.g AMZN).
+particularly for companies with a high share price (e.g AMZN).
 
 .. code-block:: text
     
@@ -85,7 +85,7 @@ The optimisation problem is then given by:
     \end{aligned}
     \end{equation*}
 
-This is straighforward to translate into ``cvxpy``. The initial implementation used 
+This is straightforward to translate into ``cvxpy``. The initial implementation used 
 `PuLP <https://pythonhosted.org/PuLP/>`_, but this caused numerous packaging issues and
 the code was a lot more verbose.
 

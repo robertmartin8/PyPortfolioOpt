@@ -57,7 +57,7 @@ The alternative is to clone/download the project, then in the project directory 
     python setup.py install
 
 .. note::
-    If any of these methods doesn't work, please `raise an issue
+    If any of these methods don't work, please `raise an issue
     <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_  on GitHub
 
 

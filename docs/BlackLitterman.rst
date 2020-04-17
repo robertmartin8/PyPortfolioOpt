@@ -141,7 +141,7 @@ A brief explanation of the above:
 
 - Each view has a corresponding row in the picking matrix (the order matters)
 - Absolute views have a single 1 in the column corresponding to the ticker's order in the universe. 
-- Relative views have a positive number in the nominally outperforming asset columns and negative number
+- Relative views have a positive number in the nominally outperforming asset columns and a negative number
   in the nominally underperforming asset columns. The numbers in each row should sum up to 0.
 
 

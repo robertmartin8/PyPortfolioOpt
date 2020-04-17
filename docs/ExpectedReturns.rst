@@ -6,8 +6,8 @@ Expected Returns
 
 Mean-variance optimisation requires knowledge of the expected returns. In practice,
 these are rather difficult to know with any certainty. Thus the best we can do is to
-come up with estimates, for example by extrapolating historical data, This is where the
-main flaw in efficient frontier lies – the optimisation procedure is sound, and provides
+come up with estimates, for example by extrapolating historical data, This is the
+main flaw in mean-variance optimisation – the optimisation procedure is sound, and provides
 strong mathematical guarantees, *given the correct inputs*. This is one of the reasons
 why I have emphasised modularity: users should be able to come up with their own
 superior models and feed them into the optimiser.
@@ -20,7 +20,7 @@ superior models and feed them into the optimiser.
     on choosing an appropriate risk model (see :ref:`risk-models`). 
 
     As of v0.5.0, you can use :ref:`black-litterman` to greatly improve the quality of
-    your expected returns estimate.
+    your estimate of the expected returns.
 
 .. automodule:: pypfopt.expected_returns
 
@@ -48,7 +48,7 @@ superior models and feed them into the optimiser.
 
     .. autofunction:: james_stein_shrinkage
 
-        A surprising result in statistics is that the the MLE estimator for a 3+ dimensional
+        A surprising result in statistics is that the MLE estimator for a 3+ dimensional
         Normal distribution is an *inadmissible* estimator. That is, there exists an estimator
         :math:`\hat{\mu}^{JS}` such that:
 

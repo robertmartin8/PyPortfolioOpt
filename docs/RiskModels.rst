@@ -21,7 +21,7 @@ In many ways, the subject of risk models is far more important than that of
 expected returns because historical variance is generally a much more predictive
 statistic than mean historical returns. In fact, research by Kritzman et
 al. (2010) [1]_ suggests that minimum variance portfolios, formed by optimising
-wthout providing expected returns, actually perform much better out of sample.
+without providing expected returns, actually perform much better out of sample.
 
 The problem, however, is that in practice we do not have access to the covariance
 matrix (in the same way that we don't have access to expected returns) – the only
@@ -38,7 +38,7 @@ covariance.
     Estimation of the covariance matrix is a very deep and actively-researched
     topic that involves statistics, econometrics, and numerical/computational
     approaches. I have made an effort to familiarise myself with the seminal papers in the field
-    and implement a few basic options, but there are many more advanced models that could be used.
+    and implement a few basic options, but there is a lot of room for more sophistication.
 
 
 .. automodule:: pypfopt.risk_models
@@ -126,7 +126,7 @@ combined with a structured estimator :math:`F`, using the below formula (where
 It is called shrinkage because it can be thought of as "shrinking" the sample
 covariance matrix towards the other estimator, which is accordingly called the
 **shrinkage target**. The shrinkage target may be significantly biased but has little
-esimation error. There are many possible options for the target, and each one will
+estimation error. There are many possible options for the target, and each one will
 result in a different optimal shrinkage constant :math:`\delta`. PyPortfolioOpt offers
 the following shrinkage methods:
 

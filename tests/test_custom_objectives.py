@@ -94,6 +94,28 @@ def test_custom_convex_deviation_risk_parity_error():
         ef.convex_objective(deviation_risk_parity, cov_matrix=ef.cov_matrix)
 
 
+def test_custom_convex_kelly():
+
+    lb = 0.01
+    ub = 0.3
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(lb, ub)
+    )
+
+    def kelly_objective(w, e_returns, cov_matrix, k=3):
+        variance = cp.quad_form(w, cov_matrix)
+
+        objective = variance * 0.5 * k - w @ e_returns
+        return objective
+
+    weights = ef.convex_objective(
+        kelly_objective, e_returns=ef.expected_returns, cov_matrix=ef.cov_matrix
+    )
+
+    for w in weights.values():
+        assert w >= lb - 1e-8 and w <= ub + 1e-8
+
+
 def test_custom_nonconvex_min_var():
     ef = setup_efficient_frontier()
     ef.min_volatility()
@@ -152,6 +174,59 @@ def test_custom_nonconvex_deviation_risk_parity_2():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
+
+
+def custom_nonconvex_sharpe():
+    ef = setup_efficient_frontier()
+    w1 = ef.nonconvex_objective(
+        objective_functions.sharpe_ratio,
+        objective_args=(ef.expected_returns, ef.cov_matrix),
+        weights_sum_to_one=True,
+    )
+    p1 = ef.portfolio_performance()
+    ef = setup_efficient_frontier()
+    w2 = ef.max_sharpe()
+    p2 = ef.portfolio_performance()
+
+    np.testing.assert_allclose(list(w1.values()), list(w2.values()), atol=2e-4)
+    assert p2[2] >= p1[2]
+
+    ef = setup_efficient_frontier()
+    min_weight, max_weight = 0.01, 0.3
+    w3 = ef.nonconvex_objective(
+        objective_functions.sharpe_ratio,
+        objective_args=(ef.expected_returns, ef.cov_matrix),
+        constraints=[
+            {"type": "eq", "fun": lambda w: np.sum(w) - 1},
+            {"type": "ineq", "fun": lambda w: w - min_weight},
+            {"type": "ineq", "fun": lambda w: max_weight - w},
+        ],
+    )
+    for w in w3.values():
+        assert w >= min_weight - 1e-8 and w <= max_weight + 1e-8
+
+
+def custom_nonconvex_kelly():
+    def kelly_objective(w, e_returns, cov_matrix, k=3):
+        variance = np.dot(w.T, np.dot(cov_matrix, w))
+        objective = variance * 0.5 * k - np.dot(w, e_returns)
+        return objective
+
+    lower_bounds, upper_bounds = 0.01, 0.3
+
+    ef = setup_efficient_frontier()
+    weights = ef.nonconvex_objective(
+        kelly_objective,
+        objective_args=(ef.expected_returns, ef.cov_matrix, 3),
+        constraints=[
+            {"type": "eq", "fun": lambda w: np.sum(w) - 1},
+            {"type": "ineq", "fun": lambda w: w - lower_bounds},
+            {"type": "ineq", "fun": lambda w: upper_bounds - w},
+        ],
+    )
+
+    for w in weights.values():
+        assert w >= lower_bounds - 1e-8 and w <= upper_bounds + 1e-8
 
 
 def test_custom_nonconvex_utility_objective():

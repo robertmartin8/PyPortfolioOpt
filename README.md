@@ -204,13 +204,13 @@ Harry Markowitz's 1952 paper is the undeniable classic, which turned portfolio o
 <img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/efficient_frontier_white.png" style="width:60%;"/>
 </center>
 
-Although much development has been made in the subject, more than half a century later, Markowitz's core ideas are still fundamentally important, and see daily use in many portfolio management firms.
+Although much development has been made in the subject, more than half a century later, Markowitz's core ideas are still fundamentally important and see daily use in many portfolio management firms.
 The main drawback of mean-variance optimisation is that the theoretical treatment requires knowledge of the expected returns and the future risk-characteristics (covariance) of the assets. Obviously, if we knew the expected returns of a stock life would be much easier, but the whole game is that stock returns are notoriously hard to forecast. As a substitute, we can derive estimates of the expected return and covariance based on historical data – though we do lose the theoretical guarantees provided by Markowitz, the closer our estimates are to the real values, the better our portfolio will be.
 
 Thus this project provides four major sets of functionality (though of course they are intimately related)
 
-- Estimate of expected returns
-- Estimate of risk (i.e covariance of asset returns)
+- Estimates of expected returns
+- Estimates of risk (i.e covariance of asset returns)
 - Objective functions to be optimised
 - Optimisers.
 
@@ -250,7 +250,7 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
     - however, it has a high estimation error, which is particularly dangerous in mean-variance optimisation because the optimiser is likely to give excess weight to these erroneous estimates.
 - Semicovariance: a measure of risk that focuses on downside variation.
 - Exponential covariance: an improvement over sample covariance that gives more weight to recent data
-- Covariance shrinkage: techniques that involve combining the sample covariance matrix with a structured estimator, in order to reduce the effect of erroneous weights. PyPortfolioOpt provides wrappers around the efficient vectorised implementations provided by `sklearn.covariance`.
+- Covariance shrinkage: techniques that involve combining the sample covariance matrix with a structured estimator, to reduce the effect of erroneous weights. PyPortfolioOpt provides wrappers around the efficient vectorised implementations provided by `sklearn.covariance`.
     - manual shrinkage
     - Ledoit Wolf shrinkage, which chooses an optimal shrinkage parameter. We offer three shrinkage targets: `constant_variance`, `single_factor`, and `constant_correlation`.
     - Oracle Approximating Shrinkage
@@ -270,7 +270,7 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
 - Minimum volatility. This may be useful if you're trying to get an idea of how low the volatility *could* be, but in practice it makes a lot more sense to me to use the portfolio that maximises the Sharpe ratio.
 - Efficient return, a.k.a. the Markowitz portfolio, which minimises risk for a given target return – this was the main focus of Markowitz 1952
 - Efficient risk: the Sharpe-maximising portfolio for a given target risk.
-- Maximum qudratic utility. You can provide your own risk-aversion level annd compute the appropriate portfolio.
+- Maximum quadratic utility. You can provide your own risk-aversion level and compute the appropriate portfolio.
 
 ### Adding constraints or different objectives
 
@@ -280,7 +280,7 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
 ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
 ```
 
-- Market neutrality: for the `efficient_risk` and `efficient_return` methods, PyPortfolioOpt provides an option to form a market neutral portfolio (i.e weights sum to zero). This is not possible for the max Sharpe portfolio and the min volatility portfolio because in those cases because they are not invariant with respect to leverage. Market neutrality requires negative weights:
+- Market neutrality: for the `efficient_risk` and `efficient_return` methods, PyPortfolioOpt provides an option to form a market-neutral portfolio (i.e weights sum to zero). This is not possible for the max Sharpe portfolio and the min volatility portfolio because in those cases because they are not invariant with respect to leverage. Market neutrality requires negative weights:
 
 ```python
 ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
@@ -296,7 +296,7 @@ ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.1))
 One issue with mean-variance optimisation is that it leads to many zero-weights. While these are
 "optimal" in-sample, there is a large body of research showing that this characteristic leads
 mean-variance portfolios to underperform out-of-sample. To that end, I have introduced an
-objective function that can reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `gamma`) on small weights, with a term that looks just like L2 regularisation in machine learning. It may be necessary to trial a number of `gamma` values to achieve the desired number of non-negligible weights. For the test portfolio of 20 securities, `gamma ~ 1` is sufficient
+objective function that can reduce the number of negligible weights for any of the objective functions. Essentially, it adds a penalty (parameterised by `gamma`) on small weights, with a term that looks just like L2 regularisation in machine learning. It may be necessary to try several `gamma` values to achieve the desired number of non-negligible weights. For the test portfolio of 20 securities, `gamma ~ 1` is sufficient
 
 ```python
 ef = EfficientFrontier(mu, S)
@@ -379,7 +379,7 @@ PyPortfolioOpt provides a test dataset of daily returns for 20 tickers:
 'T', 'UAA', 'SHLD', 'XOM', 'RRC', 'BBY', 'MA', 'PFE', 'JPM', 'SBUX']
 ```
 
- These tickers have been informally selected to meet a number of criteria:
+ These tickers have been informally selected to meet several criteria:
 
 - reasonably liquid
 - different performances and volatilities

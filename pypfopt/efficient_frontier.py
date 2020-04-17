@@ -36,7 +36,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``min_volatility()`` optimises for minimum volatility
-    - ``max_quadratic_utility()`` maximises the quadratic utility, giiven some risk aversion.
+    - ``max_quadratic_utility()`` maximises the quadratic utility, given some risk aversion.
     - ``efficient_risk()`` maximises Sharpe for a given target risk
     - ``efficient_return()`` minimises risk for a given target return
 

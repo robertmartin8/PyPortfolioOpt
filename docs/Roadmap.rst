@@ -193,7 +193,7 @@ Refactored shrinkage models, including single factor and constant correlation.
 -----
 
 - Included python 3.7 in travis build
-- Merged PR from `schneiderfelipe <https://github.com/schneiderfelipe>`_ to fix error message.
+- Merged PR from `schneiderfelipe <https://github.com/schneiderfelipe>`_ to fix an error message.
 
 
 0.1.0

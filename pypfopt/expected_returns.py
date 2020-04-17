@@ -2,7 +2,7 @@
 The ``expected_returns`` module provides functions for estimating the expected returns of
 the assets, which is a required input in mean-variance optimisation.
 
-By convention, the output of these methods are expected *annual* returns. It is assumed that
+By convention, the output of these methods is expected *annual* returns. It is assumed that
 *daily* prices are provided, though in reality the functions are agnostic
 to the time period (just change the ``frequency`` parameter). Asset prices must be given as
 a pandas dataframe, as per the format described in the :ref:`user-guide`.

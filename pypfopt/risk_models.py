@@ -6,12 +6,12 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 
 **Currently implemented:**
 
-- fix non-positive semidefnite matrices
+- fix non-positive semidefinite matrices
 - general risk matrix function, allowing you to run any risk model from one function.
 - sample covariance
 - semicovariance
 - exponentially weighted covariance
-- mininum covariance determinant
+- minimum covariance determinant
 - shrunk covariance matrices:
 
     - manual shrinkage

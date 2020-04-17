@@ -32,7 +32,7 @@ linked paper, here is a rough overview of how HRP works:
 4. Iterate over each level, optimally combining the mini-portfolios at each node.
 
 
-The advantages of this are that it does not require inversion of the covariance
+The advantages of this are that it does not require the inversion of the covariance
 matrix as with traditional quadratic optimisers, and seems to produce diverse
 portfolios that perform well out of sample.
 

@@ -373,7 +373,7 @@ class CLA(base_optimizer.BaseOptimizer):
 
     def max_sharpe(self):
         """
-        Maximise the sharpe ratio.
+        Maximise the Sharpe ratio.
 
         :return: asset weights for the volatility-minimising portfolio
         :rtype: dict
@@ -499,7 +499,7 @@ class CLA(base_optimizer.BaseOptimizer):
         :type verbose: bool, optional
         :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
         :type risk_free_rate: float, optional
-        :raises ValueError: if weights have not been calcualted yet
+        :raises ValueError: if weights have not been calculated yet
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """
