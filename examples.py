@@ -81,7 +81,7 @@ Sharpe Ratio: 1.63
 shrink = risk_models.CovarianceShrinkage(df)
 S = shrink.ledoit_wolf()
 ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
-weights = ef.efficient_risk(target_risk=0.10)
+weights = ef.efficient_risk(target_volatility=0.10)
 ef.portfolio_performance(verbose=True)
 
 """
