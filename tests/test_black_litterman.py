@@ -370,6 +370,43 @@ def test_bl_market_prior():
     assert bl.posterior_cov is not None
 
 
+def test_bl_market_automatic():
+    df = get_data()
+    S = risk_models.sample_cov(df)
+
+    mcaps = {
+        "GOOG": 927e9,
+        "AAPL": 1.19e12,
+        "FB": 574e9,
+        "BABA": 533e9,
+        "AMZN": 867e9,
+        "GE": 96e9,
+        "AMD": 43e9,
+        "WMT": 339e9,
+        "BAC": 301e9,
+        "GM": 51e9,
+        "T": 61e9,
+        "UAA": 78e9,
+        "SHLD": 0,
+        "XOM": 295e9,
+        "RRC": 1e9,
+        "BBY": 22e9,
+        "MA": 288e9,
+        "PFE": 212e9,
+        "JPM": 422e9,
+        "SBUX": 102e9,
+    }
+    viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
+    bl = BlackLittermanModel(S, pi="market", absolute_views=viewdict, market_caps=mcaps)
+    rets = bl.bl_returns()
+
+    # Compare with explicit
+    prior = black_litterman.market_implied_prior_returns(mcaps, 1, S, 0)
+    bl2 = BlackLittermanModel(S, pi=prior, absolute_views=viewdict)
+    rets2 = bl2.bl_returns()
+    pd.testing.assert_series_equal(rets, rets2)
+
+
 def test_bl_tau():
     df = get_data()
     S = risk_models.sample_cov(df)
@@ -445,3 +482,56 @@ def test_bl_no_uncertainty():
     rets = bl.bl_returns()
     assert np.abs(bl.bl_returns()["GOOG"] - viewdict["GOOG"]) < 1e-5
     assert np.abs(rets["AAPL"] - viewdict["AAPL"]) > 0.01
+
+
+def test_idzorek_confidences_error():
+    # if no confidences have been passed
+
+    with pytest.raises(ValueError):
+        pass
+
+
+def test_idzorek():
+    df = get_data()
+    S = risk_models.sample_cov(df)
+
+    mcaps = {
+        "GOOG": 927e9,
+        "AAPL": 1.19e12,
+        "FB": 574e9,
+        "BABA": 533e9,
+        "AMZN": 867e9,
+        "GE": 96e9,
+        "AMD": 43e9,
+        "WMT": 339e9,
+        "BAC": 301e9,
+        "GM": 51e9,
+        "T": 61e9,
+        "UAA": 78e9,
+        "SHLD": 0,
+        "XOM": 295e9,
+        "RRC": 1e9,
+        "BBY": 22e9,
+        "MA": 288e9,
+        "PFE": 212e9,
+        "JPM": 422e9,
+        "SBUX": 102e9,
+    }
+
+    df = get_data()
+    S = risk_models.sample_cov(df)
+    viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
+    view_confidences = [1, 0.2, 0.5, 0.3, 0.7]
+
+    bl = BlackLittermanModel(
+        S,
+        pi="market",
+        absolute_views=viewdict,
+        omega="idzorek",
+        view_confidences=view_confidences,
+        market_caps=mcaps,
+    )
+    rets = bl.bl_returns()
+    idzorek_omega = bl.omega
+
+    default_omega = BlackLittermanModel.default_omega(bl.cov_matrix, bl.P, bl.tau)
