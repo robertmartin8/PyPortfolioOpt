@@ -24,16 +24,16 @@ def test_input_errors():
 
     # P and Q don't match dimensions
     P = np.eye(len(S))[:, :-1]
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         # This doesn't raise the error from the expected place!
         # Because default_omega uses matrix mult on P
         BlackLittermanModel(S, Q=views, P=P)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         BlackLittermanModel(S, Q=views, P=P, omega=np.eye(len(views)))
 
     # pi and S don't match dimensions
-    with pytest.raises(ValueError):
+    with pytest.raises(AssertionError):
         BlackLittermanModel(S, Q=views, pi=df.pct_change().mean()[:-1])
 
 
@@ -277,7 +277,6 @@ def test_market_implied_prior():
         "SBUX": 102e9,
     }
     pi = black_litterman.market_implied_prior_returns(mcaps, delta, S)
-
     assert isinstance(pi, pd.Series)
     assert list(pi.index) == list(df.columns)
     assert pi.notnull().all()
@@ -313,6 +312,17 @@ def test_market_implied_prior():
     mcaps = pd.Series(mcaps)
     pi2 = black_litterman.market_implied_prior_returns(mcaps, delta, S)
     pd.testing.assert_series_equal(pi, pi2, check_exact=False)
+
+    # Test alternate syntax
+    bl = BlackLittermanModel(
+        S,
+        pi="market",
+        market_caps=mcaps,
+        absolute_views={"AAPL": 0.1},
+        risk_aversion=delta,
+    )
+    pi = black_litterman.market_implied_prior_returns(mcaps, delta, S, risk_free_rate=0)
+    np.testing.assert_array_almost_equal(bl.pi, pi.values.reshape(-1, 1))
 
 
 def test_bl_market_prior():
@@ -486,12 +496,119 @@ def test_bl_no_uncertainty():
 
 def test_idzorek_confidences_error():
     # if no confidences have been passed
+    S = pd.DataFrame(np.diag(np.ones((5,))), index=range(5), columns=range(5))
+    # Constant view of 0.3 return
+    views = {k: 0.3 for k in range(5)}
+    # Prior
+    pi = pd.Series(0.1, index=range(5))
 
     with pytest.raises(ValueError):
-        pass
+        BlackLittermanModel(S, pi=pi, absolute_views=views, omega="idzorek")
+
+    with pytest.raises(ValueError):
+        # Wrong number of views
+        BlackLittermanModel(
+            S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[0.2] * 4
+        )
+
+    with pytest.raises(ValueError):
+        #  Conf greater than 1
+        bl = BlackLittermanModel(
+            S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[1.1] * 5
+        )
+
+    with pytest.raises(ValueError):
+        #  Conf less than zero
+        bl = BlackLittermanModel(
+            S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[-0.1] * 5
+        )
 
 
-def test_idzorek():
+def test_idzorek_basic():
+    # Identity covariance
+    S = pd.DataFrame(np.diag(np.ones((5,))), index=range(5), columns=range(5))
+    # Constant view of 0.3 return
+    views = {k: 0.3 for k in range(5)}
+    # Prior
+    pi = pd.Series(0.1, index=range(5))
+
+    # Perfect confidence - should equal views
+    bl = BlackLittermanModel(
+        S, pi=pi, absolute_views=views, omega=np.diag(np.zeros(5))  # perfect confidence
+    )
+    pd.testing.assert_series_equal(bl.bl_returns(), pd.Series([0.3] * 5))
+
+    # No confidence - should equal priors
+    bl = BlackLittermanModel(S, pi=pi, absolute_views=views, omega=S * 1e6)
+    pd.testing.assert_series_equal(bl.bl_returns(), pi)
+
+    # Idzorek 100% confidence
+    bl = BlackLittermanModel(
+        S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[1] * 5
+    )
+    np.testing.assert_array_almost_equal(bl.omega, np.zeros((5, 5)))
+    pd.testing.assert_series_equal(bl.bl_returns(), pd.Series(0.3, index=range(5)))
+
+    # Idzorek 0% confidence
+    bl = BlackLittermanModel(
+        S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[0] * 5
+    )
+    np.testing.assert_array_almost_equal(bl.omega, np.diag([1e6] * 5))
+    pd.testing.assert_series_equal(bl.bl_returns(), pi)
+
+    # Idzorek confidence range
+    for i, conf in enumerate(np.arange(0, 1.2, 0.2)):
+        bl = BlackLittermanModel(
+            S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[conf] * 5
+        )
+        # Linear spacing
+        np.testing.assert_almost_equal(bl.bl_returns()[0], 0.1 + i * 0.2 / 5)
+
+
+def test_idzorek_input_formats():
+    # Identity covariance
+    S = pd.DataFrame(np.diag(np.ones((5,))), index=range(5), columns=range(5))
+    # Constant view of 0.3 return
+    views = {k: 0.3 for k in range(5)}
+    # Prior
+    pi = pd.Series(0.1, index=range(5))
+
+    test_result = pd.Series(0.2, index=range(5))
+
+    bl = BlackLittermanModel(
+        S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[0.5] * 5
+    )
+    pd.testing.assert_series_equal(bl.bl_returns(), test_result)
+
+    bl = BlackLittermanModel(
+        S,
+        pi=pi,
+        absolute_views=views,
+        omega="idzorek",
+        view_confidences=(0.5, 0.5, 0.5, 0.5, 0.5),
+    )
+    pd.testing.assert_series_equal(bl.bl_returns(), test_result)
+
+    bl = BlackLittermanModel(
+        S,
+        pi=pi,
+        absolute_views=views,
+        omega="idzorek",
+        view_confidences=np.array([0.5] * 5),
+    )
+    pd.testing.assert_series_equal(bl.bl_returns(), test_result)
+
+    bl = BlackLittermanModel(
+        S,
+        pi=pi,
+        absolute_views=views,
+        omega="idzorek",
+        view_confidences=np.array([0.5] * 5).reshape(-1, 1),
+    )
+    pd.testing.assert_series_equal(bl.bl_returns(), test_result)
+
+
+def test_idzorek_with_priors():
     df = get_data()
     S = risk_models.sample_cov(df)
 
@@ -518,20 +635,26 @@ def test_idzorek():
         "SBUX": 102e9,
     }
 
-    df = get_data()
-    S = risk_models.sample_cov(df)
-    viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
-    view_confidences = [1, 0.2, 0.5, 0.3, 0.7]
-
+    viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
     bl = BlackLittermanModel(
         S,
         pi="market",
+        market_caps=mcaps,
         absolute_views=viewdict,
         omega="idzorek",
-        view_confidences=view_confidences,
-        market_caps=mcaps,
+        view_confidences=[1, 1, 0.25, 0.25],
     )
     rets = bl.bl_returns()
-    idzorek_omega = bl.omega
+    assert bl.omega[0, 0] == 0
+    np.testing.assert_almost_equal(rets["AAPL"], -0.3)
 
-    default_omega = BlackLittermanModel.default_omega(bl.cov_matrix, bl.P, bl.tau)
+    with pytest.raises(ValueError):
+        bl.portfolio_performance()
+
+    bl.bl_weights()
+    np.testing.assert_allclose(
+        bl.portfolio_performance(),
+        (0.943431295405105, 0.5361412623208567, 1.722365653051476),
+    )
+    # Check that bl.cov() has been called and used
+    assert bl.posterior_cov is not None
