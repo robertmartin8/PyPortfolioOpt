@@ -513,13 +513,13 @@ def test_idzorek_confidences_error():
 
     with pytest.raises(ValueError):
         #  Conf greater than 1
-        bl = BlackLittermanModel(
+        BlackLittermanModel(
             S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[1.1] * 5
         )
 
     with pytest.raises(ValueError):
         #  Conf less than zero
-        bl = BlackLittermanModel(
+        BlackLittermanModel(
             S, pi=pi, absolute_views=views, omega="idzorek", view_confidences=[-0.1] * 5
         )
 

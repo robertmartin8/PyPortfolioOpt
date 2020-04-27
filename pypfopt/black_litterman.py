@@ -104,6 +104,8 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
 
     Public methods:
 
+    - ``default_omega()`` - view uncertainty proportional to asset variance
+    - ``idzorek_method()`` - convert views specified as percentages into BL uncertainties
     - ``bl_returns()`` - posterior estimate of returns
     - ``bl_cov()`` - posterior estimate of covariance
     - ``bl_weights()`` - weights implied by posterior returns
@@ -131,8 +133,8 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param cov_matrix: NxN covariance matrix of returns
         :type cov_matrix: pd.DataFrame or np.ndarray
         :param pi: Nx1 prior estimate of returns, defaults to None.
-                   Can instead pass "market" to use a market-implied prior (requires market_caps)
-                   to be passed.
+                   Can instead pass "market" to use a market-implied prior (requires market_caps
+                   to be passed).
         :type pi: np.ndarray, pd.Series, optional
         :param absolute_views: a colleciton of K absolute views on a subset of assets,
                                defaults to None. If this is provided, we do not need P, Q.
@@ -145,16 +147,16 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                       Can instead pass "idzorek" to use Idzorek's method (requires
                       you to pass view_confidences). If omega="default" or None,
                       we set the uncertainty proportional to the variance.
-        :type omega: np.ndarray or Pd.DataFrame, optional
+        :type omega: np.ndarray or Pd.DataFrame, or string, optional
         :param view_confidences: Kx1 vector of percentage view confidences (between 0 and 1),
                                 required to compute omega via Idzorek's method.
-        :type view_confidences: np.ndarray, pd.Series, list,, optional
+        :type view_confidences: np.ndarray, pd.Series, list, optional
         :param tau: the weight-on-views scalar (default is 0.05)
         :type tau: float, optional
-        :param market_caps: (kwarg) market caps for the assets, required if pi="market"
-        :type market_caps: np.ndarray, pd.Series, optional
         :param risk_aversion: risk aversion parameter, defaults to 1
         :type risk_aversion: positive float, optional
+        :param market_caps: (kwarg) market caps for the assets, required if pi="market"
+        :type market_caps: np.ndarray, pd.Series, optional
         :param risk_free_rate: (kwarg) risk_free_rate is needed in some methods
         :type risk_free_rate: float, defaults to 0.02
         """
@@ -180,7 +182,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         # Make sure all dimensions work
         self._check_attribute_dimensions()
 
-        self._set_omega(omega, view_confidences, **kwargs)
+        self._set_omega(omega, view_confidences)
 
         # Private intermediaries
         self._tau_sigma_P = None
@@ -267,7 +269,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             raise ValueError("risk_aversion should be a positive float")
         self.risk_aversion = risk_aversion
 
-    def _set_omega(self, omega, view_confidences, **kawrgs):
+    def _set_omega(self, omega, view_confidences):
         if isinstance(omega, pd.DataFrame):
             self.omega = omega.values
         elif isinstance(omega, np.ndarray):
@@ -336,8 +338,9 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
     @staticmethod
     def idzorek_method(view_confidences, cov_matrix, pi, Q, P, tau, risk_aversion=1):
         """
-        Idzorek's method for creating the uncertainty matrix omega given user-specified
-        percentage confidences. We use the closed-form solution of Walters (2014).
+        Use Idzorek's method to create the uncertainty matrix given user-specified
+        percentage confidences. We use the closed-form solution described by
+        Jay Walters in The Black-Litterman Model in Detail (2014).
 
         :param view_confidences: Kx1 vector of percentage view confidences (between 0 and 1),
                                 required to compute omega via Idzorek's method.

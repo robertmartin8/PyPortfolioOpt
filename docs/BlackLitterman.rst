@@ -165,7 +165,11 @@ around a lot are harder to forecast! Hence PyPortfolioOpt does not require you t
 
     \Omega = \tau * P \Sigma P^T
 
-However, you are of course welcome to provide your own estimate. This is particularly applicable if your views are the output
+Alternatively, we provide an implementation of Idzorek's method [1]_. This allows you to specify your view uncertainties as
+percentage confidences. To use this, choose ``omega="idzorek"`` and pass a list of confidences (from 0 to 1) into the ``view_confidences``
+parameter.
+
+You are of course welcome to provide your own estimate. This is particularly applicable if your views are the output
 of some statistical model, which may also provide the view uncertainty.
 
 Another parameter that controls the relative weighting of the priors views is :math:`\tau`. There is a lot to be said about tuning
@@ -174,7 +178,7 @@ the sensible default :math:`\tau = 0.05`.
 
 .. note::
 
-    If you use this default estimate of :math:`\Omega`, it turns out that the value of :math:`\tau` does not matter. This
+    If you use the default estimate of :math:`\Omega`, or ``omega="idzorek"``, it turns out that the value of :math:`\tau` does not matter. This
     is a consequence of the mathematics: the :math:`\tau` cancels in the matrix multiplications.
 
 
@@ -231,4 +235,4 @@ References
 .. [1] Idzorek T. A step-by-step guide to the Black-Litterman model: Incorporating user-specified confidence levels. In: Forecasting Expected Returns in the Financial Markets. Elsevier Ltd; 2007. p. 17–38. 
 .. [2] Black, F; Litterman, R. Combining investor views with market equilibrium. The Journal of Fixed Income, 1991.
 .. [3] Walters, Jay, The Factor Tau in the Black-Litterman Model (October 9, 2013). Available at SSRN: https://ssrn.com/abstract=1701467 or http://dx.doi.org/10.2139/ssrn.1701467
-.. [4] Walters J. The Black-Litterman Model in Detail. SSRN Electron J. 2011;(February 2007):1–65. 
+.. [4] Walters J. The Black-Litterman Model in Detail (2014). SSRN Electron J.;(February 2007):1–65. 
