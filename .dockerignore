@@ -1,0 +1,13 @@
+#https://stackoverflow.com/questions/28097064/dockerignore-ignore-everything-except-a-file-and-the-dockerfile
+
+# Ignore Everything
+**
+
+!pypfopt
+!tests
+#!setup.py
+#!README.md
+!requirements.txt
+
+**/__pycache__
+**/*.pyc

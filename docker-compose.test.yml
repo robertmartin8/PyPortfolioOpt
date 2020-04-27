@@ -1,0 +1,12 @@
+version: '3.6'
+services:
+  sut:
+    build:
+       context: .
+       dockerfile: Dockerfile
+       target: test
+
+    volumes:
+      - ./artifacts:/artifacts
+      - ./tests:/pypfopt/tests
+      - ./pypfopt:/pypfopt/pypfopt:ro

@@ -1,0 +1,7 @@
+version: '3.6'
+services:
+  pypfopt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
