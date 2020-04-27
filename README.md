@@ -66,6 +66,8 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
 
 ## Getting started
 
+*Note: if you are on windows, you first need to installl C++. ([download](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16), [install instructions](https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view)*
+
 This project is available on PyPI, meaning that you can just:
 
 ```bash

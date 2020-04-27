@@ -38,11 +38,15 @@ in a risk-efficient way.
 Installation
 ============
 
-Installation should *never* be more difficult than::
+Installation on macOS or linux is as simple as::
 
     pip install PyPortfolioOpt
 
-However, for the sake of best practice, it is good to do this with a dependency manager. I suggest you
+Windows users need to go through the additional step of downloading C++ (for ``cvxpy``). You can
+download this `here <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
+ with additional instructions `here <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view>`_
+
+For the sake of best practice, it is good to do this with a dependency manager. I suggest you
 set yourself up with `poetry <https://github.com/sdispater/poetry>`_, then within a new poetry project
 run:
 
