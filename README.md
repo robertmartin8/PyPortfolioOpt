@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.1.0-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.2.0-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -181,8 +181,10 @@ Funds remaining: $8.42
 
 ## What's new
 
-As of v1.1.0:
+As of v1.2.0:
 
+- Idzorek's method for specifying Black-Litterman views using percentage confidences.
+- Industry constraints: limit your sector exposure.
 - Multiple additions and improvements to `risk_models`:
   - Introduced a new API, in which the function `risk_models.risk_matrix(method="...")` allows
     all the different risk models to be called. This should make testing easier.
