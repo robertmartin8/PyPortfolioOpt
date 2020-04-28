@@ -97,11 +97,26 @@ Basic Usage
                 risk-aversion parameter, which gives a useful estimate in the absence of other
                 information!
 
-.. caution::
+        .. automethod:: efficient_risk
 
-    If you pass an unreasonable target into :py:meth:`efficient_risk` or
-    :py:meth:`efficient_return`, the optimiser will fail silently and return
-    weird weights. *Caveat emptor* applies!
+            .. caution::
+
+                If you pass an unreasonable target into :py:meth:`efficient_risk` or
+                :py:meth:`efficient_return`, the optimiser will fail silently and return
+                weird weights. *Caveat emptor* applies!
+
+        .. automethod:: portfolio_performance
+
+            .. tip::
+
+                If you would like to use the ``portfolio_performance`` function independently of any
+                optimiser (e.g for debugging purposes), you can use:: 
+
+                    from pypfopt import base_optimizer
+
+                    base_optimizer.portfolio_performance(
+                        weights, expected_returns, cov_matrix, verbose=True, risk_free_rate=0.02
+                    )
 
 Adding objectives and constraints
 =================================
@@ -113,6 +128,8 @@ add constraints and objectives are documented below:
     .. class:: pypfopt.base_optimizer.BaseConvexOptimizer
 
         .. automethod:: add_constraint
+
+        .. automethod:: add_sector_constraints
 
         .. automethod:: add_objective
 
@@ -163,6 +180,7 @@ used to make them larger).
     (less than 20 assets), then ``gamma=1`` is a good starting point. For larger
     universes, or if you want more non-negligible weights in the final portfolio,
     increase ``gamma``.
+
 
 .. _custom-optimisation:
 
