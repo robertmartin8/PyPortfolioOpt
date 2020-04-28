@@ -5,7 +5,7 @@ import pytest
 from pypfopt import black_litterman
 from pypfopt.black_litterman import BlackLittermanModel
 from pypfopt import risk_models, expected_returns
-from tests.utilities_for_tests import get_data
+from tests.utilities_for_tests import get_data, resource
 
 
 def test_input_errors():
@@ -189,14 +189,12 @@ def test_bl_cov_default():
 
 
 def test_market_risk_aversion():
-    prices = pd.read_csv(
-        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
-    )
+    prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True)
     delta = black_litterman.market_implied_risk_aversion(prices)
     assert np.round(delta, 5) == 2.68549
 
     # check it works for df
-    prices = pd.read_csv("tests/spy_prices.csv", parse_dates=True, index_col=0)
+    prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0)
     delta = black_litterman.market_implied_risk_aversion(prices)
     assert np.round(delta.iloc[0], 5) == 2.68549
 
@@ -208,9 +206,8 @@ def test_bl_weights():
     viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
     bl = BlackLittermanModel(S, absolute_views=viewdict)
 
-    prices = pd.read_csv(
-        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
-    )
+    prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True)
+
     delta = black_litterman.market_implied_risk_aversion(prices)
     bl.bl_weights(delta)
     w = bl.clean_weights()
@@ -249,9 +246,7 @@ def test_market_implied_prior():
     df = get_data()
     S = risk_models.sample_cov(df)
 
-    prices = pd.read_csv(
-        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
-    )
+    prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True)
     delta = black_litterman.market_implied_risk_aversion(prices)
 
     mcaps = {
@@ -319,9 +314,8 @@ def test_bl_market_prior():
     df = get_data()
     S = risk_models.sample_cov(df)
 
-    prices = pd.read_csv(
-        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
-    )
+    prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True)
+
     delta = black_litterman.market_implied_risk_aversion(prices)
 
     mcaps = {
@@ -374,9 +368,8 @@ def test_bl_tau():
     df = get_data()
     S = risk_models.sample_cov(df)
 
-    prices = pd.read_csv(
-        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
-    )
+    prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True)
+
     delta = black_litterman.market_implied_risk_aversion(prices)
 
     mcaps = {
