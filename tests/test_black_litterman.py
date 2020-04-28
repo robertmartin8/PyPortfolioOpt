@@ -204,9 +204,7 @@ def test_bl_cov_default():
 
 
 def test_market_risk_aversion():
-    prices = pd.read_csv(
-        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
-    )
+    prices = pd.read_csv("tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True)
     delta = black_litterman.market_implied_risk_aversion(prices)
     assert np.round(delta, 5) == 2.68549
 
@@ -223,9 +221,13 @@ def test_bl_weights():
     viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
     bl = BlackLittermanModel(S, absolute_views=viewdict)
 
+<<<<<<< HEAD
     prices = pd.read_csv(
         "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
     )
+=======
+    prices = pd.read_csv("tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True)
+>>>>>>> 91d013cbe89787cd74bd1260c1563960b0510cfc
 
     delta = black_litterman.market_implied_risk_aversion(prices)
     bl.bl_weights(delta)
@@ -270,9 +272,7 @@ def test_market_implied_prior():
     df = get_data()
     S = risk_models.sample_cov(df)
 
-    prices = pd.read_csv(
-        "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
-    )
+    prices = pd.read_csv("tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True)
     delta = black_litterman.market_implied_risk_aversion(prices)
 
     mcaps = get_market_caps()
@@ -329,9 +329,13 @@ def test_bl_market_prior():
     df = get_data()
     S = risk_models.sample_cov(df)
 
+<<<<<<< HEAD
     prices = pd.read_csv(
         "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
     )
+=======
+    prices = pd.read_csv("tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True)
+>>>>>>> 91d013cbe89787cd74bd1260c1563960b0510cfc
 
     delta = black_litterman.market_implied_risk_aversion(prices)
 
@@ -380,9 +384,13 @@ def test_bl_tau():
     df = get_data()
     S = risk_models.sample_cov(df)
 
+<<<<<<< HEAD
     prices = pd.read_csv(
         "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
     )
+=======
+    prices = pd.read_csv("tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True)
+>>>>>>> 91d013cbe89787cd74bd1260c1563960b0510cfc
 
     delta = black_litterman.market_implied_risk_aversion(prices)
 
