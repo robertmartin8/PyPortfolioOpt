@@ -237,7 +237,9 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     def add_sector_constraints(self, sector_mapper, sector_lower, sector_upper):
         """
-        Add sector constraints, e.g portfolio's exposure to tech must be less than x%::
+        Adds constraints on the sum of weights of different groups of assets.
+        Most commonly, these will be sector constraints e.g portfolio's exposure to
+        tech must be less than x%::
 
             sector_mapper = {
                 "GOOG": "tech",
@@ -266,10 +268,10 @@ class BaseConvexOptimizer(BaseOptimizer):
                 "Sector constraints may not produce reasonable results if shorts are allowed."
             )
         for sector in sector_upper:
-            is_sector = [v == sector for k, v in sector_mapper.items()]
+            is_sector = [sector_mapper[t] == sector for t in self.tickers]
             self._constraints.append(cp.sum(self._w[is_sector]) <= sector_upper[sector])
         for sector in sector_lower:
-            is_sector = [v == sector for k, v in sector_mapper.items()]
+            is_sector = [sector_mapper[t] == sector for t in self.tickers]
             self._constraints.append(cp.sum(self._w[is_sector]) >= sector_lower[sector])
 
     def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):

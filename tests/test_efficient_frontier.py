@@ -216,16 +216,6 @@ def test_min_volatility_cvxpy_vs_scipy():
 
 def test_min_volatility_sector_constraints():
     sector_mapper = {
-        "GOOG": "tech",
-        "AAPL": "tech",
-        "FB": "tech",
-        "AMZN": "tech",
-        "BABA": "tech",
-        "GE": "utility",
-        "AMD": "tech",
-        "WMT": "retail",
-        "BAC": "fig",
-        "GM": "auto",
         "T": "auto",
         "UAA": "airline",
         "SHLD": "retail",
@@ -236,6 +226,16 @@ def test_min_volatility_sector_constraints():
         "PFE": "pharma",
         "JPM": "fig",
         "SBUX": "retail",
+        "GOOG": "tech",
+        "AAPL": "tech",
+        "FB": "tech",
+        "AMZN": "tech",
+        "BABA": "tech",
+        "GE": "utility",
+        "AMD": "tech",
+        "WMT": "retail",
+        "BAC": "fig",
+        "GM": "auto",
     }
 
     sector_upper = {
