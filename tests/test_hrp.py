@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from pypfopt import HRPOpt
+from pypfopt import HRPOpt, CovarianceShrinkage
 from tests.utilities_for_tests import get_data
 
 
@@ -26,6 +26,16 @@ def test_portfolio_performance():
         hrp.portfolio_performance(),
         (0.21353402380950973, 0.17844159743748936, 1.084579081272277),
     )
+
+
+def test_pass_cov_matrix():
+    df = get_data()
+    S = CovarianceShrinkage(df).ledoit_wolf()
+    hrp = HRPOpt(cov_matrix=S)
+    hrp.optimize()
+    perf = hrp.portfolio_performance()
+    assert perf[0] is None and perf[2] is None
+    np.testing.assert_almost_equal(perf[1], 0.10002783894982334)
 
 
 def test_cluster_var():

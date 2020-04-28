@@ -18,7 +18,7 @@ import pandas as pd
 import scipy.cluster.hierarchy as sch
 import scipy.spatial.distance as ssd
 
-from . import base_optimizer
+from . import base_optimizer, risk_models
 
 
 class HRPOpt(base_optimizer.BaseOptimizer):
@@ -49,18 +49,28 @@ class HRPOpt(base_optimizer.BaseOptimizer):
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
-    def __init__(self, returns):
+    def __init__(self, returns=None, cov_matrix=None):
         """
         :param returns: asset historical returns
         :type returns: pd.DataFrame
+        :param cov_matrix: covariance of asset returns
+        :type cov_matrix: pd.DataFrame.
         :raises TypeError: if ``returns`` is not a dataframe
         """
-        if not isinstance(returns, pd.DataFrame):
+        if returns is None and cov_matrix is None:
+            raise ValueError("Either returns or cov_matrix must be provided")
+
+        if returns is not None and not isinstance(returns, pd.DataFrame):
             raise TypeError("returns are not a dataframe")
 
         self.returns = returns
+        self.cov_matrix = cov_matrix
         self.clusters = None
-        tickers = list(returns.columns)
+
+        if returns is None:
+            tickers = list(cov_matrix.columns)
+        else:
+            tickers = list(returns.columns)
         super().__init__(len(tickers), tickers)
 
     @staticmethod
@@ -153,7 +163,11 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         :return: weights for the HRP portfolio
         :rtype: dict
         """
-        corr, cov = self.returns.corr(), self.returns.cov()
+        if self.returns is None:
+            cov = self.cov_matrix
+            corr = risk_models.cov_to_corr(self.cov_matrix).round(6)
+        else:
+            corr, cov = self.returns.corr(), self.returns.cov()
 
         # Compute distance matrix, with ClusterWarning fix as
         # per https://stackoverflow.com/questions/18952587/
@@ -175,7 +189,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
 
         warnings.warn(
             "This method is deprecated and will be removed in v1.2.0. "
-            "Please use pypfopt.plotting instead"
+            "Please use pypfopt.Plotting instead"
         )
 
         if self.clusters is None:
@@ -216,10 +230,13 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """
+        if self.returns is None:
+            cov = self.cov_matrix
+            mu = None
+        else:
+            cov = self.returns.cov() * frequency
+            mu = self.returns.mean() * frequency
+
         return base_optimizer.portfolio_performance(
-            self.weights,
-            self.returns.mean() * frequency,
-            self.returns.cov() * frequency,
-            verbose,
-            risk_free_rate,
+            self.weights, mu, cov, verbose, risk_free_rate
         )
