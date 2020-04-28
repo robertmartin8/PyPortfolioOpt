@@ -3,6 +3,7 @@ The ``exceptions`` module houses custom exceptions. Currently implemented:
 
 - OptimizationError
 """
+import traceback
 
 
 class OptimizationError(Exception):
@@ -19,3 +20,5 @@ class OptimizationError(Exception):
         if not (args or kwargs):
             args = (default_message,)
         super().__init__(*args, **kwargs)
+
+        traceback.print_exc()
