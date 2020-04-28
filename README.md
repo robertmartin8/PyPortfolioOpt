@@ -87,6 +87,8 @@ Otherwise, clone/download the project and in the project directory run:
 python setup.py install
 ```
 
+Thanks to Thomas Schmelzer, PyPortfolioOpt now supports Docker (requires **make**, **docker**, **docker-compose**). Build your first container with `make build`; run tests with `make test`. For more information, please read [this guide](https://docker-curriculum.com/#introduction).
+
 ### For development
 
 If you would like to make major changes to integrate this with your proprietary system, it probably makes sense to clone this repository and to just use the source code.
@@ -183,6 +185,7 @@ Funds remaining: $8.42
 
 As of v1.2.0:
 
+- Docker support
 - Idzorek's method for specifying Black-Litterman views using percentage confidences.
 - Industry constraints: limit your sector exposure.
 - Multiple additions and improvements to `risk_models`:

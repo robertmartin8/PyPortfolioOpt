@@ -5,7 +5,7 @@ import pytest
 from pypfopt import black_litterman
 from pypfopt.black_litterman import BlackLittermanModel
 from pypfopt import risk_models, expected_returns
-from tests.utilities_for_tests import get_data
+from tests.utilities_for_tests import get_data, get_market_caps
 
 
 def test_input_errors():
@@ -226,6 +226,7 @@ def test_bl_weights():
     prices = pd.read_csv(
         "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
     )
+
     delta = black_litterman.market_implied_risk_aversion(prices)
     bl.bl_weights(delta)
     w = bl.clean_weights()
@@ -274,28 +275,7 @@ def test_market_implied_prior():
     )
     delta = black_litterman.market_implied_risk_aversion(prices)
 
-    mcaps = {
-        "GOOG": 927e9,
-        "AAPL": 1.19e12,
-        "FB": 574e9,
-        "BABA": 533e9,
-        "AMZN": 867e9,
-        "GE": 96e9,
-        "AMD": 43e9,
-        "WMT": 339e9,
-        "BAC": 301e9,
-        "GM": 51e9,
-        "T": 61e9,
-        "UAA": 78e9,
-        "SHLD": 0,
-        "XOM": 295e9,
-        "RRC": 1e9,
-        "BBY": 22e9,
-        "MA": 288e9,
-        "PFE": 212e9,
-        "JPM": 422e9,
-        "SBUX": 102e9,
-    }
+    mcaps = get_market_caps()
     pi = black_litterman.market_implied_prior_returns(mcaps, delta, S)
     assert isinstance(pi, pd.Series)
     assert list(pi.index) == list(df.columns)
@@ -352,30 +332,10 @@ def test_bl_market_prior():
     prices = pd.read_csv(
         "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
     )
+
     delta = black_litterman.market_implied_risk_aversion(prices)
 
-    mcaps = {
-        "GOOG": 927e9,
-        "AAPL": 1.19e12,
-        "FB": 574e9,
-        "BABA": 533e9,
-        "AMZN": 867e9,
-        "GE": 96e9,
-        "AMD": 43e9,
-        "WMT": 339e9,
-        "BAC": 301e9,
-        "GM": 51e9,
-        "T": 61e9,
-        "UAA": 78e9,
-        "SHLD": 0,
-        "XOM": 295e9,
-        "RRC": 1e9,
-        "BBY": 22e9,
-        "MA": 288e9,
-        "PFE": 212e9,
-        "JPM": 422e9,
-        "SBUX": 102e9,
-    }
+    mcaps = get_market_caps()
     prior = black_litterman.market_implied_prior_returns(mcaps, delta, S)
 
     viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
@@ -404,28 +364,7 @@ def test_bl_market_automatic():
     df = get_data()
     S = risk_models.sample_cov(df)
 
-    mcaps = {
-        "GOOG": 927e9,
-        "AAPL": 1.19e12,
-        "FB": 574e9,
-        "BABA": 533e9,
-        "AMZN": 867e9,
-        "GE": 96e9,
-        "AMD": 43e9,
-        "WMT": 339e9,
-        "BAC": 301e9,
-        "GM": 51e9,
-        "T": 61e9,
-        "UAA": 78e9,
-        "SHLD": 0,
-        "XOM": 295e9,
-        "RRC": 1e9,
-        "BBY": 22e9,
-        "MA": 288e9,
-        "PFE": 212e9,
-        "JPM": 422e9,
-        "SBUX": 102e9,
-    }
+    mcaps = get_market_caps()
     viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
     bl = BlackLittermanModel(S, pi="market", absolute_views=viewdict, market_caps=mcaps)
     rets = bl.bl_returns()
@@ -444,30 +383,10 @@ def test_bl_tau():
     prices = pd.read_csv(
         "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
     )
+
     delta = black_litterman.market_implied_risk_aversion(prices)
 
-    mcaps = {
-        "GOOG": 927e9,
-        "AAPL": 1.19e12,
-        "FB": 574e9,
-        "BABA": 533e9,
-        "AMZN": 867e9,
-        "GE": 96e9,
-        "AMD": 43e9,
-        "WMT": 339e9,
-        "BAC": 301e9,
-        "GM": 51e9,
-        "T": 61e9,
-        "UAA": 78e9,
-        "SHLD": 0,
-        "XOM": 295e9,
-        "RRC": 1e9,
-        "BBY": 22e9,
-        "MA": 288e9,
-        "PFE": 212e9,
-        "JPM": 422e9,
-        "SBUX": 102e9,
-    }
+    mcaps = get_market_caps()
     prior = black_litterman.market_implied_prior_returns(mcaps, delta, S)
 
     viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
@@ -632,28 +551,7 @@ def test_idzorek_with_priors():
     df = get_data()
     S = risk_models.sample_cov(df)
 
-    mcaps = {
-        "GOOG": 927e9,
-        "AAPL": 1.19e12,
-        "FB": 574e9,
-        "BABA": 533e9,
-        "AMZN": 867e9,
-        "GE": 96e9,
-        "AMD": 43e9,
-        "WMT": 339e9,
-        "BAC": 301e9,
-        "GM": 51e9,
-        "T": 61e9,
-        "UAA": 78e9,
-        "SHLD": 0,
-        "XOM": 295e9,
-        "RRC": 1e9,
-        "BBY": 22e9,
-        "MA": 288e9,
-        "PFE": 212e9,
-        "JPM": 422e9,
-        "SBUX": 102e9,
-    }
+    mcaps = get_market_caps()
 
     viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
     bl = BlackLittermanModel(
