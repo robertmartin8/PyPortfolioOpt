@@ -133,8 +133,9 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param cov_matrix: NxN covariance matrix of returns
         :type cov_matrix: pd.DataFrame or np.ndarray
         :param pi: Nx1 prior estimate of returns, defaults to None.
-                   Can instead pass "market" to use a market-implied prior (requires market_caps
+                   If pi="market", calculate a market-implied prior (requires market_caps
                    to be passed).
+                   If pi="equal", use an equal-weighted prior.
         :type pi: np.ndarray, pd.Series, optional
         :param absolute_views: a colleciton of K absolute views on a subset of assets,
                                defaults to None. If this is provided, we do not need P, Q.
@@ -256,6 +257,8 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             self.pi = market_implied_prior_returns(
                 market_caps, self.risk_aversion, self.cov_matrix, risk_free_rate
             ).reshape(-1, 1)
+        elif pi == "equal":
+            self.pi = np.ones((self.n_assets, 1)) / self.n_assets
         else:
             raise TypeError("pi must be an array or series")
 
@@ -432,6 +435,12 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         raw_weights = np.linalg.solve(A, b)
         self.weights = raw_weights / raw_weights.sum()
         return dict(zip(self.tickers, self.weights))
+
+    def optimize(self, risk_aversion=None):
+        """
+        Alias for bl_weights for consistency with other methods.
+        """
+        return self.bl_weights(risk_aversion)
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """

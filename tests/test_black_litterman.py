@@ -111,6 +111,21 @@ def test_bl_returns_no_prior():
     np.testing.assert_array_almost_equal(rets.values.reshape(-1, 1), test_rets)
 
 
+def test_bl_equal_prior():
+    df = get_data()
+    S = risk_models.sample_cov(df)
+
+    viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
+    bl = BlackLittermanModel(S, absolute_views=viewdict, pi="equal")
+    np.testing.assert_array_almost_equal(bl.pi, np.ones((20, 1)) * 0.05)
+
+    bl.bl_weights()
+    np.testing.assert_allclose(
+        bl.portfolio_performance(),
+        (0.1877432247395778, 0.3246889329226965, 0.5166274785827545),
+    )
+
+
 def test_bl_returns_all_views():
     df = get_data()
     prior = expected_returns.ema_historical_return(df)
@@ -243,6 +258,11 @@ def test_bl_weights():
         "JPM": 0.0,
         "SBUX": -1.79776,
     }
+
+    bl = BlackLittermanModel(S, absolute_views=viewdict)
+    bl.optimize(delta)
+    w2 = bl.clean_weights()
+    assert w2 == w
 
 
 def test_market_implied_prior():
