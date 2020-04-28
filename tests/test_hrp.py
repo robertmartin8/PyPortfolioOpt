@@ -2,14 +2,9 @@ import numpy as np
 import pandas as pd
 
 import pytest
-<<<<<<< HEAD
 from pypfopt import HRPOpt, CovarianceShrinkage
-from tests.utilities_for_tests import get_data
-
-=======
-from pypfopt import HRPOpt
 from tests.utilities_for_tests import get_data, resource
->>>>>>> 91d013cbe89787cd74bd1260c1563960b0510cfc
+
 
 def test_hrp_portfolio():
     df = get_data()
@@ -21,7 +16,9 @@ def test_hrp_portfolio():
     # pd.Series(w).to_csv(resource("weights_hrp.csv"))
 
     x = pd.read_csv(resource("weights_hrp.csv"), squeeze=True, index_col=0)
-    pd.testing.assert_series_equal(x, pd.Series(w), check_names=False, check_less_precise=True)
+    pd.testing.assert_series_equal(
+        x, pd.Series(w), check_names=False, check_less_precise=True
+    )
 
     assert isinstance(w, dict)
     assert set(w.keys()) == set(df.columns)
