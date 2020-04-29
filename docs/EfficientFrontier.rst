@@ -34,6 +34,11 @@ As a brief aside, I should note that while "efficient frontier" optimisation is 
 specific method, I tend to use it as a blanket term (interchangeably with mean-variance
 optimisation) to refer to anything similar, such as minimising variance.
 
+.. tip::
+
+    You can find complete examples in the relevant cookbook `recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/2-Mean-Variance-Optimisation.ipynb>`_.
+
+
 Structure
 =========
 
@@ -196,7 +201,7 @@ The ``EfficientFrontier`` class inherits from the ``BaseConvexOptimizer``, which
 define your own optimisation problem. You can either optimise some generic ``convex_objective``
 (which *must* be built using ``cvxpy`` atomic functions -- see `here <https://www.cvxpy.org/tutorial/functions/index.html>`_)
 or a ``nonconvex_objective``, which uses ``scipy.optimize`` as the backend and thus has a completely
-different API.
+different API. For examples, check out this `cookbook recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/3-Advanced-Mean-Variance-Optimisation.ipynb>`_
 
     .. class:: pypfopt.base_optimizer.BaseConvexOptimizer
 

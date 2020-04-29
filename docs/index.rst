@@ -95,8 +95,9 @@ you should try
 A Quick Example
 ===============
 
-This section contains a quick look at what PyPortfolioOpt can do. For a full tour,
-please check out the :ref:`user-guide`.
+This section contains a quick look at what PyPortfolioOpt can do. For a guided tour,
+please check out the :ref:`user-guide`. For even more examples, check out the Jupyter
+notebooks in the `cookbook <https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook>`_.
 
 If you already have expected returns ``mu`` and a risk model ``S`` for your set of
 assets, generating an optimal portfolio is as easy as::

@@ -36,7 +36,7 @@ handful of undervalued picks, or an algorithmic trader who has a basket of
 interesting signals, PyPortfolioOpt can help you combine your alpha streams
 in a risk-efficient way.
 
-Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/) to get an in-depth look at the project, or continue below to check out some examples.
+Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/) to get an in-depth look at the project, or check out the [cookbook](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook) to see some examples showing the full process from downloading data to building a portfolio.
 
 <center>
 <img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v2.png" style="width:70%;"/>
@@ -226,8 +226,7 @@ components while still making use of the framework that PyPortfolioOpt provides.
 
 ## Features
 
-In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. More examples are offered in `examples.py`, but in my opinion the best resource
-to understand PyPortfolioOpt is the [tests](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests).
+In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. More examples are offered in the Jupyter notebooks [here](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook). Another good resource is the [tests](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests).
 
 A far more comprehensive version of this can be found on [ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/), as well as possible extensions for more advanced users.
 
@@ -322,7 +321,7 @@ on formatting inputs.
 ```python
 S = risk_models.sample_cov(df)
 viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
-bl = BlackLittermanModel(S, absolute_views=viewdict)
+bl = BlackLittermanModel(S, pi="equal", absolute_views=viewdict, omega="default")
 rets = bl.bl_returns()
 
 ef = EfficientFrontier(rets, S)
