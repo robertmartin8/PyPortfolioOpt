@@ -65,6 +65,8 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
                             frequency of expected returns.
     :type risk_free_rate: float, optional
     :raises TypeError: if market_prices cannot be parsed
+    :return: market-implied risk aversion
+    :rtype: float
     """
     if not isinstance(market_prices, (pd.Series, pd.DataFrame)):
         raise TypeError("Please format market_prices as a pd.Series")

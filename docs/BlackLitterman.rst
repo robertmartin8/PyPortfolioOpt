@@ -49,7 +49,13 @@ but I ultimately decided that though BL is not technically an optimiser, it didn
 split up its methods into `expected_returns` or `risk_models`. I have thus made it an independent
 module and owing to the comparatively extensive theory, have given it a dedicated documentation page.
 I'd like to thank  `Felipe Schneider <https://github.com/schneiderfelipe>`_ for his multiple
-contributions to the Black-Litterman implementation.
+contributions to the Black-Litterman implementation. A full example of its usage, including the acquistion
+of market cap data for free, 
+
+.. caution:: 
+
+    Our implementation of Black-Litterman makes frequent use of the fact that python 3.7 dictionaries
+    remain ordered. Please use python 3.7 to ensure that everything works as intended.
 
 Priors
 ======
