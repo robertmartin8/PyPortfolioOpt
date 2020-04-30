@@ -153,7 +153,10 @@ class HRPOpt(base_optimizer.BaseOptimizer):
 
         # Compute distance matrix, with ClusterWarning fix as
         # per https://stackoverflow.com/questions/18952587/
-        dist = ssd.squareform(((1 - corr) / 2) ** 0.5)
+
+        # this can avoid some nasty floating point issues
+        matrix = np.sqrt(np.clip((1.0 - corr) / 2., a_min=0.0, a_max=1.0))
+        dist = ssd.squareform(matrix, checks=False)
 
         self.clusters = sch.linkage(dist, "single")
         sort_ix = HRPOpt._get_quasi_diag(self.clusters)
