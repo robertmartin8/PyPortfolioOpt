@@ -79,9 +79,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         cov_slice = cov.loc[cluster_items, cluster_items]
         weights = 1 / np.diag(cov_slice)  # Inverse variance weights
         weights /= weights.sum()
-        w = weights.reshape(-1, 1)
-        cluster_var = np.dot(np.dot(w.T, cov_slice), w)[0, 0]
-        return cluster_var
+        return np.linalg.multi_dot((weights, cov_slice, weights))
 
     @staticmethod
     def _get_quasi_diag(link):
@@ -93,23 +91,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         :return: sorted list of indices
         :rtype: list
         """
-        link = link.astype(int)
-        # The new clusters formed
-        c = np.arange(link.shape[0]) + link[-1, 3]
-        root_id = c[-1]
-        d = dict(list(zip(c, link[:, 0:2].tolist())))
-
-        # Unpacks the linkage matrix recursively.
-        def recursive_unlink(curr, d):
-            """ Start this with curr = root integer """
-            if curr in d:
-                return [
-                    node for parent in d[curr] for node in recursive_unlink(parent, d)
-                ]
-            else:
-                return [curr]
-
-        return recursive_unlink(root_id, d)
+        return sch.to_tree(link, rd=False).pre_order()
 
     @staticmethod
     def _raw_hrp_allocation(cov, ordered_tickers):
@@ -138,9 +120,11 @@ class HRPOpt(base_optimizer.BaseOptimizer):
             for i in range(0, len(cluster_items), 2):
                 first_cluster = cluster_items[i]
                 second_cluster = cluster_items[i + 1]
+                print(first_cluster, second_cluster)
                 # Form the inverse variance portfolio for this pair
                 first_variance = HRPOpt._get_cluster_var(cov, first_cluster)
                 second_variance = HRPOpt._get_cluster_var(cov, second_cluster)
+                print(first_variance, second_variance)
                 alpha = 1 - first_variance / (first_variance + second_variance)
                 w[first_cluster] *= alpha  # weight 1
                 w[second_cluster] *= 1 - alpha  # weight 2
