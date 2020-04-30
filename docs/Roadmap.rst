@@ -20,6 +20,17 @@ have any other feature requests, please raise them using GitHub
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Further support for different risk/return models
 
+1.2.0
+=====
+
+- Added Idzorek's method for calculating the ``omega`` matrix given percentage confidences.
+- Fixed max sharpe to allow for custom constraints
+- Grouped sector constraints
+- Improved error tracebacks
+- Adding new cookbook for examples (in progress).
+- Packaging: added bettter instructions for windows, added docker support.
+
+
 1.1.0
 =====
 

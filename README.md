@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.1.0-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.2.1-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -36,7 +36,7 @@ handful of undervalued picks, or an algorithmic trader who has a basket of
 interesting signals, PyPortfolioOpt can help you combine your alpha streams
 in a risk-efficient way.
 
-Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/) to get an in-depth look at the project, or continue below to check out some examples.
+Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/) to get an in-depth look at the project, or check out the [cookbook](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook) to see some examples showing the full process from downloading data to building a portfolio.
 
 <center>
 <img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v2.png" style="width:70%;"/>
@@ -66,6 +66,8 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
 
 ## Getting started
 
+*Note: if you are on windows, you first need to installl C++. ([download](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16), [install instructions](https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view)*
+
 This project is available on PyPI, meaning that you can just:
 
 ```bash
@@ -84,6 +86,8 @@ Otherwise, clone/download the project and in the project directory run:
 ```bash
 python setup.py install
 ```
+
+Thanks to Thomas Schmelzer, PyPortfolioOpt now supports Docker (requires **make**, **docker**, **docker-compose**). Build your first container with `make build`; run tests with `make test`. For more information, please read [this guide](https://docker-curriculum.com/#introduction).
 
 ### For development
 
@@ -179,8 +183,11 @@ Funds remaining: $8.42
 
 ## What's new
 
-As of v1.1.0:
+As of v1.2.0:
 
+- Docker support
+- Idzorek's method for specifying Black-Litterman views using percentage confidences.
+- Industry constraints: limit your sector exposure.
 - Multiple additions and improvements to `risk_models`:
   - Introduced a new API, in which the function `risk_models.risk_matrix(method="...")` allows
     all the different risk models to be called. This should make testing easier.
@@ -219,8 +226,7 @@ components while still making use of the framework that PyPortfolioOpt provides.
 
 ## Features
 
-In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. More examples are offered in `examples.py`, but in my opinion the best resource
-to understand PyPortfolioOpt is the [tests](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests).
+In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. More examples are offered in the Jupyter notebooks [here](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook). Another good resource is the [tests](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests).
 
 A far more comprehensive version of this can be found on [ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/), as well as possible extensions for more advanced users.
 
@@ -315,7 +321,7 @@ on formatting inputs.
 ```python
 S = risk_models.sample_cov(df)
 viewdict = {"AAPL": 0.20, "BBY": -0.30, "BAC": 0, "SBUX": -0.2, "T": 0.131321}
-bl = BlackLittermanModel(S, absolute_views=viewdict)
+bl = BlackLittermanModel(S, pi="equal", absolute_views=viewdict, omega="default")
 rets = bl.bl_returns()
 
 ef = EfficientFrontier(rets, S)

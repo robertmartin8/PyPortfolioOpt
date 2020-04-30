@@ -65,6 +65,8 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
                             frequency of expected returns.
     :type risk_free_rate: float, optional
     :raises TypeError: if market_prices cannot be parsed
+    :return: market-implied risk aversion
+    :rtype: float
     """
     if not isinstance(market_prices, (pd.Series, pd.DataFrame)):
         raise TypeError("Please format market_prices as a pd.Series")
@@ -104,6 +106,8 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
 
     Public methods:
 
+    - ``default_omega()`` - view uncertainty proportional to asset variance
+    - ``idzorek_method()`` - convert views specified as percentages into BL uncertainties
     - ``bl_returns()`` - posterior estimate of returns
     - ``bl_cov()`` - posterior estimate of covariance
     - ``bl_weights()`` - weights implied by posterior returns
@@ -122,12 +126,18 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         Q=None,
         P=None,
         omega=None,
+        view_confidences=None,
         tau=0.05,
+        risk_aversion=1,
+        **kwargs
     ):
         """
         :param cov_matrix: NxN covariance matrix of returns
         :type cov_matrix: pd.DataFrame or np.ndarray
-        :param pi: Nx1 prior estimate of returns (e.g market-implied returns), defaults to None
+        :param pi: Nx1 prior estimate of returns, defaults to None.
+                   If pi="market", calculate a market-implied prior (requires market_caps
+                   to be passed).
+                   If pi="equal", use an equal-weighted prior.
         :type pi: np.ndarray, pd.Series, optional
         :param absolute_views: a colleciton of K absolute views on a subset of assets,
                                defaults to None. If this is provided, we do not need P, Q.
@@ -137,63 +147,45 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param P: KxN picking matrix, defaults to None
         :type P: np.ndarray or pd.DataFrame, optional
         :param omega: KxK view uncertainty matrix (diagonal), defaults to None
-        :type omega: np.ndarray or Pd.DataFrame, optional
+                      Can instead pass "idzorek" to use Idzorek's method (requires
+                      you to pass view_confidences). If omega="default" or None,
+                      we set the uncertainty proportional to the variance.
+        :type omega: np.ndarray or Pd.DataFrame, or string, optional
+        :param view_confidences: Kx1 vector of percentage view confidences (between 0 and 1),
+                                required to compute omega via Idzorek's method.
+        :type view_confidences: np.ndarray, pd.Series, list, optional
         :param tau: the weight-on-views scalar (default is 0.05)
         :type tau: float, optional
+        :param risk_aversion: risk aversion parameter, defaults to 1
+        :type risk_aversion: positive float, optional
+        :param market_caps: (kwarg) market caps for the assets, required if pi="market"
+        :type market_caps: np.ndarray, pd.Series, optional
+        :param risk_free_rate: (kwarg) risk_free_rate is needed in some methods
+        :type risk_free_rate: float, defaults to 0.02
         """
-        # No typechecks because we assume this is the output of a pypfopt method.
-        self.cov_matrix = cov_matrix.values
-        # Initialise BaseOptimizer
-        super().__init__(len(cov_matrix), cov_matrix.columns)
+        # Keep raw dataframes
+        self._raw_cov_matrix = cov_matrix
 
-        # Views
+        #  Initialise base optimiser
+        if isinstance(cov_matrix, np.ndarray):
+            self.cov_matrix = cov_matrix
+            super().__init__(len(cov_matrix), list(range(len(cov_matrix))))
+        else:
+            self.cov_matrix = cov_matrix.values
+            super().__init__(len(cov_matrix), cov_matrix.columns)
+
+        #  Sanitise inputs
         if absolute_views is not None:
             self.Q, self.P = self._parse_views(absolute_views)
         else:
-            if isinstance(Q, (pd.Series, pd.DataFrame)):
-                self.Q = Q.values.reshape(-1, 1)
-            elif isinstance(Q, np.ndarray):
-                self.Q = Q.reshape(-1, 1)
-            else:
-                raise TypeError("Q must be an array or dataframe")
+            self._set_Q_P(Q, P)
+        self._set_risk_aversion(risk_aversion)
+        self._set_pi(pi, **kwargs)
+        self._set_tau(tau)
+        # Make sure all dimensions work
+        self._check_attribute_dimensions()
 
-            if isinstance(P, pd.DataFrame):
-                self.P = P.values
-            elif isinstance(P, np.ndarray):
-                self.P = P
-            elif len(self.Q) == self.n_assets:
-                # If a view on every asset is provided, P defaults
-                # to the identity matrix.
-                self.P = np.eye(self.n_assets)
-            else:
-                raise TypeError("P must be an array or dataframe")
-
-        if pi is None:
-            warnings.warn("Running Black-Litterman with no prior.")
-            self.pi = np.zeros((self.n_assets, 1))
-        else:
-            if isinstance(pi, (pd.Series, pd.DataFrame)):
-                self.pi = pi.values.reshape(-1, 1)
-            elif isinstance(pi, np.ndarray):
-                self.pi = pi.reshape(-1, 1)
-            else:
-                raise TypeError("pi must be an array or series")
-
-        if tau <= 0 or tau > 1:
-            raise ValueError("tau should be between 0 and 1")
-        self.tau = tau
-
-        if omega is None:
-            self.omega = BlackLittermanModel._default_omega(
-                self.cov_matrix, self.P, self.tau
-            )
-        else:
-            if isinstance(omega, pd.DataFrame):
-                self.omega = omega.values
-            elif isinstance(omega, np.ndarray):
-                self.omega = omega
-            else:
-                raise TypeError("self.omega must be a square array or dataframe")
+        self._set_omega(omega, view_confidences)
 
         # Private intermediaries
         self._tau_sigma_P = None
@@ -201,8 +193,6 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
 
         self.posterior_rets = None
         self.posterior_cov = None
-        # Make sure all dimensions work
-        self._check_attribute_dimensions()
 
     def _parse_views(self, absolute_views):
         """
@@ -231,8 +221,115 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                 raise ValueError("Providing a view on an asset not in the universe")
         return Q, P
 
+    def _set_Q_P(self, Q, P):
+        if isinstance(Q, (pd.Series, pd.DataFrame)):
+            self.Q = Q.values.reshape(-1, 1)
+        elif isinstance(Q, np.ndarray):
+            self.Q = Q.reshape(-1, 1)
+        else:
+            raise TypeError("Q must be an array or dataframe")
+
+        if isinstance(P, pd.DataFrame):
+            self.P = P.values
+        elif isinstance(P, np.ndarray):
+            self.P = P
+        elif len(self.Q) == self.n_assets:
+            # If a view on every asset is provided, P defaults
+            # to the identity matrix.
+            self.P = np.eye(self.n_assets)
+        else:
+            raise TypeError("P must be an array or dataframe")
+
+    def _set_pi(self, pi, **kwargs):
+        if pi is None:
+            warnings.warn("Running Black-Litterman with no prior.")
+            self.pi = np.zeros((self.n_assets, 1))
+        elif isinstance(pi, (pd.Series, pd.DataFrame)):
+            self.pi = pi.values.reshape(-1, 1)
+        elif isinstance(pi, np.ndarray):
+            self.pi = pi.reshape(-1, 1)
+        elif pi == "market":
+            if "market_caps" not in kwargs:
+                raise ValueError(
+                    "Please pass a series/array of market caps via the market_caps keyword argument"
+                )
+            market_caps = kwargs.get("market_caps")
+            risk_free_rate = kwargs.get("risk_free_rate", 0)
+
+            self.pi = market_implied_prior_returns(
+                market_caps, self.risk_aversion, self.cov_matrix, risk_free_rate
+            ).reshape(-1, 1)
+        elif pi == "equal":
+            self.pi = np.ones((self.n_assets, 1)) / self.n_assets
+        else:
+            raise TypeError("pi must be an array or series")
+
+    def _set_tau(self, tau):
+        if tau <= 0 or tau > 1:
+            raise ValueError("tau should be between 0 and 1")
+        self.tau = tau
+
+    def _set_risk_aversion(self, risk_aversion):
+        if risk_aversion <= 0:
+            raise ValueError("risk_aversion should be a positive float")
+        self.risk_aversion = risk_aversion
+
+    def _set_omega(self, omega, view_confidences):
+        if isinstance(omega, pd.DataFrame):
+            self.omega = omega.values
+        elif isinstance(omega, np.ndarray):
+            self.omega = omega
+        elif omega == "idzorek":
+            if view_confidences is None:
+                raise ValueError(
+                    "To use Idzorek's method, please supply a vector of percentage "
+                    "confidence levels for each view."
+                )
+            if not isinstance(view_confidences, np.ndarray):
+                try:
+                    view_confidences = np.array(view_confidences).reshape(-1, 1)
+                    assert view_confidences.shape[0] == self.Q.shape[0]
+                    assert np.issubdtype(view_confidences.dtype, np.number)
+                except AssertionError:
+                    raise ValueError(
+                        "view_confidences should be a numpy 1D array or vector with the same length "
+                        "as the number of views."
+                    )
+
+            self.omega = BlackLittermanModel.idzorek_method(
+                view_confidences,
+                self.cov_matrix,
+                self.pi,
+                self.Q,
+                self.P,
+                self.tau,
+                self.risk_aversion,
+            )
+        elif omega is None or omega == "default":
+            self.omega = BlackLittermanModel.default_omega(
+                self.cov_matrix, self.P, self.tau
+            )
+        else:
+            raise TypeError("self.omega must be a square array, dataframe, or string")
+
+        K = len(self.Q)
+        assert self.omega.shape == (K, K), "omega must have dimensions KxK"
+
+    def _check_attribute_dimensions(self):
+        """
+        Helper method to ensure that all of the attributes created by the initialiser
+        have the correct dimensions, to avoid linear algebra errors later on.
+
+        :raises ValueError: if there are incorrect dimensions.
+        """
+        N = self.n_assets
+        K = len(self.Q)
+        assert self.pi.shape == (N, 1), "pi must have dimensions Nx1"
+        assert self.P.shape == (K, N), "P must have dimensions KxN"
+        assert self.cov_matrix.shape == (N, N), "cov_matrix must have shape NxN"
+
     @staticmethod
-    def _default_omega(cov_matrix, P, tau):
+    def default_omega(cov_matrix, P, tau):
         """
         If the uncertainty matrix omega is not provided, we calculate using the method of
         He and Litterman (1999), such that the ratio omega/tau is proportional to the
@@ -243,22 +340,38 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         """
         return np.diag(np.diag(tau * P @ cov_matrix @ P.T))
 
-    def _check_attribute_dimensions(self):
+    @staticmethod
+    def idzorek_method(view_confidences, cov_matrix, pi, Q, P, tau, risk_aversion=1):
         """
-        Helper method to ensure that all of the attributes created by the initialiser
-        have the correct dimensions, to avoid linear algebra errors later on.
+        Use Idzorek's method to create the uncertainty matrix given user-specified
+        percentage confidences. We use the closed-form solution described by
+        Jay Walters in The Black-Litterman Model in Detail (2014).
 
-        :raises ValueError: if there are incorrect dimensions.
+        :param view_confidences: Kx1 vector of percentage view confidences (between 0 and 1),
+                                required to compute omega via Idzorek's method.
+        :type view_confidences: np.ndarray, pd.Series, list,, optional
+        :return: KxK diagonal uncertainty matrix
+        :rtype: np.ndarray
         """
-        try:
-            N = self.n_assets
-            K = len(self.Q)
-            assert self.pi.shape == (N, 1)
-            assert self.P.shape == (K, N)
-            assert self.omega.shape == (K, K)
-            assert self.cov_matrix.shape == (N, N)  # redundant
-        except AssertionError:
-            raise ValueError("Some of the inputs have incorrect dimensions.")
+        view_omegas = []
+        for view_idx in range(len(Q)):
+            conf = view_confidences[view_idx]
+
+            if conf < 0 or conf > 1:
+                raise ValueError("View confidences must be between 0 and 1")
+
+            # Special handler to avoid dividing by zero.
+            # If zero conf, return very big number as uncertainty
+            if conf == 0:
+                view_omegas.append(1e6)
+                continue
+
+            P_view = P[view_idx].reshape(1, -1)
+            alpha = (1 - conf) / conf  # formula (44)
+            omega = tau * alpha * P_view @ cov_matrix @ P_view.T  # formula (41)
+            view_omegas.append(omega.item())
+
+        return np.diag(view_omegas)
 
     def bl_returns(self):
         """
@@ -299,7 +412,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         posterior_cov = self.cov_matrix + M
         return pd.DataFrame(posterior_cov, index=self.tickers, columns=self.tickers)
 
-    def bl_weights(self, risk_aversion):
+    def bl_weights(self, risk_aversion=None):
         r"""
         Compute the weights implied by the posterior returns, given the
         market price of risk. Technically this can be applied to any
@@ -310,17 +423,26 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
 
             w = (\delta \Sigma)^{-1} E(R)
 
-        :param risk_aversion: risk aversion parameter
-        :type risk_aversion: positive float
+        :param risk_aversion: risk aversion parameter, defaults to 1
+        :type risk_aversion: positive float, optional
         :return: asset weights implied by returns
         :rtype: dict
         """
+        if risk_aversion is None:
+            risk_aversion = self.risk_aversion
+
         self.posterior_rets = self.bl_returns()
         A = risk_aversion * self.cov_matrix
         b = self.posterior_rets
         raw_weights = np.linalg.solve(A, b)
         self.weights = raw_weights / raw_weights.sum()
         return dict(zip(self.tickers, self.weights))
+
+    def optimize(self, risk_aversion=None):
+        """
+        Alias for bl_weights for consistency with other methods.
+        """
+        return self.bl_weights(risk_aversion)
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """

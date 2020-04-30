@@ -297,6 +297,8 @@ in the sidebar to learn more about the parameters and theoretical details of the
 different models offered by PyPortfolioOpt. If you have any questions, please
 raise an issue on GitHub and I will try to respond promptly.
 
+If you'd like even more examples, check out the cookbook `recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/2-Mean-Variance-Optimisation.ipynb>`_.
+
 
 References
 ==========

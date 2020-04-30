@@ -17,6 +17,20 @@ def test_custom_convex_equal_weights():
     np.testing.assert_allclose(ef.weights, np.array([1 / 20] * 20))
 
 
+def test_custom_convex_abs_exposure():
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
+    )
+
+    ef.add_constraint(lambda x: cp.norm(x, 1) <= 2)
+    ef.min_volatility()
+    ef.convex_objective(
+        objective_functions.portfolio_variance,
+        cov_matrix=ef.cov_matrix,
+        weights_sum_to_one=False,
+    )
+
+
 def test_custom_convex_min_var():
     ef = setup_efficient_frontier()
     ef.min_volatility()

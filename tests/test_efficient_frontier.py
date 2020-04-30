@@ -118,7 +118,7 @@ def test_min_volatility_short():
 
 def test_min_volatility_L2_reg():
     ef = setup_efficient_frontier()
-    ef.add_objective(objective_functions.L2_reg, gamma=5)
+    ef.add_objective(objective_functions.L2_reg, gamma=1)
     weights = ef.min_volatility()
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(ef.tickers)
@@ -137,7 +137,7 @@ def test_min_volatility_L2_reg():
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2382083649754719, 0.20795460936504614, 1.049307662098637),
+        (0.23129890623344232, 0.1955254118258614, 1.080672349748733),
     )
 
 
@@ -214,6 +214,57 @@ def test_min_volatility_cvxpy_vs_scipy():
     assert cvxpy_var <= scipy_var
 
 
+def test_min_volatility_sector_constraints():
+    sector_mapper = {
+        "T": "auto",
+        "UAA": "airline",
+        "SHLD": "retail",
+        "XOM": "energy",
+        "RRC": "energy",
+        "BBY": "retail",
+        "MA": "fig",
+        "PFE": "pharma",
+        "JPM": "fig",
+        "SBUX": "retail",
+        "GOOG": "tech",
+        "AAPL": "tech",
+        "FB": "tech",
+        "AMZN": "tech",
+        "BABA": "tech",
+        "GE": "utility",
+        "AMD": "tech",
+        "WMT": "retail",
+        "BAC": "fig",
+        "GM": "auto",
+    }
+
+    sector_upper = {
+        "tech": 0.2,
+        "utility": 0.1,
+        "retail": 0.2,
+        "fig": 0.4,
+        "airline": 0.05,
+        "energy": 0.2,
+    }
+    sector_lower = {"utility": 0.01, "fig": 0.02, "airline": 0.01}
+
+    # ef = setup_efficient_frontier()
+    ef = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
+    )
+    ef.add_sector_constraints(sector_mapper, sector_lower, sector_upper)
+
+    weights = ef.min_volatility()
+
+    for sector in list(set().union(sector_upper, sector_lower)):
+        sector_sum = 0
+        for t, v in weights.items():
+            if sector_mapper[t] == sector:
+                sector_sum += v
+        assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
+        assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
+
+
 def test_min_volatility_vs_max_sharpe():
     # Test based on issue #75
     expected_returns_daily = pd.Series(
@@ -287,6 +338,19 @@ def test_max_sharpe_long_weight_bounds():
     assert (0.02 <= ef.weights[1::2]).all() and (ef.weights[1::2] <= 0.11).all()
 
 
+def test_max_sharpe_explicit_bound():
+    ef = setup_efficient_frontier()
+    ef.add_constraint(lambda w: w[0] >= 0.2)
+    ef.add_constraint(lambda w: w[2] == 0.15)
+    ef.add_constraint(lambda w: w[3] + w[4] <= 0.10)
+
+    ef.max_sharpe()
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert ef.weights[0] >= 0.2 - 1e-5
+    np.testing.assert_almost_equal(ef.weights[2], 0.15)
+    assert ef.weights[3] + ef.weights[4] <= 0.10 + 1e-5
+
+
 def test_max_sharpe_short():
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
@@ -337,13 +401,15 @@ def test_max_sharpe_L2_reg():
 
 
 def test_max_sharpe_L2_reg_many_values():
+    warnings.filterwarnings("ignore")
+
     ef = setup_efficient_frontier()
     ef.max_sharpe()
     # Count the number of weights more 1%
     initial_number = sum(ef.weights > 0.01)
-    for _ in range(10):
-        print(initial_number)
-        ef.add_objective(objective_functions.L2_reg, gamma=0.05)
+    for i in range(1, 20, 2):
+        ef = setup_efficient_frontier()
+        ef.add_objective(objective_functions.L2_reg, gamma=0.05 * i)
         ef.max_sharpe()
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         new_number = sum(ef.weights > 0.01)
@@ -406,13 +472,237 @@ def test_max_sharpe_risk_free_rate():
     ef = setup_efficient_frontier()
     ef.max_sharpe()
     _, _, initial_sharpe = ef.portfolio_performance()
+    ef = setup_efficient_frontier()
     ef.max_sharpe(risk_free_rate=0.10)
     _, _, new_sharpe = ef.portfolio_performance(risk_free_rate=0.10)
     assert new_sharpe <= initial_sharpe
 
+    ef = setup_efficient_frontier()
     ef.max_sharpe(risk_free_rate=0)
     _, _, new_sharpe = ef.portfolio_performance(risk_free_rate=0)
     assert new_sharpe >= initial_sharpe
+
+
+def test_min_vol_pair_constraint():
+    ef = setup_efficient_frontier()
+    ef.min_volatility()
+    old_sum = ef.weights[:2].sum()
+    ef = setup_efficient_frontier()
+    ef.add_constraint(lambda w: (w[1] + w[0] <= old_sum / 2))
+    ef.min_volatility()
+    new_sum = ef.weights[:2].sum()
+    assert new_sum <= old_sum / 2 + 1e-4
+
+
+def test_max_sharpe_pair_constraint():
+    ef = setup_efficient_frontier()
+    ef.max_sharpe()
+    old_sum = ef.weights[:2].sum()
+
+    ef = setup_efficient_frontier()
+    ef.add_constraint(lambda w: (w[1] + w[0] <= old_sum / 2))
+    ef.max_sharpe()
+    new_sum = ef.weights[:2].sum()
+    assert new_sum <= old_sum / 2 + 1e-4
+
+
+def test_max_sharpe_sector_constraints_manual():
+    sector_mapper = {
+        "GOOG": "tech",
+        "AAPL": "tech",
+        "FB": "tech",
+        "AMZN": "tech",
+        "BABA": "tech",
+        "GE": "utility",
+        "AMD": "tech",
+        "WMT": "retail",
+        "BAC": "fig",
+        "GM": "auto",
+        "T": "auto",
+        "UAA": "airline",
+        "SHLD": "retail",
+        "XOM": "energy",
+        "RRC": "energy",
+        "BBY": "retail",
+        "MA": "fig",
+        "PFE": "pharma",
+        "JPM": "fig",
+        "SBUX": "retail",
+    }
+
+    sector_upper = {
+        "tech": 0.2,
+        "utility": 0.1,
+        "retail": 0.2,
+        "fig": 0.4,
+        "airline": 0.05,
+        "energy": 0.2,
+    }
+    sector_lower = {"utility": 0.01, "fig": 0.02, "airline": 0.01}
+
+    ef = setup_efficient_frontier()
+    for sector in sector_upper:
+        is_sector = [v == sector for k, v in sector_mapper.items()]
+        ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
+    for sector in sector_lower:
+        is_sector = [v == sector for k, v in sector_mapper.items()]
+        ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
+
+    weights = ef.max_sharpe()
+
+    for sector in list(set().union(sector_upper, sector_lower)):
+        sector_sum = 0
+        for t, v in weights.items():
+            if sector_mapper[t] == sector:
+                sector_sum += v
+        assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
+        assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
+
+
+def test_max_sharpe_sector_constraints_auto():
+    sector_mapper = {
+        "GOOG": "tech",
+        "AAPL": "tech",
+        "FB": "tech",
+        "AMZN": "tech",
+        "BABA": "tech",
+        "GE": "utility",
+        "AMD": "tech",
+        "WMT": "retail",
+        "BAC": "fig",
+        "GM": "auto",
+        "T": "auto",
+        "UAA": "airline",
+        "SHLD": "retail",
+        "XOM": "energy",
+        "RRC": "energy",
+        "BBY": "retail",
+        "MA": "fig",
+        "PFE": "pharma",
+        "JPM": "fig",
+        "SBUX": "retail",
+    }
+
+    sector_upper = {
+        "tech": 0.2,
+        "utility": 0.1,
+        "retail": 0.2,
+        "fig": 0.4,
+        "airline": 0.05,
+        "energy": 0.2,
+    }
+    sector_lower = {"utility": 0.01, "fig": 0.02, "airline": 0.01}
+
+    ef = setup_efficient_frontier()
+    ef.add_sector_constraints(sector_mapper, sector_lower, sector_upper)
+    weights = ef.max_sharpe()
+
+    for sector in list(set().union(sector_upper, sector_lower)):
+        sector_sum = 0
+        for t, v in weights.items():
+            if sector_mapper[t] == sector:
+                sector_sum += v
+        assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
+        assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
+
+
+def test_efficient_risk_sector_constraints_manual():
+    sector_mapper = {
+        "GOOG": "tech",
+        "AAPL": "tech",
+        "FB": "tech",
+        "AMZN": "tech",
+        "BABA": "tech",
+        "GE": "utility",
+        "AMD": "tech",
+        "WMT": "retail",
+        "BAC": "fig",
+        "GM": "auto",
+        "T": "auto",
+        "UAA": "airline",
+        "SHLD": "retail",
+        "XOM": "energy",
+        "RRC": "energy",
+        "BBY": "retail",
+        "MA": "fig",
+        "PFE": "pharma",
+        "JPM": "fig",
+        "SBUX": "retail",
+    }
+
+    sector_upper = {
+        "tech": 0.2,
+        "utility": 0.1,
+        "retail": 0.2,
+        "fig": 0.4,
+        "airline": 0.05,
+        "energy": 0.2,
+    }
+    sector_lower = {"utility": 0.01, "fig": 0.02, "airline": 0.01}
+
+    ef = setup_efficient_frontier()
+
+    for sector in sector_upper:
+        is_sector = [v == sector for k, v in sector_mapper.items()]
+        ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
+    for sector in sector_lower:
+        is_sector = [v == sector for k, v in sector_mapper.items()]
+        ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
+
+    weights = ef.efficient_risk(0.19)
+
+    for sector in list(set().union(sector_upper, sector_lower)):
+        sector_sum = 0
+        for t, v in weights.items():
+            if sector_mapper[t] == sector:
+                sector_sum += v
+        assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
+        assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
+
+
+def test_efficient_risk_sector_constraints_auto():
+    sector_mapper = {
+        "GOOG": "tech",
+        "AAPL": "tech",
+        "FB": "tech",
+        "AMZN": "tech",
+        "BABA": "tech",
+        "GE": "utility",
+        "AMD": "tech",
+        "WMT": "retail",
+        "BAC": "fig",
+        "GM": "auto",
+        "T": "auto",
+        "UAA": "airline",
+        "SHLD": "retail",
+        "XOM": "energy",
+        "RRC": "energy",
+        "BBY": "retail",
+        "MA": "fig",
+        "PFE": "pharma",
+        "JPM": "fig",
+        "SBUX": "retail",
+    }
+
+    sector_upper = {
+        "tech": 0.2,
+        "utility": 0.1,
+        "retail": 0.2,
+        "fig": 0.4,
+        "airline": 0.05,
+        "energy": 0.2,
+    }
+    sector_lower = {"utility": 0.01, "fig": 0.02, "airline": 0.01}
+    ef = setup_efficient_frontier()
+    ef.add_sector_constraints(sector_mapper, sector_lower, sector_upper)
+    weights = ef.efficient_risk(0.19)
+    for sector in list(set().union(sector_upper, sector_lower)):
+        sector_sum = 0
+        for t, v in weights.items():
+            if sector_mapper[t] == sector:
+                sector_sum += v
+        assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
+        assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
 
 
 def test_max_quadratic_utility():
@@ -536,7 +826,6 @@ def test_efficient_risk_many_values():
         ef.efficient_risk(target_risk)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         volatility = ef.portfolio_performance()[1]
-        print(volatility)
         assert abs(target_risk - volatility) < 1e-5
 
 

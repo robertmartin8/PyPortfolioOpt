@@ -185,22 +185,30 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        # Overwrite original constraints with suitable constraints
-        # for the transformed max_sharpe problem
+        new_constraints = []
+        # Must rebuild the constraints
+        for constr in self._constraints:
+            if isinstance(constr, cp.constraints.nonpos.Inequality):
+                # Either the first or second item is the expression
+                if isinstance(
+                    constr.args[0], cp.expressions.constants.constant.Constant
+                ):
+                    new_constraints.append(constr.args[1] >= constr.args[0] * k)
+                else:
+                    new_constraints.append(constr.args[0] <= constr.args[1] * k)
+            elif isinstance(constr, cp.constraints.zero.Equality):
+                new_constraints.append(constr.args[0] == constr.args[1] * k)
+            else:
+                raise TypeError(
+                    "Please check that your constraints are in a suitable format"
+                )
+
+        # Transformed max_sharpe convex problem:
         self._constraints = [
             (self.expected_returns - risk_free_rate).T * self._w == 1,
             cp.sum(self._w) == k,
             k >= 0,
-        ]
-        #  Rebuild original constraints with scaling factor
-        for raw_constr in self._additional_constraints_raw:
-            self._constraints.append(raw_constr(self._w / k))
-        # Sharpe ratio is invariant w.r.t scaled weights, so we must
-        # replace infinities and negative infinities
-        # new_lower_bound = np.nan_to_num(self._lower_bounds, neginf=-1)
-        # new_upper_bound = np.nan_to_num(self._upper_bounds, posinf=1)
-        self._constraints.append(self._w >= k * self._lower_bounds)
-        self._constraints.append(self._w <= k * self._upper_bounds)
+        ] + new_constraints
 
         self._solve_cvxpy_opt_problem()
         # Inverse-transform

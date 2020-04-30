@@ -8,6 +8,7 @@ evaluate return and risk for a given set of portfolio weights.
 """
 
 import json
+import warnings
 import numpy as np
 import pandas as pd
 import cvxpy as cp
@@ -138,7 +139,6 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._w = cp.Variable(n_assets)
         self._objective = None
         self._additional_objectives = []
-        self._additional_constraints_raw = []
         self._constraints = []
         self._lower_bounds = None
         self._upper_bounds = None
@@ -233,11 +233,46 @@ class BaseConvexOptimizer(BaseOptimizer):
         """
         if not callable(new_constraint):
             raise TypeError("New constraint must be provided as a lambda function")
-
-        # Save raw constraint (needed for e.g max_sharpe)
-        self._additional_constraints_raw.append(new_constraint)
-        # Add constraint
         self._constraints.append(new_constraint(self._w))
+
+    def add_sector_constraints(self, sector_mapper, sector_lower, sector_upper):
+        """
+        Adds constraints on the sum of weights of different groups of assets.
+        Most commonly, these will be sector constraints e.g portfolio's exposure to
+        tech must be less than x%::
+
+            sector_mapper = {
+                "GOOG": "tech",
+                "FB": "tech",,
+                "XOM": "Oil/Gas",
+                "RRC": "Oil/Gas",
+                "MA": "Financials",
+                "JPM": "Financials",
+            }
+
+            sector_lower = {"tech": 0.1}  # at least 10% to tech
+            sector_upper = {
+                "tech": 0.4, # less than 40% tech
+                "Oil/Gas: 0.1 # less than 10% oil and gas
+            }
+
+        :param sector_mapper: dict that maps tickers to sectors
+        :type sector_mapper: {str: str} dict
+        :param sector_lower: lower bounds for each sector
+        :type sector_lower: {str: float} dict
+        :param sector_upper: upper bounds for each sector
+        :type sector_upper: {str:float} dict
+        """
+        if np.any(self._lower_bounds < 0):
+            warnings.warn(
+                "Sector constraints may not produce reasonable results if shorts are allowed."
+            )
+        for sector in sector_upper:
+            is_sector = [sector_mapper[t] == sector for t in self.tickers]
+            self._constraints.append(cp.sum(self._w[is_sector]) <= sector_upper[sector])
+        for sector in sector_lower:
+            is_sector = [sector_mapper[t] == sector for t in self.tickers]
+            self._constraints.append(cp.sum(self._w[is_sector]) >= sector_lower[sector])
 
     def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
         """

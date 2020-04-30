@@ -34,6 +34,11 @@ As a brief aside, I should note that while "efficient frontier" optimisation is 
 specific method, I tend to use it as a blanket term (interchangeably with mean-variance
 optimisation) to refer to anything similar, such as minimising variance.
 
+.. tip::
+
+    You can find complete examples in the relevant cookbook `recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/2-Mean-Variance-Optimisation.ipynb>`_.
+
+
 Structure
 =========
 
@@ -97,11 +102,26 @@ Basic Usage
                 risk-aversion parameter, which gives a useful estimate in the absence of other
                 information!
 
-.. caution::
+        .. automethod:: efficient_risk
 
-    If you pass an unreasonable target into :py:meth:`efficient_risk` or
-    :py:meth:`efficient_return`, the optimiser will fail silently and return
-    weird weights. *Caveat emptor* applies!
+            .. caution::
+
+                If you pass an unreasonable target into :py:meth:`efficient_risk` or
+                :py:meth:`efficient_return`, the optimiser will fail silently and return
+                weird weights. *Caveat emptor* applies!
+
+        .. automethod:: portfolio_performance
+
+            .. tip::
+
+                If you would like to use the ``portfolio_performance`` function independently of any
+                optimiser (e.g for debugging purposes), you can use:: 
+
+                    from pypfopt import base_optimizer
+
+                    base_optimizer.portfolio_performance(
+                        weights, expected_returns, cov_matrix, verbose=True, risk_free_rate=0.02
+                    )
 
 Adding objectives and constraints
 =================================
@@ -113,6 +133,8 @@ add constraints and objectives are documented below:
     .. class:: pypfopt.base_optimizer.BaseConvexOptimizer
 
         .. automethod:: add_constraint
+
+        .. automethod:: add_sector_constraints
 
         .. automethod:: add_objective
 
@@ -164,6 +186,7 @@ used to make them larger).
     universes, or if you want more non-negligible weights in the final portfolio,
     increase ``gamma``.
 
+
 .. _custom-optimisation:
 
 Custom optimisation problems
@@ -178,7 +201,7 @@ The ``EfficientFrontier`` class inherits from the ``BaseConvexOptimizer``, which
 define your own optimisation problem. You can either optimise some generic ``convex_objective``
 (which *must* be built using ``cvxpy`` atomic functions -- see `here <https://www.cvxpy.org/tutorial/functions/index.html>`_)
 or a ``nonconvex_objective``, which uses ``scipy.optimize`` as the backend and thus has a completely
-different API.
+different API. For examples, check out this `cookbook recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/3-Advanced-Mean-Variance-Optimisation.ipynb>`_
 
     .. class:: pypfopt.base_optimizer.BaseConvexOptimizer
 

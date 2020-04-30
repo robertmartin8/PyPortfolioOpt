@@ -10,7 +10,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v1.1.0-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v1.2.1-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
@@ -38,11 +38,15 @@ in a risk-efficient way.
 Installation
 ============
 
-Installation should *never* be more difficult than::
+Installation on macOS or linux is as simple as::
 
     pip install PyPortfolioOpt
 
-However, for the sake of best practice, it is good to do this with a dependency manager. I suggest you
+Windows users need to go through the additional step of downloading C++ (for ``cvxpy``). You can
+download this `here <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
+with additional instructions `here <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view>`_.
+
+For the sake of best practice, it is good to do this with a dependency manager. I suggest you
 set yourself up with `poetry <https://github.com/sdispater/poetry>`_, then within a new poetry project
 run:
 
@@ -56,9 +60,17 @@ The alternative is to clone/download the project, then in the project directory 
 
     python setup.py install
 
+Thanks to Thomas Schmelzer, PyPortfolioOpt now supports Docker (requires 
+**make**, **docker**, **docker-compose**). Build your first container with 
+``make build``; run tests with ``make test``. For more information, please read
+`this guide <https://docker-curriculum.com/#introduction>`_.
+
+
 .. note::
     If any of these methods don't work, please `raise an issue
     <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_  on GitHub
+
+
 
 
 For developers
@@ -83,8 +95,9 @@ you should try
 A Quick Example
 ===============
 
-This section contains a quick look at what PyPortfolioOpt can do. For a full tour,
-please check out the :ref:`user-guide`.
+This section contains a quick look at what PyPortfolioOpt can do. For a guided tour,
+please check out the :ref:`user-guide`. For even more examples, check out the Jupyter
+notebooks in the `cookbook <https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook>`_.
 
 If you already have expected returns ``mu`` and a risk model ``S`` for your set of
 assets, generating an optimal portfolio is as easy as::
@@ -104,7 +117,7 @@ that's fine too::
     from pypfopt import expected_returns
 
     # Read in price data
-    df = pd.read_csv("tests/stock_prices.csv", parse_dates=True, index_col="date")
+    df = pd.read_csv("tests/resources/stock_prices.csv", parse_dates=True, index_col="date")
 
     # Calculate expected returns and sample covariance
     mu = expected_returns.mean_historical_return(df)
