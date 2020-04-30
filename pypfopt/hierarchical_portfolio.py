@@ -130,11 +130,9 @@ class HRPOpt(base_optimizer.BaseOptimizer):
             for i in range(0, len(cluster_items), 2):
                 first_cluster = cluster_items[i]
                 second_cluster = cluster_items[i + 1]
-                print(first_cluster, second_cluster)
                 # Form the inverse variance portfolio for this pair
                 first_variance = HRPOpt._get_cluster_var(cov, first_cluster)
                 second_variance = HRPOpt._get_cluster_var(cov, second_cluster)
-                print(first_variance, second_variance)
                 alpha = 1 - first_variance / (first_variance + second_variance)
                 w[first_cluster] *= alpha  # weight 1
                 w[second_cluster] *= 1 - alpha  # weight 2
