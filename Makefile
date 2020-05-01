@@ -4,6 +4,10 @@ PROJECT_VERSION := $(shell python setup.py --version)
 SHELL := /bin/bash
 PACKAGE := pypfopt
 
+# needed to get the ${PORT} environment variable
+include .env
+export
+
 .PHONY: help build test tag pypi
 
 
@@ -19,7 +23,9 @@ help:
 	@echo "make tag"
 	@echo "       Make a tag on Github."
 
-
+jupyter:
+	echo "http://localhost:${PORT}/lab"
+	docker-compose up jupyter
 
 build:
 	docker-compose build pypfopt
