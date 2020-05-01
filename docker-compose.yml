@@ -5,3 +5,12 @@ services:
       context: .
       dockerfile: Dockerfile
       target: builder
+
+  jupyter:
+    build:
+      context: .
+      dockerfile: ./binder/Dockerfile
+    volumes:
+      - ./cookbook:${WORK}
+    ports:
+      - ${PORT}:8888

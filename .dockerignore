@@ -5,9 +5,11 @@
 
 !pypfopt
 !tests
-#!setup.py
-#!README.md
+!setup.py
+!README.md
 !requirements.txt
+!binder
+!cookbook
 
 **/__pycache__
 **/*.pyc
