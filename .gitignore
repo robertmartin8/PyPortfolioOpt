@@ -3,6 +3,15 @@
 build
 sandbox
 
+.tox/
+docs/_build/
+media/logo_design/
+DEV/
+.pytest_cache/
+.vscode/
+
+pip-selfcheck.json
+
 html-coverage
 html-report
 
@@ -23,3 +32,4 @@ dist
 .eggs
 
 artifacts
+
