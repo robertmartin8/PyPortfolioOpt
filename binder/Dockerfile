@@ -13,6 +13,7 @@ RUN conda install -y -c conda-forge --file /tmp/pyportfolioopt/requirements.txt 
     conda clean -y --all && \
     pip install --no-cache-dir /tmp/pyportfolioopt && \
     rm -rf /tmp/pyportfolioopt && \
+    pip install yfinance && \
     jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
     jupyter labextension install beakerx-jupyterlab && \
     jupyter lab build
