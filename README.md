@@ -22,6 +22,9 @@
     <a href="https://travis-ci.org/robertmartin8/PyPortfolioOpt">
         <img src="https://travis-ci.org/robertmartin8/PyPortfolioOpt.svg?branch=master"
             alt="travis"></a> &nbsp;
+    <a href="https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master">
+        <img src="https://mybinder.org/badge_logo.svg"
+            alt="binder"></a> &nbsp;
 </p>
 
 <!-- content -->
@@ -65,6 +68,9 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
 - [Getting in touch](#getting-in-touch)
 
 ## Getting started
+
+If you would like to play with PyPortfolioOpt interactively in your browser, you may launch Binder [here](https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master). It takes a
+while to set up, but it lets you try out the cookbook recipes without having to deal with all of the requirements.
 
 *Note: if you are on windows, you first need to installl C++. ([download](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16), [install instructions](https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view)*
 
