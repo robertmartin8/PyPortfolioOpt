@@ -2,6 +2,7 @@
 .idea
 build
 sandbox
+
 .tox/
 docs/_build/
 media/logo_design/
@@ -31,3 +32,4 @@ dist
 .eggs
 
 artifacts
+
