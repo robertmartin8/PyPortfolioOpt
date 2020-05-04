@@ -12,6 +12,7 @@ COPY --chown=jovyan:users . /tmp/pyportfolioopt
 RUN conda install -y -c conda-forge --file /tmp/pyportfolioopt/requirements.txt && \
     conda clean -y --all && \
     pip install --no-cache-dir /tmp/pyportfolioopt && \
+    pip install yfinance && \
     rm -rf /tmp/pyportfolioopt
 
 # hardcoded parameters!? see https://github.com/moby/moby/issues/35018
