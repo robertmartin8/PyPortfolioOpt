@@ -1,4 +1,4 @@
-FROM jupyter/base-notebook:lab-1.2.5 as jupyter
+FROM jupyter/base-notebook:python-3.7.6 as jupyter
 
 # File Author / Maintainer
 # MAINTAINER Thomas Schmelzer "thomas.schmelzer@gmail.com"
@@ -12,11 +12,9 @@ COPY --chown=jovyan:users . /tmp/pyportfolioopt
 RUN conda install -y -c conda-forge --file /tmp/pyportfolioopt/requirements.txt && \
     conda clean -y --all && \
     pip install --no-cache-dir /tmp/pyportfolioopt && \
-    rm -rf /tmp/pyportfolioopt && \
     pip install yfinance && \
-    jupyter labextension install @jupyter-widgets/jupyterlab-manager && \
-    jupyter labextension install beakerx-jupyterlab && \
-    jupyter lab build
+    pip install lxml && \
+    rm -rf /tmp/pyportfolioopt
 
 # hardcoded parameters!? see https://github.com/moby/moby/issues/35018
 COPY --chown=jovyan:users ./cookbook $HOME/work
