@@ -21,6 +21,7 @@ PyPortfolioOpt is designed with modularity in mind; the below flowchart sums up 
 current functionality and overall layout of PyPortfolioOpt.
 
 .. image:: ../media/conceptual_flowchart_v2-grey.png
+    :alt: Conceptual flowchart for the PyPortfolioOpt library
 
 Processing historical prices
 ============================
@@ -116,6 +117,7 @@ portfolio) – the set of all these optimal portfolios is referred to as the
 
 .. image:: ../media/efficient_frontier.png
    :align: center
+   :alt: risk-return characteristics of possible portfolios 
 
 Each dot on this diagram represents a different possible portfolio, with darker blue
 corresponding to 'better' portfolios (in terms of the Sharpe Ratio). The dotted

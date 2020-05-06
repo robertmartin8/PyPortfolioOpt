@@ -39,6 +39,7 @@ portfolios that perform well out of sample.
 .. image:: ../media/dendrogram.png
    :width: 80%
    :align: center
+   :alt: cluster diagram
 
 
 .. automodule:: pypfopt.hierarchical_portfolio
@@ -63,6 +64,7 @@ number of iterations, and can efficiently derive the entire efficient frontier.
 .. image:: ../media/cla_plot.png
    :width: 80%
    :align: center
+   :alt: the Efficient Frontier
 
 .. tip:: 
 

@@ -1,6 +1,7 @@
 .. image:: ../media/logo_v1-grey.png
    :scale: 40 %
    :align: center
+   :alt: PyPortfolioOpt
 
 .. raw:: html
 

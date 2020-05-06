@@ -15,6 +15,7 @@ covariance).
 .. image:: ../media/corrplot.png
    :align: center
    :width: 60%
+   :alt: plot of the covariance matrix
 
 
 In many ways, the subject of risk models is far more important than that of
