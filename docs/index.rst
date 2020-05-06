@@ -5,6 +5,10 @@
 
 .. raw:: html
 
+    <meta prefix="og: http://ogp.me/ns#" property="og:title" content="PyPortfolioOpt" />
+    <meta prefix="og: http://ogp.me/ns#" property="og:description" content="Portfolio optimisation in python" />
+    <meta prefix="og: http://ogp.me/ns#" property="og:image" content="../media/logo_v1.png"/>
+
     <embed>
         <p align="center">
             <a href="https://www.python.org/">
