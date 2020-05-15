@@ -27,7 +27,7 @@ be estimated. The Black-Litterman formula is given below:
 - :math:`P` is the KxN **picking matrix** which maps views to the universe of assets.
   Essentially, it tells the model which view corresponds to which asset(s).
 - :math:`\Omega` is the KxK **uncertainty matrix** of views. 
-- :math:`Pi` is the Nx1 vector of prior expected returns. 
+- :math:`\Pi` is the Nx1 vector of prior expected returns. 
 - :math:`\Sigma` is the NxN covariance matrix of asset returns (as always)
 - :math:`\tau` is a scalar tuning constant. 
 
