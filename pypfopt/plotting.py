@@ -45,12 +45,17 @@ class Plotting:
             plt.show()
 
     @staticmethod
-    def plot_covariance(cov_matrix, show_tickers=True, **kwargs):
+    def plot_covariance(
+        cov_matrix, plot_correlation=False, show_tickers=True, **kwargs
+    ):
         """
-        Generate a basic plot of the correlation matrix, given a covariance matrix.
+        Generate a basic plot of the covariance (or correlation) matrix, given a
+        covariance matrix.
 
         :param cov_matrix: covariance matrix
         :type cov_matrix: pd.DataFrame or np.ndarray
+        :param plot_correlation: whether to plot the correlation matrix instead, defaults to False.
+        :type plot_correlation: bool, optional
         :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
                             defaults to True
         :type show_tickers: bool, optional
@@ -58,18 +63,20 @@ class Plotting:
         :return: matplotlib axis
         :rtype: matplotlib.axes object
         """
-
-        corr = risk_models.cov_to_corr(cov_matrix)
+        if plot_correlation:
+            matrix = risk_models.cov_to_corr(cov_matrix)
+        else:
+            matrix = cov_matrix
         fig, ax = plt.subplots()
 
-        cax = ax.imshow(corr)
+        cax = ax.imshow(matrix)
         fig.colorbar(cax)
 
         if show_tickers:
-            ax.set_xticks(np.arange(0, corr.shape[0], 1))
-            ax.set_xticklabels(corr.index)
-            ax.set_yticks(np.arange(0, corr.shape[0], 1))
-            ax.set_yticklabels(corr.index)
+            ax.set_xticks(np.arange(0, matrix.shape[0], 1))
+            ax.set_xticklabels(matrix.index)
+            ax.set_yticks(np.arange(0, matrix.shape[0], 1))
+            ax.set_yticklabels(matrix.index)
             plt.xticks(rotation=90)
 
         Plotting._plot_io(**kwargs)
