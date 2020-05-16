@@ -31,6 +31,17 @@ have any other feature requests, please raise them using GitHub
 - Packaging: added bettter instructions for windows, added docker support.
 
 
+1.2.1
+-----
+
+Fixed critical ordering bug in sector constraints
+
+1.2.2
+-----
+
+Matplotlib now required dependency; support for pandas 1.0. 
+
+
 1.1.0
 =====
 

@@ -7,7 +7,7 @@
 
     <meta prefix="og: http://ogp.me/ns#" property="og:title" content="PyPortfolioOpt" />
     <meta prefix="og: http://ogp.me/ns#" property="og:description" content="Portfolio optimisation in python" />
-    <meta prefix="og: http://ogp.me/ns#" property="og:image" content="../media/logo_v1.png"/>
+    <meta prefix="og: http://ogp.me/ns#" property="og:image" content="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v1.png"/>
 
     <embed>
         <p align="center">
@@ -15,7 +15,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v1.2.1-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v1.2.2-brightgreen.svg?style=flat-square"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
