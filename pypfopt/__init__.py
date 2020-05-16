@@ -11,7 +11,7 @@ from .risk_models import CovarianceShrinkage
 from .plotting import Plotting
 
 
-__version__ = "1.2.1"
+__version__ = "1.2.2"
 
 __all__ = [
     "market_implied_prior_returns",
