@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**What are you trying to do?*
+**What are you trying to do?**
 Clear description of the problem you are trying to solve with PyPortfolioOpt
 
 **What data are you using?**
