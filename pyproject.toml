@@ -32,9 +32,9 @@ packages = [ {include = "pypfopt"} ]
 
 [tool.poetry.dependencies]
 python = "^3.6.0"
-numpy = "^=1.17.0"
-scipy = "^=1.3.2"
-pandas = "^0.25.3"
+numpy = "^1.17.0"
+scipy = "^1.3.2"
+pandas = ">=0.25"
 cvxpy = "^1.0.28"
 
 [tool.poetry.dev-dependencies]

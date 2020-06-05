@@ -927,7 +927,7 @@ matplotlib = []
 scikit-learn = []
 
 [metadata]
-content-hash = "a1a3f0805ec9c9f2921c0f6cff6dc3a9358ea802bcf01b160dff6361ed758961"
+content-hash = "f31e452e37d7c8e4d8e404732877485a08a8a1e1ea05dd7a06bc448aa89f5312"
 python-versions = "^3.6.0"
 
 [metadata.files]
