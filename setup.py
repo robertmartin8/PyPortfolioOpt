@@ -35,7 +35,7 @@ setup(
         "Topic :: Scientific/Engineering :: Mathematics",
     ],
     keywords="portfolio finance optimization quant trading investing",
-    install_requires=["numpy", "pandas>=0.25.3,<1.1.0", "scipy", "cvxpy", "matplotlib"],
+    install_requires=["numpy", "pandas", "scipy", "cvxpy"],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     python_requires=">=3.6",

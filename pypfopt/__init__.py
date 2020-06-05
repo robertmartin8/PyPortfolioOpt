@@ -8,7 +8,6 @@ from .discrete_allocation import get_latest_prices, DiscreteAllocation
 from .efficient_frontier import EfficientFrontier
 from .hierarchical_portfolio import HRPOpt
 from .risk_models import CovarianceShrinkage
-from .plotting import Plotting
 
 
 __version__ = "1.2.2"
@@ -23,5 +22,4 @@ __all__ = [
     "EfficientFrontier",
     "HRPOpt",
     "CovarianceShrinkage",
-    "Plotting",
 ]
