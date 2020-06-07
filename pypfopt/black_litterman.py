@@ -6,7 +6,7 @@ views. In addition, two utility functions are defined, which calculate:
 - market-implied prior estimate of returns
 - market-implied risk-aversion parameter
 """
-
+import sys
 import warnings
 import numpy as np
 import pandas as pd
@@ -163,6 +163,11 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param risk_free_rate: (kwarg) risk_free_rate is needed in some methods
         :type risk_free_rate: float, defaults to 0.02
         """
+        if sys.version_info[1] == 5:  # if python 3.5
+            warnings.warn(
+                "When using python 3.5 you must explicitly construct the Black-Litterman inputs"
+            )
+
         # Keep raw dataframes
         self._raw_cov_matrix = cov_matrix
 
