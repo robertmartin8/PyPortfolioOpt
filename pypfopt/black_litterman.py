@@ -426,7 +426,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param risk_aversion: risk aversion parameter, defaults to 1
         :type risk_aversion: positive float, optional
         :return: asset weights implied by returns
-        :rtype: dict
+        :rtype: OrderedDict
         """
         if risk_aversion is None:
             risk_aversion = self.risk_aversion
@@ -436,7 +436,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         b = self.posterior_rets
         raw_weights = np.linalg.solve(A, b)
         self.weights = raw_weights / raw_weights.sum()
-        return dict(zip(self.tickers, self.weights))
+        return self._make_output_weights()
 
     def optimize(self, risk_aversion=None):
         """

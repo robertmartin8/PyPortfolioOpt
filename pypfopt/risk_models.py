@@ -19,7 +19,6 @@ The format of the data input is the same as that in :ref:`expected-returns`.
     - Oracle Approximating shrinkage
 
 - covariance to correlation matrix
-- plot of the covariance matrix (deprecated)
 """
 
 import warnings

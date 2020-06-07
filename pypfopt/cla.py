@@ -376,7 +376,7 @@ class CLA(base_optimizer.BaseOptimizer):
         Maximise the Sharpe ratio.
 
         :return: asset weights for the volatility-minimising portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
         if not self.w:
             self._solve()
@@ -391,14 +391,14 @@ class CLA(base_optimizer.BaseOptimizer):
             sr.append(b)
 
         self.weights = w_sr[sr.index(max(sr))].reshape((self.n_assets,))
-        return dict(zip(self.tickers, self.weights))
+        return self._make_output_weights()
 
     def min_volatility(self):
         """
         Minimise volatility.
 
         :return: asset weights for the volatility-minimising portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
         if not self.w:
             self._solve()
@@ -408,7 +408,7 @@ class CLA(base_optimizer.BaseOptimizer):
             var.append(a)
         # return min(var)**.5, self.w[var.index(min(var))]
         self.weights = self.w[var.index(min(var))].reshape((self.n_assets,))
-        return dict(zip(self.tickers, self.weights))
+        return self._make_output_weights()
 
     def efficient_frontier(self, points=100):
         """
@@ -440,51 +440,6 @@ class CLA(base_optimizer.BaseOptimizer):
 
         self.frontier_values = (mu, sigma, weights)
         return mu, sigma, weights
-
-    def plot_efficient_frontier(
-        self, points=100, show_assets=True, filename=None, showfig=True
-    ):
-        try:
-            import matplotlib.pyplot as plt
-        except (ModuleNotFoundError, ImportError):
-            raise ImportError("Please install matplotlib via pip or poetry")
-
-        warnings.warn(
-            "This method is deprecated and will be removed in v1.2.0. "
-            "Please use pypfopt.plotting instead"
-        )
-        optimal_ret, optimal_risk, _ = self.portfolio_performance()
-
-        if self.frontier_values is None:
-            self.efficient_frontier(points=points)
-
-        mus, sigmas, _ = self.frontier_values
-
-        fig, ax = plt.subplots()
-        ax.plot(sigmas, mus, label="Efficient frontier")
-
-        if show_assets:
-            ax.scatter(
-                np.sqrt(np.diag(self.cov_matrix)),
-                self.expected_returns,
-                s=30,
-                color="k",
-                label="assets",
-            )
-
-        ax.scatter(
-            optimal_risk, optimal_ret, marker="x", s=100, color="r", label="optimal"
-        )
-        ax.legend()
-        ax.set_xlabel("Volatility")
-        ax.set_ylabel("Return")
-
-        if filename:
-            plt.savefig(fname=filename, dpi=300)
-
-        if showfig:
-            plt.show()
-        return ax
 
     def set_weights(self, _):
         # Overrides parent method since set_weights does nothing.
