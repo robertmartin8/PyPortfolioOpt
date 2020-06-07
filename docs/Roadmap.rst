@@ -41,6 +41,12 @@ Fixed critical ordering bug in sector constraints
 
 Matplotlib now required dependency; support for pandas 1.0. 
 
+1.2.3
+-----
+
+- Added support for changing solvers and verbose output
+- Changed dict to OrderedDict to support python 3.5
+- Improved packaging/dependencies: simplified requirements.txt, improved processes before pushing.
 
 1.1.0
 =====
@@ -60,7 +66,7 @@ Matplotlib now required dependency; support for pandas 1.0.
   - Added the James-Stein shrinkage estimator
   - Added the CAPM return model.
 
-- ``from pypfopt import Plotting``: moved all plotting functionality into a new class and added
+- ``from pypfopt import plotting``: moved all plotting functionality into a new class and added
   new plots. All other plotting functions (scattered in different classes) have been retained,
   but are now deprecated.
 

@@ -6,7 +6,7 @@ optimisation.
 Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
 """
-
+import collections
 import json
 import warnings
 import numpy as np
@@ -48,14 +48,25 @@ class BaseOptimizer:
         # Outputs
         self.weights = None
 
-    def set_weights(self, weights):
+    def _make_output_weights(self, weights=None):
         """
-        Utility function to set weights.
+        Utility function to make output weight dict from weight attribute (np.array). If no
+        arguments passed, use self.tickers and self.weights. If one argument is passed, assume
+        it is an alternative weight array so use self.tickers and the argument.
+        """
+        if weights is None:
+            weights = self.weights
 
-        :param weights: {ticker: weight} dictionary
-        :type weights: dict
+        return collections.OrderedDict(zip(self.tickers, weights))
+
+    def set_weights(self, input_weights):
         """
-        self.weights = np.array([weights[ticker] for ticker in self.tickers])
+        Utility function to set weights attribute (np.array) from user input
+
+        :param input_weights: {ticker: weight} dict
+        :type input_weights: dict
+        """
+        self.weights = np.array([input_weights[ticker] for ticker in self.tickers])
 
     def clean_weights(self, cutoff=1e-4, rounding=5):
         """
@@ -68,7 +79,7 @@ class BaseOptimizer:
                          Set to None if rounding is not desired.
         :type rounding: int, optional
         :return: asset weights
-        :rtype: dict
+        :rtype: OrderedDict
         """
         if self.weights is None:
             raise AttributeError("Weights not yet computed")
@@ -78,7 +89,8 @@ class BaseOptimizer:
             if not isinstance(rounding, int) or rounding < 1:
                 raise ValueError("rounding must be a positive integer")
             clean_weights = np.round(clean_weights, rounding)
-        return dict(zip(self.tickers, clean_weights))
+
+        return self._make_output_weights(clean_weights)
 
     def save_weights_to_file(self, filename="weights.csv"):
         """
@@ -95,9 +107,11 @@ class BaseOptimizer:
         elif ext == "json":
             with open(filename, "w") as fp:
                 json.dump(clean_weights, fp)
-        else:
+        elif ext == "txt":
             with open(filename, "w") as f:
-                f.write(str(clean_weights))
+                f.write(str(dict(clean_weights)))
+        else:
+            raise NotImplementedError("Only supports .txt .json .csv")
 
 
 class BaseConvexOptimizer(BaseOptimizer):
@@ -113,6 +127,7 @@ class BaseConvexOptimizer(BaseOptimizer):
     - ``n_assets`` - int
     - ``tickers`` - str list
     - ``weights`` - np.ndarray
+    - ``solver`` - str
 
     Public methods:
 
@@ -143,6 +158,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._lower_bounds = None
         self._upper_bounds = None
         self._map_bounds_to_constraints(weight_bounds)
+
+        self.solver = None
 
     def _map_bounds_to_constraints(self, test_bounds):
         """
@@ -193,12 +210,17 @@ class BaseConvexOptimizer(BaseOptimizer):
         """
         try:
             opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
-            opt.solve()
+
+            if self.solver is not None:
+                opt.solve(solver=self.solver, verbose=True)
+            else:
+                opt.solve()
         except (TypeError, cp.DCPError):
             raise exceptions.OptimizationError
         if opt.status != "optimal":
             raise exceptions.OptimizationError
         self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
+        return self._make_output_weights()
 
     def add_objective(self, new_objective, **kwargs):
         """
@@ -293,7 +315,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         :type weights_sum_to_one: bool, optional
         :raises OptimizationError: if the objective is nonconvex or constraints nonlinear.
         :return: asset weights for the efficient risk portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
         # custom_objective must have the right signature (w, **kwargs)
         self._objective = custom_objective(self._w, **kwargs)
@@ -304,8 +326,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         if weights_sum_to_one:
             self._constraints.append(cp.sum(self._w) == 1)
 
-        self._solve_cvxpy_opt_problem()
-        return dict(zip(self.tickers, self.weights))
+        return self._solve_cvxpy_opt_problem()
 
     def nonconvex_objective(
         self,
@@ -348,7 +369,7 @@ class BaseConvexOptimizer(BaseOptimizer):
                        User beware: different optimisers require different inputs.
         :type solver: string
         :return: asset weights that optimise the custom objective
-        :rtype: dict
+        :rtype: OrderedDict
         """
         # Sanitise inputs
         if not isinstance(objective_args, tuple):
@@ -376,7 +397,7 @@ class BaseConvexOptimizer(BaseOptimizer):
             constraints=final_constraints,
         )
         self.weights = result["x"]
-        return dict(zip(self.tickers, self.weights))
+        return self._make_output_weights()
 
 
 def portfolio_performance(

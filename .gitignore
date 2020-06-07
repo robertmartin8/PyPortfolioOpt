@@ -3,6 +3,7 @@
 build
 sandbox
 
+tests/dockerfiles/
 .tox/
 docs/_build/
 media/logo_design/

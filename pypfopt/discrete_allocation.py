@@ -2,7 +2,7 @@
 The ``discrete_allocation`` module contains the ``DiscreteAllocation`` class, which
 offers multiple methods to generate a discrete portfolio allocation from continuous weights.
 """
-
+import collections
 import numpy as np
 import pandas as pd
 import cvxpy as cp
@@ -233,7 +233,7 @@ class DiscreteAllocation:
             available_funds -= price
 
         self.allocation = self._remove_zero_positions(
-            dict(zip([i[0] for i in self.weights], shares_bought))
+            collections.OrderedDict(zip([i[0] for i in self.weights], shares_bought))
         )
 
         if verbose:
@@ -311,7 +311,7 @@ class DiscreteAllocation:
 
         vals = np.rint(x.value)
         self.allocation = self._remove_zero_positions(
-            dict(zip([i[0] for i in self.weights], vals))
+            collections.OrderedDict(zip([i[0] for i in self.weights], vals))
         )
 
         if verbose:

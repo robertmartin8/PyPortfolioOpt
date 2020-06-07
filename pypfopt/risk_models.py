@@ -19,7 +19,6 @@ The format of the data input is the same as that in :ref:`expected-returns`.
     - Oracle Approximating shrinkage
 
 - covariance to correlation matrix
-- plot of the covariance matrix (deprecated)
 """
 
 import warnings
@@ -363,11 +362,6 @@ class CovarianceShrinkage:
     - ``frequency`` - int
     """
 
-    try:
-        import sklearn.covariance
-    except (ModuleNotFoundError, ImportError):
-        raise ImportError("Please install scikit-learn via pip or poetry")
-
     def __init__(self, prices, returns_data=False, frequency=252):
         """
         :param prices: adjusted closing prices of the asset, each row is a date and each column is a ticker/id.
@@ -377,6 +371,14 @@ class CovarianceShrinkage:
         :param frequency: number of time periods in a year, defaults to 252 (the number of trading days in a year)
         :type frequency: int, optional
         """
+        # Optional import
+        try:
+            from sklearn import covariance
+
+            self.covariance = covariance
+        except (ModuleNotFoundError, ImportError):
+            raise ImportError("Please install scikit-learn via pip or poetry")
+
         if not isinstance(prices, pd.DataFrame):
             warnings.warn("data is not in a dataframe", RuntimeWarning)
             prices = pd.DataFrame(prices)
@@ -440,7 +442,7 @@ class CovarianceShrinkage:
         """
         if shrinkage_target == "constant_variance":
             X = np.nan_to_num(self.X.values)
-            shrunk_cov, self.delta = self.sklearn.covariance.ledoit_wolf(X)
+            shrunk_cov, self.delta = self.covariance.ledoit_wolf(X)
         elif shrinkage_target == "single_factor":
             shrunk_cov, self.delta = self._ledoit_wolf_single_factor()
         elif shrinkage_target == "constant_correlation":
@@ -568,53 +570,5 @@ class CovarianceShrinkage:
         :rtype: np.ndarray
         """
         X = np.nan_to_num(self.X.values)
-        shrunk_cov, self.delta = self.sklearn.covariance.oas(X)
+        shrunk_cov, self.delta = self.covariance.oas(X)
         return self._format_and_annualize(shrunk_cov)
-
-
-def correlation_plot(cov_matrix, show_tickers=True, filename=None, showfig=True):
-    """
-    Generate a basic plot of the correlation matrix, given a covariance matrix.
-
-    :param cov_matrix: covariance matrix
-    :type cov_matrix: pd.DataFrame or np.ndarray
-    :param show_tickers: whether to use tickers as labels (not recommended for large portfolios),
-                         defaults to True
-    :type show_tickers: bool, optional
-    :param filename: name of the file to save to, defaults to None (doesn't save)
-    :type filename: str, optional
-    :param showfig: whether to plt.show() the figure, defaults to True
-    :type showfig: bool, optional
-    :raises ImportError: if matplotlib is not installed
-    :return: matplotlib axis
-    :rtype: matplotlib.axes object
-    """
-    try:
-        import matplotlib.pyplot as plt
-    except (ModuleNotFoundError, ImportError):
-        raise ImportError("Please install matplotlib via pip or poetry")
-
-    warnings.warn(
-        "This method is deprecated and will be removed in v1.2.0. "
-        "Please use Plotting.plot_covariance(cov) instead"
-    )
-
-    corr = cov_to_corr(cov_matrix)
-    fig, ax = plt.subplots()
-
-    cax = ax.imshow(corr)
-    fig.colorbar(cax)
-
-    if show_tickers:
-        ax.set_xticks(np.arange(0, corr.shape[0], 1))
-        ax.set_xticklabels(corr.index)
-        ax.set_yticks(np.arange(0, corr.shape[0], 1))
-        ax.set_yticklabels(corr.index)
-        plt.xticks(rotation=90)
-
-    if filename:
-        plt.savefig(fname=filename, dpi=300)
-    if showfig:
-        plt.show()
-
-    return ax

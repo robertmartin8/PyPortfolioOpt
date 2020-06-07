@@ -189,6 +189,7 @@ def test_set_weights():
 def test_save_weights_to_file():
     ef = setup_efficient_frontier()
     ef.min_volatility()
+
     ef.save_weights_to_file("tests/test.txt")
     with open("tests/test.txt", "r") as f:
         file = f.read()

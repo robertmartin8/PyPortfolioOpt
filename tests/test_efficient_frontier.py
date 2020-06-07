@@ -65,6 +65,28 @@ def test_min_volatility():
     )
 
 
+def test_min_volatility_different_solver():
+    ef = setup_efficient_frontier()
+    ef.solver = "ECOS"
+    w = ef.min_volatility()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
+    test_performance = (0.179312, 0.159151, 1.001015)
+    np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-5)
+
+    ef = setup_efficient_frontier()
+    ef.solver = "OSQP"
+    w = ef.min_volatility()
+    np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-5)
+
+    ef = setup_efficient_frontier()
+    ef.solver = "SCS"
+    w = ef.min_volatility()
+    np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-3)
+
+
 def test_min_volatility_no_rets():
     # Should work with no rets, see issue #82
     df = get_data()
@@ -542,10 +564,10 @@ def test_max_sharpe_sector_constraints_manual():
 
     ef = setup_efficient_frontier()
     for sector in sector_upper:
-        is_sector = [v == sector for k, v in sector_mapper.items()]
+        is_sector = [sector_mapper[t] == sector for t in ef.tickers]
         ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
     for sector in sector_lower:
-        is_sector = [v == sector for k, v in sector_mapper.items()]
+        is_sector = [sector_mapper[t] == sector for t in ef.tickers]
         ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
 
     weights = ef.max_sharpe()
@@ -643,10 +665,10 @@ def test_efficient_risk_sector_constraints_manual():
     ef = setup_efficient_frontier()
 
     for sector in sector_upper:
-        is_sector = [v == sector for k, v in sector_mapper.items()]
+        is_sector = [sector_mapper[t] == sector for t in ef.tickers]
         ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
     for sector in sector_lower:
-        is_sector = [v == sector for k, v in sector_mapper.items()]
+        is_sector = [sector_mapper[t] == sector for t in ef.tickers]
         ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
 
     weights = ef.efficient_risk(0.19)

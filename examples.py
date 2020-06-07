@@ -10,7 +10,7 @@ from pypfopt import HRPOpt
 from pypfopt import CLA
 from pypfopt import black_litterman
 from pypfopt import BlackLittermanModel
-from pypfopt import Plotting
+from pypfopt import plotting
 
 
 # Reading in the data; preparing expected returns and a risk model
@@ -18,111 +18,6 @@ df = pd.read_csv("tests/resources/stock_prices.csv", parse_dates=True, index_col
 returns = df.pct_change().dropna()
 mu = expected_returns.mean_historical_return(df)
 S = risk_models.sample_cov(df)
-
-# Long-only Maximum Sharpe portfolio, with discretised weights
-ef = EfficientFrontier(mu, S)
-weights = ef.max_sharpe()
-ef.portfolio_performance(verbose=True)
-latest_prices = get_latest_prices(df)
-
-da = DiscreteAllocation(weights, latest_prices)
-allocation, leftover = da.lp_portfolio()
-print("Discrete allocation:", allocation)
-print("Funds remaining: ${:.2f}".format(leftover))
-
-"""
-Expected annual return: 33.0%
-Annual volatility: 21.7%
-Sharpe Ratio: 1.43
-
-Discrete allocation: {'AAPL': 5.0, 'FB': 11.0, 'BABA': 5.0, 'AMZN': 1.0, 
-                      'BBY': 7.0, 'MA': 14.0, 'PFE': 50.0, 'SBUX': 5.0}
-Funds remaining: $8.42
-"""
-
-# Long-only minimum volatility portfolio, with a weight cap and regularisation
-# e.g if we want at least 15/20 tickers to have non-neglible weights, and no
-# asset should have a weight greater than 10%
-ef = EfficientFrontier(mu, S, weight_bounds=(0, 0.10))
-ef.add_objective(objective_functions.L2_reg, gamma=0.1)
-weights = ef.min_volatility()
-print(weights)
-ef.portfolio_performance(verbose=True)
-
-"""
-{'GOOG': 0.0584267903998156,
- 'AAPL': 0.0369081348579286,
- 'FB': 0.0997609043032782,
- 'BABA': 0.1,
- 'AMZN': 0.0,
- 'GE': 0.0646457157900559,
- 'AMD': 0.0,
- 'WMT': 0.1,
- 'BAC': 0.0,
- 'GM': 0.1,
- 'T': 0.1,
- 'UAA': 0.0,
- 'SHLD': 0.0117118726759767,
- 'XOM': 0.1,
- 'RRC': 0.0301579098568917,
- 'BBY': 0.0250450148540626,
- 'MA': 0.0236174643376172,
- 'PFE': 0.1,
- 'JPM': 0.0044154412364586,
- 'SBUX': 0.0453107516879149}
-
-Expected annual return: 22.7%
-Annual volatility: 12.7%
-Sharpe Ratio: 1.63
-"""
-
-# A long/short portfolio maximising return for a target volatility of 10%,
-# with a shrunk covariance matrix risk model
-shrink = risk_models.CovarianceShrinkage(df)
-S = shrink.ledoit_wolf()
-ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
-weights = ef.efficient_risk(target_volatility=0.10)
-ef.portfolio_performance(verbose=True)
-
-"""
-Expected annual return: 21.0%
-Annual volatility: 16.8%
-Sharpe Ratio: 1.13
-"""
-
-# A market-neutral Markowitz portfolio finding the minimum volatility
-# for a target return of 20%, taking into account transaction costs.
-ef = EfficientFrontier(mu, S, weight_bounds=(-1, 1))
-
-# pretend we were initially equal-weighted
-old_weights = np.array([1 / ef.n_assets] * ef.n_assets)
-ef.add_objective(objective_functions.transaction_cost, w_prev=old_weights)
-weights = ef.efficient_return(target_return=0.20, market_neutral=True)
-ef.portfolio_performance(verbose=True)
-
-"""
-Expected annual return: 20.0%
-Annual volatility: 16.5%
-Sharpe Ratio: 1.09
-"""
-
-
-# Custom convex objective from 60 Years of Portfolio Optimisation, Kolm et al (2014)
-def logarithmic_barrier(w, cov_matrix, k=0.1):
-    log_sum = cp.sum(cp.log(w))
-    var = cp.quad_form(w, cov_matrix)
-    return var - k * log_sum
-
-
-ef = EfficientFrontier(mu, S)
-weights = ef.convex_objective(logarithmic_barrier, cov_matrix=ef.cov_matrix)
-ef.portfolio_performance(verbose=True)
-
-"""
-Expected annual return: 24.0%
-Annual volatility: 21.1%
-Sharpe Ratio: 1.04
-"""
 
 
 # Now try with a nonconvex objective from  Kolm et al (2014)
@@ -222,7 +117,7 @@ hrp = HRPOpt(returns)
 weights = hrp.optimize()
 hrp.portfolio_performance(verbose=True)
 print(weights)
-Plotting.plot_dendrogram(hrp)  # to plot dendrogram
+plotting.plot_dendrogram(hrp)  # to plot dendrogram
 
 """
 Expected annual return: 10.8%
@@ -256,7 +151,7 @@ Sharpe Ratio: 0.66
 cla = CLA(mu, S)
 print(cla.max_sharpe())
 cla.portfolio_performance(verbose=True)
-Plotting.plot_efficient_frontier(cla)  # to plot
+plotting.plot_efficient_frontier(cla)  # to plot
 
 """
 {'GOOG': 0.020889868669945022,

@@ -28,7 +28,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         - ``bounds`` - float tuple OR (float tuple) list
         - ``cov_matrix`` - np.ndarray
         - ``expected_returns`` - np.ndarray
-
+        - ``solver`` - str
 
     - Output: ``weights`` - np.ndarray
 
@@ -139,7 +139,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         Minimise volatility.
 
         :return: asset weights for the volatility-minimising portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
         self._objective = objective_functions.portfolio_variance(
             self._w, self.cov_matrix
@@ -149,8 +149,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         self._constraints.append(cp.sum(self._w) == 1)
 
-        self._solve_cvxpy_opt_problem()
-        return dict(zip(self.tickers, self.weights))
+        return self._solve_cvxpy_opt_problem()
 
     def max_sharpe(self, risk_free_rate=0.02):
         """
@@ -166,7 +165,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :type risk_free_rate: float, optional
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the Sharpe-maximising portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
@@ -205,7 +204,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         # Transformed max_sharpe convex problem:
         self._constraints = [
-            (self.expected_returns - risk_free_rate).T * self._w == 1,
+            (self.expected_returns - risk_free_rate).T @ self._w == 1,
             cp.sum(self._w) == k,
             k >= 0,
         ] + new_constraints
@@ -213,7 +212,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         self._solve_cvxpy_opt_problem()
         # Inverse-transform
         self.weights = (self._w.value / k.value).round(16) + 0.0
-        return dict(zip(self.tickers, self.weights))
+        return self._make_output_weights()
 
     def max_quadratic_utility(self, risk_aversion=1, market_neutral=False):
         r"""
@@ -230,7 +229,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                                defaults to False. Requires negative lower weight bound.
         :param market_neutral: bool, optional
         :return: asset weights for the maximum-utility portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
@@ -247,14 +246,14 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             self._constraints.append(cp.sum(self._w) == 1)
 
-        self._solve_cvxpy_opt_problem()
-        return dict(zip(self.tickers, self.weights))
+        return self._solve_cvxpy_opt_problem()
 
     def efficient_risk(self, target_volatility, market_neutral=False):
         """
-        Maximise return for a target risk.
+        Maximise return for a target risk. The resulting portfolio will have a volatility
+        less than the target (but not guaranteed to be equal).
 
-        :param target_volatility: the desired volatility of the resulting portfolio.
+        :param target_volatility: the desired maximum volatility of the resulting portfolio.
         :type target_volatility: float
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
@@ -263,9 +262,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :raises ValueError: if no portfolio can be found with volatility equal to ``target_volatility``
         :raises ValueError: if ``risk_free_rate`` is non-numeric
         :return: asset weights for the efficient risk portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
-        if not isinstance(target_volatility, float) or target_volatility < 0:
+        if not isinstance(target_volatility, (float, int)) or target_volatility < 0:
             raise ValueError("target_volatility should be a positive float")
 
         self._objective = objective_functions.portfolio_return(
@@ -286,8 +285,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             self._constraints.append(cp.sum(self._w) == 1)
 
-        self._solve_cvxpy_opt_problem()
-        return dict(zip(self.tickers, self.weights))
+        return self._solve_cvxpy_opt_problem()
 
     def efficient_return(self, target_return, market_neutral=False):
         """
@@ -301,7 +299,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :raises ValueError: if ``target_return`` is not a positive float
         :raises ValueError: if no portfolio can be found with return equal to ``target_return``
         :return: asset weights for the Markowitz portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
@@ -333,9 +331,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             self._constraints.append(cp.sum(self._w) == 1)
 
-        self._solve_cvxpy_opt_problem()
-
-        return dict(zip(self.tickers, self.weights))
+        return self._solve_cvxpy_opt_problem()
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """

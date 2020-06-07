@@ -9,7 +9,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="PyPortfolioOpt",
-    version="1.2.2",
+    version="1.2.3",
     description="Financial portfolio optimisation in python",
     long_description=desc,
     long_description_content_type="text/markdown",
@@ -35,10 +35,10 @@ setup(
         "Topic :: Scientific/Engineering :: Mathematics",
     ],
     keywords="portfolio finance optimization quant trading investing",
-    install_requires=["numpy", "pandas>=0.25.3,<1.1.0", "scipy", "cvxpy", "matplotlib"],
+    install_requires=["numpy", "pandas", "scipy", "cvxpy"],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
-    python_requires=">=3.6",
+    python_requires=">=3.5",
     project_urls={
         "Documentation": "https://pyportfolioopt.readthedocs.io/en/latest/",
         "Issues": "https://github.com/robertmartin8/PyPortfolioOpt/issues",

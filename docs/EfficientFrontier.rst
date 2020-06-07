@@ -70,8 +70,6 @@ Basic Usage
 .. automodule:: pypfopt.efficient_frontier
 
     .. autoclass:: EfficientFrontier
-        :members:
-        :exclude-members: custom_objective
 
         .. automethod:: __init__
 
@@ -85,6 +83,7 @@ Basic Usage
                 If you want to generate short-only portfolios, there is a quick hack. Multiply
                 your expected returns by -1, then optimise a long-only portfolio.
 
+        .. automethod:: min_volatility
 
         .. automethod:: max_sharpe
 
@@ -110,6 +109,8 @@ Basic Usage
                 :py:meth:`efficient_return`, the optimiser will fail silently and return
                 weird weights. *Caveat emptor* applies!
 
+        .. automethod:: efficient_return
+
         .. automethod:: portfolio_performance
 
             .. tip::
@@ -122,6 +123,12 @@ Basic Usage
                     base_optimizer.portfolio_performance(
                         weights, expected_returns, cov_matrix, verbose=True, risk_free_rate=0.02
                     )
+
+.. note:: 
+
+    PyPortfolioOpt defers to cvxpy's default choice of solver. If you would like to explicitly
+    choose the solver and see verbose output, simply assign ``ef.solver = "ECOS"`` prior to calling
+    the actual optimisation method. You can choose from any of the `supported solvers <https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver>`_.
 
 Adding objectives and constraints
 =================================

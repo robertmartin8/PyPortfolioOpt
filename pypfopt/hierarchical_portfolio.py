@@ -12,6 +12,7 @@ Currently implemented:
   permission from Marcos Lopez de Prado (2016).
 """
 
+import collections
 import warnings
 import numpy as np
 import pandas as pd
@@ -143,7 +144,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         Construct a hierarchical risk parity portfolio
 
         :return: weights for the HRP portfolio
-        :rtype: dict
+        :rtype: OrderedDict
         """
         if self.returns is None:
             cov = self.cov_matrix
@@ -155,46 +156,16 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         # per https://stackoverflow.com/questions/18952587/
 
         # this can avoid some nasty floating point issues
-        matrix = np.sqrt(np.clip((1.0 - corr) / 2., a_min=0.0, a_max=1.0))
+        matrix = np.sqrt(np.clip((1.0 - corr) / 2.0, a_min=0.0, a_max=1.0))
         dist = ssd.squareform(matrix, checks=False)
 
         self.clusters = sch.linkage(dist, "single")
         sort_ix = HRPOpt._get_quasi_diag(self.clusters)
         ordered_tickers = corr.index[sort_ix].tolist()
         hrp = HRPOpt._raw_hrp_allocation(cov, ordered_tickers)
-        weights = dict(hrp.sort_index())
+        weights = collections.OrderedDict(hrp.sort_index())
         self.set_weights(weights)
         return weights
-
-    def plot_dendrogram(self, show_tickers=True, filename=None, showfig=True):
-        try:
-            import matplotlib.pyplot as plt
-        except (ModuleNotFoundError, ImportError):
-            raise ImportError("Please install matplotlib via pip or poetry")
-
-        warnings.warn(
-            "This method is deprecated and will be removed in v1.2.0. "
-            "Please use pypfopt.Plotting instead"
-        )
-
-        if self.clusters is None:
-            self.optimize()
-
-        fig, ax = plt.subplots()
-        if show_tickers:
-            sch.dendrogram(self.clusters, labels=self.tickers, ax=ax)
-            plt.xticks(rotation=90)
-            plt.tight_layout()
-        else:
-            sch.dendrogram(self.clusters, ax=ax)
-
-        if filename:
-            plt.savefig(fname=filename, dpi=300)
-
-        if showfig:
-            plt.show()
-
-        return ax
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02, frequency=252):
         """

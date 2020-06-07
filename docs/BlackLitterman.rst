@@ -50,12 +50,13 @@ split up its methods into `expected_returns` or `risk_models`. I have thus made 
 module and owing to the comparatively extensive theory, have given it a dedicated documentation page.
 I'd like to thank  `Felipe Schneider <https://github.com/schneiderfelipe>`_ for his multiple
 contributions to the Black-Litterman implementation. A full example of its usage, including the acquistion
-of market cap data for free, please refer to the `cookbook recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/4-Black-Litterman-Allocation.ipynb>_.
+of market cap data for free, please refer to the `cookbook recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/4-Black-Litterman-Allocation.ipynb>`_.
 
 .. caution:: 
 
-    Our implementation of Black-Litterman makes frequent use of the fact that python 3.7 dictionaries
-    remain ordered. Please use python 3.7 to ensure that everything works as intended.
+    Our implementation of Black-Litterman makes frequent use of the fact that python 3.6+ dictionaries
+    remain ordered. It is still possible to use python 3.5 but you will have to construct the BL inputs
+    explicitly (``Q``, ``P``, ``omega``).
 
 Priors
 ======
