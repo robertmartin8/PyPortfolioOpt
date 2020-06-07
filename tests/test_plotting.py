@@ -1,7 +1,7 @@
-from pypfopt import plotting, HRPOpt, CLA
-from tests.utilities_for_tests import get_data
 import matplotlib
-from pypfopt import risk_models, expected_returns
+from tests.utilities_for_tests import get_data
+from pypfopt import plotting, risk_models, expected_returns
+from pypfopt import HRPOpt, CLA
 
 
 def test_correlation_plot():
