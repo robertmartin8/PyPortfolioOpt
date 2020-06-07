@@ -65,6 +65,28 @@ def test_min_volatility():
     )
 
 
+def test_min_volatility_different_solver():
+    ef = setup_efficient_frontier()
+    ef.solver = "ECOS"
+    w = ef.min_volatility()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert all([i >= 0 for i in w.values()])
+    test_performance = (0.179312, 0.159151, 1.001015)
+    np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-5)
+
+    ef = setup_efficient_frontier()
+    ef.solver = "OSQP"
+    w = ef.min_volatility()
+    np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-5)
+
+    ef = setup_efficient_frontier()
+    ef.solver = "SCS"
+    w = ef.min_volatility()
+    np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-3)
+
+
 def test_min_volatility_no_rets():
     # Should work with no rets, see issue #82
     df = get_data()

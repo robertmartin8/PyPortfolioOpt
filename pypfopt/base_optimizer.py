@@ -113,6 +113,7 @@ class BaseConvexOptimizer(BaseOptimizer):
     - ``n_assets`` - int
     - ``tickers`` - str list
     - ``weights`` - np.ndarray
+    - ``solver`` - str
 
     Public methods:
 
@@ -143,6 +144,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._lower_bounds = None
         self._upper_bounds = None
         self._map_bounds_to_constraints(weight_bounds)
+
+        self.solver = None
 
     def _map_bounds_to_constraints(self, test_bounds):
         """
@@ -193,7 +196,11 @@ class BaseConvexOptimizer(BaseOptimizer):
         """
         try:
             opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
-            opt.solve()
+
+            if self.solver is not None:
+                opt.solve(solver=self.solver, verbose=True)
+            else:
+                opt.solve()
         except (TypeError, cp.DCPError):
             raise exceptions.OptimizationError
         if opt.status != "optimal":

@@ -28,7 +28,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         - ``bounds`` - float tuple OR (float tuple) list
         - ``cov_matrix`` - np.ndarray
         - ``expected_returns`` - np.ndarray
-
+        - ``solver`` - str
 
     - Output: ``weights`` - np.ndarray
 
@@ -265,7 +265,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :return: asset weights for the efficient risk portfolio
         :rtype: dict
         """
-        if not isinstance(target_volatility, float) or target_volatility < 0:
+        if not isinstance(target_volatility, (float, int)) or target_volatility < 0:
             raise ValueError("target_volatility should be a positive float")
 
         self._objective = objective_functions.portfolio_return(
