@@ -204,7 +204,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         # Transformed max_sharpe convex problem:
         self._constraints = [
-            (self.expected_returns - risk_free_rate).T * self._w == 1,
+            (self.expected_returns - risk_free_rate).T @ self._w == 1,
             cp.sum(self._w) == k,
             k >= 0,
         ] + new_constraints

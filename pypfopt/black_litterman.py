@@ -209,12 +209,14 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             raise TypeError("views should be a dict or pd.Series")
         # Coerce to series
         views = pd.Series(absolute_views)
-        # Q is easy to construct
-        Q = views.values.reshape(-1, 1)
-        # P maps views to the universe.
-        P = np.zeros((len(Q), self.n_assets))
+        k = len(views)
+
+        Q = np.zeros((k, 1))
+        P = np.zeros((k, self.n_assets))
+
         for i, view_ticker in enumerate(views.keys()):
             try:
+                Q[i] = views[view_ticker]
                 P[i, list(self.tickers).index(view_ticker)] = 1
             except ValueError:
                 #  Could make this smarter by just skipping

@@ -237,7 +237,7 @@ def test_bl_weights():
     assert all(viewdict[t] * w[t] >= 0 for t in viewdict)
 
     # numerical check
-    assert w == {
+    test_weights = {
         "GOOG": 0.0,
         "AAPL": 1.40675,
         "FB": 0.0,
@@ -259,8 +259,14 @@ def test_bl_weights():
         "JPM": 0.0,
         "SBUX": -1.79776,
     }
+    assert w == test_weights
 
     bl = BlackLittermanModel(S, absolute_views=viewdict)
+    bl.optimize(delta)
+    w2 = bl.clean_weights()
+    assert w2 == w
+
+    bl = BlackLittermanModel(S, absolute_views=pd.Series(viewdict))
     bl.optimize(delta)
     w2 = bl.clean_weights()
     assert w2 == w

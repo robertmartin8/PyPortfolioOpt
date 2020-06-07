@@ -564,10 +564,10 @@ def test_max_sharpe_sector_constraints_manual():
 
     ef = setup_efficient_frontier()
     for sector in sector_upper:
-        is_sector = [v == sector for k, v in sector_mapper.items()]
+        is_sector = [sector_mapper[t] == sector for t in ef.tickers]
         ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
     for sector in sector_lower:
-        is_sector = [v == sector for k, v in sector_mapper.items()]
+        is_sector = [sector_mapper[t] == sector for t in ef.tickers]
         ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
 
     weights = ef.max_sharpe()
@@ -665,10 +665,10 @@ def test_efficient_risk_sector_constraints_manual():
     ef = setup_efficient_frontier()
 
     for sector in sector_upper:
-        is_sector = [v == sector for k, v in sector_mapper.items()]
+        is_sector = [sector_mapper[t] == sector for t in ef.tickers]
         ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
     for sector in sector_lower:
-        is_sector = [v == sector for k, v in sector_mapper.items()]
+        is_sector = [sector_mapper[t] == sector for t in ef.tickers]
         ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
 
     weights = ef.efficient_risk(0.19)
