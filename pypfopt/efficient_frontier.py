@@ -250,9 +250,10 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     def efficient_risk(self, target_volatility, market_neutral=False):
         """
-        Maximise return for a target risk.
+        Maximise return for a target risk. The resulting portfolio will have a volatility
+        less than the target (but not guaranteed to be equal).
 
-        :param target_volatility: the desired volatility of the resulting portfolio.
+        :param target_volatility: the desired maximum volatility of the resulting portfolio.
         :type target_volatility: float
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
