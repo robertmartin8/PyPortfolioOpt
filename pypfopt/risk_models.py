@@ -539,8 +539,8 @@ class CovarianceShrinkage:
         pi_hat = np.sum(pi_mat)
 
         # Theta matrix, expanded term by term
-        term1 = np.dot((X ** 3).T, X) / t
-        help_ = np.dot(X.T, X) / t
+        term1 = np.dot((Xm ** 3).T, Xm) / t
+        help_ = np.dot(Xm.T, Xm) / t
         help_diag = np.diag(help_)
         term2 = np.tile(help_diag, (n, 1)).T * S
         term3 = help_ * _var

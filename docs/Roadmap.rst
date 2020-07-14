@@ -48,6 +48,12 @@ Matplotlib now required dependency; support for pandas 1.0.
 - Changed dict to OrderedDict to support python 3.5
 - Improved packaging/dependencies: simplified requirements.txt, improved processes before pushing.
 
+1.2.4
+-----
+
+- Fixed bug in Ledoit-Wolf shrinkage calculation.
+- Fixed bug in plotting docs that caused them not to render. 
+
 1.1.0
 =====
 
