@@ -1100,7 +1100,7 @@ def test_min_volatilty_shrunk_L2_reg():
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.23127405291296832, 0.19563921371709164, 1.079916694096337),
+        (0.23127396601517256, 0.19563960638632416, 1.0799140824173181),
     )
 
 
