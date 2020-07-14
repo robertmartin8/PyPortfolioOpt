@@ -39,8 +39,8 @@ def test_portfolio_return_real():
     negative_mu = objective_functions.portfolio_return(w, e_rets)
     assert isinstance(negative_mu, float)
     assert negative_mu < 0
-    assert negative_mu == -w.dot(e_rets)
-    assert negative_mu == -(w * e_rets).sum()
+    np.testing.assert_almost_equal(negative_mu, -w.dot(e_rets))
+    np.testing.assert_almost_equal(negative_mu, -(w * e_rets).sum())
     np.testing.assert_almost_equal(-e_rets.sum() / len(e_rets), negative_mu)
 
 
