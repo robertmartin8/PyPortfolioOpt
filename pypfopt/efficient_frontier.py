@@ -134,7 +134,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             del self._constraints[0]
             del self._constraints[0]
 
-    def min_volatility(self):
+    def min_volatility(self, verbose=False):
         """
         Minimise volatility.
 
@@ -149,9 +149,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         self._constraints.append(cp.sum(self._w) == 1)
 
-        return self._solve_cvxpy_opt_problem()
+        return self._solve_cvxpy_opt_problem(verbose=verbose)
 
-    def max_sharpe(self, risk_free_rate=0.02):
+    def max_sharpe(self, risk_free_rate=0.02, verbose=False):
         """
         Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
         as it is the portfolio for which the capital market line is tangent to the efficient frontier.
@@ -209,12 +209,12 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             k >= 0,
         ] + new_constraints
 
-        self._solve_cvxpy_opt_problem()
+        self._solve_cvxpy_opt_problem(verbose=verbose)
         # Inverse-transform
         self.weights = (self._w.value / k.value).round(16) + 0.0
         return self._make_output_weights()
 
-    def max_quadratic_utility(self, risk_aversion=1, market_neutral=False):
+    def max_quadratic_utility(self, risk_aversion=1, market_neutral=False, verbose=False):
         r"""
         Maximise the given quadratic utility, i.e:
 
@@ -246,9 +246,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             self._constraints.append(cp.sum(self._w) == 1)
 
-        return self._solve_cvxpy_opt_problem()
+        return self._solve_cvxpy_opt_problem(verbose=verbose)
 
-    def efficient_risk(self, target_volatility, market_neutral=False):
+    def efficient_risk(self, target_volatility, market_neutral=False, verbose=False):
         """
         Maximise return for a target risk. The resulting portfolio will have a volatility
         less than the target (but not guaranteed to be equal).
@@ -285,9 +285,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             self._constraints.append(cp.sum(self._w) == 1)
 
-        return self._solve_cvxpy_opt_problem()
+        return self._solve_cvxpy_opt_problem(verbose=verbose)
 
-    def efficient_return(self, target_return, market_neutral=False):
+    def efficient_return(self, target_return, market_neutral=False, verbose=False):
         """
         Calculate the 'Markowitz portfolio', minimising volatility for a given target return.
 
@@ -331,7 +331,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             self._constraints.append(cp.sum(self._w) == 1)
 
-        return self._solve_cvxpy_opt_problem()
+        return self._solve_cvxpy_opt_problem(verbose=verbose)
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """

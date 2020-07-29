@@ -201,22 +201,25 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._constraints.append(self._w >= self._lower_bounds)
         self._constraints.append(self._w <= self._upper_bounds)
 
-    def _solve_cvxpy_opt_problem(self):
+    def _solve_cvxpy_opt_problem(self, verbose=False):
         """
         Helper method to solve the cvxpy problem and check output,
         once objectives and constraints have been defined
 
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
         :raises exceptions.OptimizationError: if problem is not solvable by cvxpy
         """
         try:
             opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
 
             if self.solver is not None:
-                opt.solve(solver=self.solver, verbose=True)
+                opt.solve(solver=self.solver, verbose=verbose)
             else:
-                opt.solve()
+                opt.solve(verbose=verbose)
         except (TypeError, cp.DCPError):
             raise exceptions.OptimizationError
+
         if opt.status != "optimal":
             raise exceptions.OptimizationError
         self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
@@ -296,7 +299,7 @@ class BaseConvexOptimizer(BaseOptimizer):
             is_sector = [sector_mapper[t] == sector for t in self.tickers]
             self._constraints.append(cp.sum(self._w[is_sector]) >= sector_lower[sector])
 
-    def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
+    def convex_objective(self, custom_objective, weights_sum_to_one=True, verbose=False, **kwargs):
         """
         Optimise a custom convex objective function. Constraints should be added with
         ``ef.add_constraint()``. Optimiser arguments must be passed as keyword-args. Example::
@@ -313,6 +316,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         :type custom_objective: function with signature (cp.Variable, `**kwargs`) -> cp.Expression
         :param weights_sum_to_one: whether to add the default objective, defaults to True
         :type weights_sum_to_one: bool, optional
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
         :raises OptimizationError: if the objective is nonconvex or constraints nonlinear.
         :return: asset weights for the efficient risk portfolio
         :rtype: OrderedDict
@@ -326,7 +331,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         if weights_sum_to_one:
             self._constraints.append(cp.sum(self._w) == 1)
 
-        return self._solve_cvxpy_opt_problem()
+        return self._solve_cvxpy_opt_problem(verbose=verbose)
 
     def nonconvex_objective(
         self,

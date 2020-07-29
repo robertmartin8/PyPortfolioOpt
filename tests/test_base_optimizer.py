@@ -1,7 +1,10 @@
 import json
 import os
+import cvxpy
 import numpy as np
 import pytest
+from random import random
+from mock import patch, Mock
 from pypfopt import EfficientFrontier
 from pypfopt import exceptions
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
@@ -203,3 +206,55 @@ def test_save_weights_to_file():
 
     os.remove("tests/test.txt")
     os.remove("tests/test.json")
+
+def assert_verbose_option(optimize_for_method, *args, solver=None):
+    ef = setup_efficient_frontier()
+    ef.solver = solver
+
+    # using a random number for `verbose` simply to test that what is received
+    # by the method is passed on to Problem#solve
+    verbose=random()
+
+    with patch("cvxpy.Problem.solve") as mock:
+        with pytest.raises(exceptions.OptimizationError):
+            # we're not testing the behavior of ef.min_volatility, just that it
+            # passes the verbose kwarg on to Problem#solve.
+            # mocking Problem#solve causes EfficientFrontier#min_volatility to
+            # raise an error, but it is safe to ignore it
+            optimize_for_method(ef, *args, verbose=verbose)
+
+        # mock.assert_called_with(verbose=verbose) doesn't work here because
+        # sometimes the mock is called with more kwargs. all we want to know is
+        # whether the value of verbose is passed on to Problem#solve
+        _name, _args, kwargs = mock.mock_calls[0]
+        assert kwargs['verbose'] == verbose
+
+def test_min_volatility_verbose_option():
+    assert_verbose_option(EfficientFrontier.min_volatility)
+
+def test_min_volatility_verbose_option_with_solver():
+    assert_verbose_option(EfficientFrontier.min_volatility, solver=cvxpy.settings.ECOS)
+
+def test_max_sharpe_verbose_option():
+    assert_verbose_option(EfficientFrontier.max_sharpe)
+
+def test_max_sharpe_verbose_option_with_solver():
+    assert_verbose_option(EfficientFrontier.min_volatility, solver=cvxpy.settings.ECOS)
+
+def test_max_quadratic_utility_verbose_option():
+    assert_verbose_option(EfficientFrontier.max_quadratic_utility)
+
+def test_max_quadratic_utility_verbose_option_with_solver():
+    assert_verbose_option(EfficientFrontier.min_volatility, solver=cvxpy.settings.ECOS)
+
+def test_efficient_risk_verbose_option():
+    assert_verbose_option(EfficientFrontier.efficient_risk, 0.1)
+
+def test_efficient_risk_verbose_option_with_solver():
+    assert_verbose_option(EfficientFrontier.min_volatility, solver=cvxpy.settings.ECOS)
+
+def test_efficient_return_verbose_option():
+    assert_verbose_option(EfficientFrontier.efficient_return, 0.01)
+
+def test_efficient_return_verbose_option_with_solver():
+    assert_verbose_option(EfficientFrontier.min_volatility, solver=cvxpy.settings.ECOS)
