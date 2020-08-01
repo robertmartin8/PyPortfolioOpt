@@ -28,7 +28,8 @@ def deviation_risk_parity(w, cov_matrix):
 
 ef = EfficientFrontier(mu, S)
 weights = ef.nonconvex_objective(deviation_risk_parity, ef.cov_matrix)
-ef.portfolio_performance(verbose=True)
+ef.verbose = True
+ef.portfolio_performance()
 
 """
 Expected annual return: 22.9%
@@ -82,7 +83,8 @@ rets = bl.bl_returns()
 ef = EfficientFrontier(rets, S)
 ef.max_sharpe()
 print(ef.clean_weights())
-ef.portfolio_performance(verbose=True)
+ef.verbose = True
+ef.portfolio_performance()
 
 """
 {'GOOG': 0.2015,
@@ -115,7 +117,8 @@ Sharpe Ratio: 0.46
 # Hierarchical risk parity
 hrp = HRPOpt(returns)
 weights = hrp.optimize()
-hrp.portfolio_performance(verbose=True)
+hrp.verbose = True
+hrp.portfolio_performance()
 print(weights)
 plotting.plot_dendrogram(hrp)  # to plot dendrogram
 
@@ -150,7 +153,8 @@ Sharpe Ratio: 0.66
 # Crticial Line Algorithm
 cla = CLA(mu, S)
 print(cla.max_sharpe())
-cla.portfolio_performance(verbose=True)
+cla.verbose = True
+cla.portfolio_performance()
 plotting.plot_efficient_frontier(cla)  # to plot
 
 """

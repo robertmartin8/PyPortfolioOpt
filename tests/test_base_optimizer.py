@@ -214,6 +214,7 @@ def assert_verbose_option(optimize_for_method, *args, solver=None):
     # using a random number for `verbose` simply to test that what is received
     # by the method is passed on to Problem#solve
     verbose=random()
+    ef.verbose = verbose
 
     with patch("cvxpy.Problem.solve") as mock:
         with pytest.raises(exceptions.OptimizationError):
@@ -221,7 +222,7 @@ def assert_verbose_option(optimize_for_method, *args, solver=None):
             # passes the verbose kwarg on to Problem#solve.
             # mocking Problem#solve causes EfficientFrontier#min_volatility to
             # raise an error, but it is safe to ignore it
-            optimize_for_method(ef, *args, verbose=verbose)
+            optimize_for_method(ef, *args)
 
         # mock.assert_called_with(verbose=verbose) doesn't work here because
         # sometimes the mock is called with more kwargs. all we want to know is

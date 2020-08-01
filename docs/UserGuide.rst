@@ -117,7 +117,7 @@ portfolio) – the set of all these optimal portfolios is referred to as the
 
 .. image:: ../media/efficient_frontier.png
    :align: center
-   :alt: risk-return characteristics of possible portfolios 
+   :alt: risk-return characteristics of possible portfolios
 
 Each dot on this diagram represents a different possible portfolio, with darker blue
 corresponding to 'better' portfolios (in terms of the Sharpe Ratio). The dotted
@@ -178,7 +178,8 @@ This prints::
 If we want to know the expected performance of the portfolio with optimal
 weights ``w``, we can use the :py:meth:`portfolio_performance` method::
 
-    ef.portfolio_performance(verbose=True)
+    ef.verbose = True
+    ef.portfolio_performance()
 
 .. code-block:: text
 
