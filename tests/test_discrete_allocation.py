@@ -208,7 +208,7 @@ def test_lp_allocation_rmse_error():
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(w, latest_prices)
     da.lp_portfolio()
-    np.testing.assert_almost_equal(da._allocation_rmse_error(), 0.017070218149194846)
+    np.testing.assert_almost_equal(da._allocation_rmse_error(verbose=False), 0.017070218149194846)
 
 
 def test_lp_portfolio_allocation_short():
@@ -310,18 +310,18 @@ def test_rmse_decreases_with_value():
 
     da1 = DiscreteAllocation(w, latest_prices, total_portfolio_value=10000)
     da1.greedy_portfolio()
-    rmse1 = da1._allocation_rmse_error()
+    rmse1 = da1._allocation_rmse_error(verbose=False)
     da2 = DiscreteAllocation(w, latest_prices, total_portfolio_value=100000)
     da2.greedy_portfolio()
-    rmse2 = da2._allocation_rmse_error()
+    rmse2 = da2._allocation_rmse_error(verbose=False)
     assert rmse2 < rmse1
 
     da3 = DiscreteAllocation(w, latest_prices, total_portfolio_value=10000)
     da3.lp_portfolio()
-    rmse3 = da3._allocation_rmse_error()
+    rmse3 = da3._allocation_rmse_error(verbose=False)
     da4 = DiscreteAllocation(w, latest_prices, total_portfolio_value=30000)
     da4.lp_portfolio()
-    rmse4 = da4._allocation_rmse_error()
+    rmse4 = da4._allocation_rmse_error(verbose=False)
     assert rmse4 < rmse3
 
 

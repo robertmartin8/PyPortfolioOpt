@@ -121,14 +121,14 @@ Basic Usage
                     from pypfopt import base_optimizer
 
                     base_optimizer.portfolio_performance(
-                        weights, expected_returns, cov_matrix, risk_free_rate=0.02
+                        weights, expected_returns, cov_matrix, verbose=True, risk_free_rate=0.02
                     )
 
 .. note::
 
     PyPortfolioOpt defers to cvxpy's default choice of solver. If you would like to explicitly
-    choose the solver, simply assign ``ef.solver = "ECOS"`` prior to calling the actual optimisation
-    method. You can choose from any of the `supported solvers <https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver>`_.
+    choose the solver, simply pass the optional ``solver = "ECOS"`` kwarg to the constructor.
+    You can choose from any of the `supported solvers <https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver>`_.
 
 Adding objectives and constraints
 =================================

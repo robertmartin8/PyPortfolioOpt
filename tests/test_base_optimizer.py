@@ -208,13 +208,11 @@ def test_save_weights_to_file():
     os.remove("tests/test.json")
 
 def assert_verbose_option(optimize_for_method, *args, solver=None):
-    ef = setup_efficient_frontier()
-    ef.solver = solver
-
     # using a random number for `verbose` simply to test that what is received
     # by the method is passed on to Problem#solve
     verbose=random()
-    ef.verbose = verbose
+
+    ef = setup_efficient_frontier(solver=solver, verbose=verbose)
 
     with patch("cvxpy.Problem.solve") as mock:
         with pytest.raises(exceptions.OptimizationError):

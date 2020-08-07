@@ -65,8 +65,8 @@ The alternative is to clone/download the project, then in the project directory 
 
     python setup.py install
 
-Thanks to Thomas Schmelzer, PyPortfolioOpt now supports Docker (requires
-**make**, **docker**, **docker-compose**). Build your first container with
+Thanks to Thomas Schmelzer, PyPortfolioOpt now supports Docker (requires 
+**make**, **docker**, **docker-compose**). Build your first container with 
 ``make build``; run tests with ``make test``. For more information, please read
 `this guide <https://docker-curriculum.com/#introduction>`_.
 
@@ -131,8 +131,7 @@ that's fine too::
     # Optimise for maximal Sharpe ratio
     ef = EfficientFrontier(mu, S)
     weights = ef.max_sharpe()
-    ef.verbose = True
-    ef.portfolio_performance()
+    ef.portfolio_performance(verbose=True)
 
 This outputs the following:
 
@@ -160,7 +159,7 @@ Contents
 
 .. toctree::
     :caption: Other information
-
+    
     Roadmap
     Contributing
     About

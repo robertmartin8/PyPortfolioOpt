@@ -132,8 +132,7 @@ raw_weights = ef.max_sharpe()
 cleaned_weights = ef.clean_weights()
 ef.save_weights_to_file("weights.csv")  # saves to file
 print(cleaned_weights)
-ef.verbose = True
-ef.portfolio_performance()
+ef.portfolio_performance(verbose=True)
 ```
 
 This outputs the following weights:
