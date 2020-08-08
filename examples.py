@@ -38,7 +38,7 @@ Sharpe Ratio: 1.09
 
 # Black-Litterman
 spy_prices = pd.read_csv(
-    "tests/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
+    "tests/resources/spy_prices.csv", parse_dates=True, index_col=0, squeeze=True
 )
 delta = black_litterman.market_implied_risk_aversion(spy_prices)
 
