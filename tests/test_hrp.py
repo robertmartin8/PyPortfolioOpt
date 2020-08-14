@@ -10,7 +10,7 @@ def test_hrp_portfolio():
     df = get_data()
     returns = df.pct_change().dropna(how="all")
     hrp = HRPOpt(returns)
-    w = hrp.optimize()
+    w = hrp.optimize(linkage_method="single")
 
     # uncomment this line if you want generating a new file
     # pd.Series(w).to_csv(resource("weights_hrp.csv"))
@@ -32,7 +32,7 @@ def test_portfolio_performance():
     hrp = HRPOpt(returns)
     with pytest.raises(ValueError):
         hrp.portfolio_performance()
-    hrp.optimize()
+    hrp.optimize(linkage_method="single")
     np.testing.assert_allclose(
         hrp.portfolio_performance(),
         (0.21353402380950973, 0.17844159743748936, 1.084579081272277),
@@ -43,7 +43,7 @@ def test_pass_cov_matrix():
     df = get_data()
     S = CovarianceShrinkage(df).ledoit_wolf()
     hrp = HRPOpt(cov_matrix=S)
-    hrp.optimize()
+    hrp.optimize(linkage_method="single")
     perf = hrp.portfolio_performance()
     assert perf[0] is None and perf[2] is None
     np.testing.assert_almost_equal(perf[1], 0.10002783894982334)
@@ -62,6 +62,6 @@ def test_quasi_dag():
     df = get_data()
     returns = df.pct_change().dropna(how="all")
     hrp = HRPOpt(returns)
-    hrp.optimize()
+    hrp.optimize(linkage_method="single")
     clusters = hrp.clusters
     assert HRPOpt._get_quasi_diag(clusters)[:5] == [12, 6, 15, 14, 2]
