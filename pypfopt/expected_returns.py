@@ -128,7 +128,7 @@ def mean_historical_return(
     else:
         returns = returns_from_prices(prices)
     if compounding:
-        return (1 + returns.mean()) ** frequency - 1
+        return (1 + returns).prod() ** (frequency/returns.count()) - 1
     else:
         return returns.mean() * frequency
 
@@ -185,7 +185,7 @@ def james_stein_shrinkage(prices, returns_data=False, compounding=False, frequen
     :type prices: pd.DataFrame
     :param returns_data: if true, the first argument is returns instead of prices.
     :type returns_data: bool, defaults to False.
-    :param compounded: whether to properly compound the returns, optional.
+    :param compounding: whether to properly compound the returns, optional.
     :type compounding: bool, defaults to False
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
@@ -279,7 +279,7 @@ def capm_return(
     betas = betas.drop("mkt")
     # Find mean market return on a given time period
     if compounding:
-        mkt_mean_ret = (1 + returns["mkt"].mean()) ** frequency - 1
+        mkt_mean_ret = (1 + returns["mkt"]).prod() ** (frequency/returns["mkt"].count()) - 1
     else:
         mkt_mean_ret = returns["mkt"].mean() * frequency
 
