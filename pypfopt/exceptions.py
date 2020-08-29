@@ -3,7 +3,6 @@ The ``exceptions`` module houses custom exceptions. Currently implemented:
 
 - OptimizationError
 """
-import traceback
 
 
 class OptimizationError(Exception):
@@ -16,9 +15,4 @@ class OptimizationError(Exception):
         default_message = (
             "Please check your objectives/constraints or use a different solver."
         )
-
-        if not (args or kwargs):
-            args = (default_message,)
-        super().__init__(*args, **kwargs)
-
-        traceback.print_exc()
+        super().__init__(default_message, *args, **kwargs)

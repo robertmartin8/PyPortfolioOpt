@@ -215,8 +215,8 @@ class BaseConvexOptimizer(BaseOptimizer):
                 opt.solve(solver=self.solver, verbose=True)
             else:
                 opt.solve()
-        except (TypeError, cp.DCPError):
-            raise exceptions.OptimizationError
+        except (TypeError, cp.DCPError) as e:
+            raise exceptions.OptimizationError from e
         if opt.status != "optimal":
             raise exceptions.OptimizationError
         self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
