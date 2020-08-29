@@ -837,7 +837,7 @@ def test_efficient_risk_error():
     assert ef.efficient_risk(min_possible_vol + 0.01)
 
     ef = setup_efficient_frontier()
-    with pytest.raises(exceptions.OptimizationError):
+    with pytest.raises(ValueError):
         # This volatility is too low
         ef.efficient_risk(min_possible_vol - 0.01)
 
