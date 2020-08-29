@@ -27,6 +27,11 @@ def test_sample_cov_dummy():
     pd.testing.assert_frame_equal(S, test_answer)
 
 
+def test_is_positive_semidefinite():
+    a = np.zeros((100, 100))
+    assert risk_models._is_positive_semidefinite(a)
+
+
 def test_sample_cov_real_data():
     df = get_data()
     S = risk_models.sample_cov(df)
