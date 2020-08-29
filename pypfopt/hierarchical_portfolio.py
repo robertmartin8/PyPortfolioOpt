@@ -13,7 +13,6 @@ Currently implemented:
 """
 
 import collections
-import warnings
 import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch
@@ -141,8 +140,11 @@ class HRPOpt(base_optimizer.BaseOptimizer):
 
     def optimize(self, linkage_method="single"):
         """
-        Construct a hierarchical risk parity portfolio
+        Construct a hierarchical risk parity portfolio, using Scipy hierarchical clustering
+        (see `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.linkage.html>`_)
 
+        :param linkage_method: which scipy linkage method to use
+        :type linkage_method: str
         :return: weights for the HRP portfolio
         :rtype: OrderedDict
         """
