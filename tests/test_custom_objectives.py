@@ -91,7 +91,7 @@ def test_custom_convex_logarithmic_barrier():
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.23978400459553223, 0.21100848889958182, 1.041588448605623),
+        (0.17261881638711316, 0.21100848889958182, 0.7232828270702603),
     )
 
 
@@ -101,7 +101,7 @@ def test_custom_convex_deviation_risk_parity_error():
 
     def deviation_risk_parity(w, cov_matrix):
         n = cov_matrix.shape[0]
-        rp = (w * (cov_matrix @ w)) / cp.quad_form(w, cov_matrix)
+        rp = (w @ (cov_matrix @ w)) / cp.quad_form(w, cov_matrix)
         return cp.sum_squares(rp - 1 / n)
 
     with pytest.raises(exceptions.OptimizationError):
@@ -287,6 +287,6 @@ def test_custom_nonconvex_objective_market_neutral_efficient_risk():
     )
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2309497754562942, target_risk, 1.1102600451243954),
+        (0.2591296227818582, target_risk, 1.258574109251818),
         atol=1e-6,
     )

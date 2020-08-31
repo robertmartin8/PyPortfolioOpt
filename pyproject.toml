@@ -35,7 +35,8 @@ python = "^3.5"
 numpy = "^1.12"
 scipy = "^1.3"
 pandas = ">=0.19"
-cvxpy = "~1.0"
+cvxpy = "^1.0"
+cvxopt = "^1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"

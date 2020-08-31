@@ -39,7 +39,8 @@ def _is_positive_semidefinite(matrix):
     :rtype: bool
     """
     try:
-        np.linalg.cholesky(matrix)
+        # Significantly more efficient than checking eigenvalues (stackoverflow.com/questions/16266720)
+        np.linalg.cholesky(matrix + 1e-16 * np.eye(len(matrix)))
         return True
     except np.linalg.LinAlgError:
         return False

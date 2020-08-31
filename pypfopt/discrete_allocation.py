@@ -297,19 +297,21 @@ class DiscreteAllocation:
         # Integer allocation
         x = cp.Variable(n, integer=True)
         # Remaining dollars
-        r = self.total_portfolio_value - p.T * x
+        r = self.total_portfolio_value - p.T @ x
 
-        # Objective function is remaining dollars + sum of absolute deviations from ideality.
-        objective = r + cp.norm(w * self.total_portfolio_value - cp.multiply(x, p), 1)
-        constraints = [r + p.T * x == self.total_portfolio_value, x >= 0, r >= 0]
+        # Set up linear program
+        eta = w * self.total_portfolio_value - cp.multiply(x, p)
+        u = cp.Variable(n)
+        constraints = [eta <= u, eta >= -u, x >= 0, r >= 0]
+        objective = cp.sum(u) + r
 
         opt = cp.Problem(cp.Minimize(objective), constraints)
-        opt.solve()
+        opt.solve(solver="GLPK_MI")
 
         if opt.status not in {"optimal", "optimal_inaccurate"}:
             raise exceptions.OptimizationError("Please try greedy_portfolio")
 
-        vals = np.rint(x.value)
+        vals = np.rint(x.value).astype(int)
         self.allocation = self._remove_zero_positions(
             collections.OrderedDict(zip([i[0] for i in self.weights], vals))
         )
