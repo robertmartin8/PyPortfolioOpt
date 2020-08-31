@@ -15,7 +15,6 @@ Currently implemented:
     - general return model function, allowing you to run any return model from one function.
     - mean historical return
     - exponentially weighted mean historical return
-    - James-Stein shrinkage
     - CAPM estimate of returns
 
 Additionally, we provide utility functions to convert from returns to prices and vice-versa.
@@ -81,7 +80,6 @@ def return_model(prices, method="mean_historical_return", **kwargs):
 
         - ``mean_historical_return``
         - ``ema_historical_return``
-        - ``james_stein_shrinkage``
         - ``capm_return``
 
     :type method: str, optional
@@ -93,8 +91,6 @@ def return_model(prices, method="mean_historical_return", **kwargs):
         return mean_historical_return(prices, **kwargs)
     elif method == "ema_historical_return":
         return ema_historical_return(prices, **kwargs)
-    elif method == "james_stein_shrinkage":
-        return james_stein_shrinkage(prices, **kwargs)
     elif method == "capm_return":
         return capm_return(prices, **kwargs)
     else:
@@ -170,48 +166,9 @@ def ema_historical_return(
 
 
 def james_stein_shrinkage(prices, returns_data=False, compounding=False, frequency=252):
-    r"""
-    Compute the James-Stein shrinkage estimator, i.e
-
-    .. math::
-
-        \hat{\mu}_i^{JS} = \hat{\kappa} \bar{\mu} + (1-\hat{\kappa}) \mu_i,
-
-    where :math:`\kappa` is the shrinkage parameter, :math:`\bar{\mu}` is the shrinkage
-    target (grand average), and :math:`\mu` is the vector of mean returns.
-
-    :param prices: adjusted closing prices of the asset, each row is a date
-                   and each column is a ticker/id.
-    :type prices: pd.DataFrame
-    :param returns_data: if true, the first argument is returns instead of prices.
-    :type returns_data: bool, defaults to False.
-    :param compounded: whether to properly compound the returns, optional.
-    :type compounding: bool, defaults to False
-    :param frequency: number of time periods in a year, defaults to 252 (the number
-                      of trading days in a year)
-    :type frequency: int, optional
-    :return: James-Stein estimate of annualised return
-    :rtype: pd.Series
-    """
-    if not isinstance(prices, pd.DataFrame):
-        warnings.warn("prices are not in a dataframe", RuntimeWarning)
-        prices = pd.DataFrame(prices)
-    if returns_data:
-        returns = prices
-    else:
-        returns = returns_from_prices(prices)
-
-    T, n = returns.shape
-    mu = returns.mean(axis=0)
-    mu_bar = mu.mean()
-    sigma_squared = 1 / T * mu_bar * (1 - mu_bar)  # binomial estimate
-    kappa = 1 - (n - 3) * sigma_squared / np.sum((mu - mu_bar) ** 2)
-    theta_js = (1 - kappa) * mu + kappa * mu_bar
-
-    if compounding:
-        return (1 + theta_js) ** frequency - 1
-    else:
-        return theta_js * frequency
+    raise NotImplementedError(
+        "Deprecated because its implementation here was misguided."
+    )
 
 
 def capm_return(
