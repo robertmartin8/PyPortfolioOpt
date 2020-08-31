@@ -83,7 +83,7 @@ def test_greedy_portfolio_allocation_short():
     da = DiscreteAllocation(w, latest_prices)
     allocation, leftover = da.greedy_portfolio()
 
-    assert da.allocation == {
+    assert allocation == {
         "MA": 19,
         "PFE": 42,
         "FB": 7,
@@ -143,7 +143,7 @@ def test_greedy_portfolio_allocation_short_different_params():
     )
     allocation, leftover = da.greedy_portfolio()
 
-    assert da.allocation == {
+    assert allocation == {
         "MA": 96,
         "PFE": 211,
         "FB": 34,
@@ -185,12 +185,11 @@ def test_lp_portfolio_allocation():
     da = DiscreteAllocation(w, latest_prices)
     allocation, leftover = da.lp_portfolio()
 
-    assert da.allocation == {
+    assert allocation == {
         "GOOG": 1,
         "AAPL": 4,
         "FB": 12,
         "BABA": 4,
-        "AMD": 1,
         "BBY": 2,
         "MA": 20,
         "PFE": 54,
@@ -213,7 +212,7 @@ def test_lp_allocation_rmse_error():
     da = DiscreteAllocation(w, latest_prices)
     da.lp_portfolio()
     np.testing.assert_almost_equal(
-        da._allocation_rmse_error(verbose=False), 0.017082871441954087
+        da._allocation_rmse_error(verbose=False), 0.017082871441954087, decimal=5
     )
 
 
@@ -228,7 +227,7 @@ def test_lp_portfolio_allocation_short():
     da = DiscreteAllocation(w, latest_prices)
     allocation, leftover = da.lp_portfolio()
 
-    assert da.allocation == {
+    assert allocation == {
         "GOOG": 1,
         "AAPL": 4,
         "FB": 7,
@@ -288,7 +287,7 @@ def test_lp_portfolio_allocation_different_params():
     )
     allocation, leftover = da.lp_portfolio()
 
-    assert da.allocation == {
+    assert allocation == {
         "GOOG": 3,
         "AAPL": 32,
         "FB": 100,

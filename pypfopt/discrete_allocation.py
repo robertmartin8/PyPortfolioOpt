@@ -306,7 +306,7 @@ class DiscreteAllocation:
         objective = cp.sum(u) + r
 
         opt = cp.Problem(cp.Minimize(objective), constraints)
-        opt.solve()
+        opt.solve(solver="GLPK_MI")
 
         if opt.status not in {"optimal", "optimal_inaccurate"}:
             raise exceptions.OptimizationError("Please try greedy_portfolio")
