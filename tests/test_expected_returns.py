@@ -55,17 +55,12 @@ def test_mean_historical_returns_dummy():
         ]
     )
     mean = expected_returns.mean_historical_return(data, frequency=1)
-    test_answer = pd.Series([0.00865598, 0.025, 0.01286968, -0.03632333])
+    test_answer = pd.Series([0.0086559, 0.0250000, 0.0128696, -0.03632332])
     pd.testing.assert_series_equal(mean, test_answer)
+
     mean = expected_returns.mean_historical_return(data, compounding=True, frequency=1)
+    test_answer = pd.Series([0.0061922, 0.0241136, 0.0122722, -0.0421775])
     pd.testing.assert_series_equal(mean, test_answer)
-
-
-def test_mean_historical_returns_compounding():
-    df = get_data()
-    mean = expected_returns.mean_historical_return(df)
-    mean2 = expected_returns.mean_historical_return(df, compounding=True)
-    assert (mean2 >= mean).all()
 
 
 def test_mean_historical_returns():
@@ -193,26 +188,26 @@ def test_capm_with_benchmark():
     assert mu.dtype == "float64"
     correct_mu = np.array(
         [
-            0.10903299,
-            0.11891232,
-            0.0659977,
-            0.07369941,
-            0.15948144,
-            0.12308759,
-            0.15907944,
-            0.08680978,
-            0.15778843,
-            0.0903294,
-            0.09043133,
-            0.14716681,
-            0.12510181,
-            0.0927869,
-            0.10990104,
-            0.12317033,
-            0.13596521,
-            0.09344662,
-            0.15457909,
-            0.11430041,
+            0.09115799,
+            0.09905387,
+            0.05676282,
+            0.06291827,
+            0.131478,
+            0.10239088,
+            0.13115671,
+            0.0733965,
+            0.13012489,
+            0.07620949,
+            0.07629095,
+            0.12163575,
+            0.10400071,
+            0.0781736,
+            0.09185177,
+            0.10245701,
+            0.11268308,
+            0.07870087,
+            0.12755988,
+            0.09536789,
         ]
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)

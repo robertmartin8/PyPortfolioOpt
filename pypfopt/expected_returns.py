@@ -124,7 +124,7 @@ def mean_historical_return(
     else:
         returns = returns_from_prices(prices)
     if compounding:
-        return (1 + returns.mean()) ** frequency - 1
+        return (1 + returns).prod() ** (frequency / returns.count()) - 1
     else:
         return returns.mean() * frequency
 
@@ -236,7 +236,9 @@ def capm_return(
     betas = betas.drop("mkt")
     # Find mean market return on a given time period
     if compounding:
-        mkt_mean_ret = (1 + returns["mkt"].mean()) ** frequency - 1
+        mkt_mean_ret = (1 + returns["mkt"]).prod() ** (
+            frequency / returns["mkt"].count()
+        ) - 1
     else:
         mkt_mean_ret = returns["mkt"].mean() * frequency
 
