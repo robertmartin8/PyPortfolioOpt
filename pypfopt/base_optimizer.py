@@ -141,12 +141,18 @@ class BaseConvexOptimizer(BaseOptimizer):
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
-    def __init__(self, n_assets, tickers=None, weight_bounds=(0, 1)):
+    def __init__(
+        self, n_assets, tickers=None, weight_bounds=(0, 1), solver=None, verbose=False
+    ):
         """
         :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
                               if all identical, defaults to (0, 1). Must be changed to (-1, 1)
                               for portfolios with shorting.
         :type weight_bounds: tuple OR tuple list, optional
+        :param solver: name of solver. list available solvers with: ``cvxpy.installed_solvers()``
+        :type solver: str, optional. Defaults to "ECOS"
+        :param verbose: whether performance and debugging info should be printed, defaults to False
+        :type verbose: bool, optional
         """
         super().__init__(n_assets, tickers)
 
@@ -159,7 +165,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._upper_bounds = None
         self._map_bounds_to_constraints(weight_bounds)
 
-        self.solver = None
+        self._solver = solver
+        self._verbose = verbose
 
     def _map_bounds_to_constraints(self, test_bounds):
         """
@@ -211,12 +218,13 @@ class BaseConvexOptimizer(BaseOptimizer):
         try:
             opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
 
-            if self.solver is not None:
-                opt.solve(solver=self.solver, verbose=True)
+            if self._solver is not None:
+                opt.solve(solver=self._solver, verbose=self._verbose)
             else:
-                opt.solve()
-        except (TypeError, cp.DCPError):
-            raise exceptions.OptimizationError
+                opt.solve(verbose=self._verbose)
+        except (TypeError, cp.DCPError) as e:
+            raise exceptions.OptimizationError from e
+
         if opt.status != "optimal":
             raise exceptions.OptimizationError
         self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
@@ -335,6 +343,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         weights_sum_to_one=True,
         constraints=None,
         solver="SLSQP",
+        initial_guess=None,
     ):
         """
         Optimise some objective function using the scipy backend. This can
@@ -368,6 +377,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         :param solver: which SCIPY solver to use, e.g "SLSQP", "COBYLA", "BFGS".
                        User beware: different optimisers require different inputs.
         :type solver: string
+        :param initial_guess: the initial guess for the weights, shape (n,) or (n, 1)
+        :type initial_guess: np.ndarray
         :return: asset weights that optimise the custom objective
         :rtype: OrderedDict
         """
@@ -379,7 +390,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         bound_array = np.vstack((self._lower_bounds, self._upper_bounds)).T
         bounds = list(map(tuple, bound_array))
 
-        initial_guess = np.array([1 / self.n_assets] * self.n_assets)
+        if initial_guess is None:
+            initial_guess = np.array([1 / self.n_assets] * self.n_assets)
 
         # Construct constraints
         final_constraints = []

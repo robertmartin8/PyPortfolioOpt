@@ -1,4 +1,3 @@
-import warnings
 import pandas as pd
 import numpy as np
 import pytest
@@ -38,7 +37,7 @@ def test_returns_from_prices():
 def test_log_returns_from_prices():
     df = get_data()
     old_nan = df.isnull().sum(axis=1).sum()
-    log_rets = expected_returns.log_returns_from_prices(df)
+    log_rets = expected_returns.returns_from_prices(df, log_returns=True)
     new_nan = log_rets.isnull().sum(axis=1).sum()
     assert new_nan == old_nan
     np.testing.assert_almost_equal(log_rets.iloc[-1, -1], 0.0001682740081102576)
@@ -55,17 +54,12 @@ def test_mean_historical_returns_dummy():
         ]
     )
     mean = expected_returns.mean_historical_return(data, frequency=1)
-    test_answer = pd.Series([0.00865598, 0.025, 0.01286968, -0.03632333])
-    pd.testing.assert_series_equal(mean, test_answer)
-    mean = expected_returns.mean_historical_return(data, compounding=True, frequency=1)
-    pd.testing.assert_series_equal(mean, test_answer)
+    test_answer = pd.Series([0.0061922, 0.0241137, 0.0122722, -0.0421775])
+    pd.testing.assert_series_equal(mean, test_answer, check_less_precise=4)
 
-
-def test_mean_historical_returns_compounding():
-    df = get_data()
-    mean = expected_returns.mean_historical_return(df)
-    mean2 = expected_returns.mean_historical_return(df, compounding=True)
-    assert (mean2 >= mean).all()
+    mean = expected_returns.mean_historical_return(data, compounding=False, frequency=1)
+    test_answer = pd.Series([0.0086560, 0.0250000, 0.0128697, -0.03632333])
+    pd.testing.assert_series_equal(mean, test_answer, check_less_precise=4)
 
 
 def test_mean_historical_returns():
@@ -77,26 +71,26 @@ def test_mean_historical_returns():
     assert mean.dtype == "float64"
     correct_mean = np.array(
         [
-            0.26770284,
-            0.3637864,
-            0.31709032,
-            0.22616723,
-            0.49982007,
-            0.16888704,
-            0.22754479,
-            0.14783539,
-            0.19001915,
-            0.08150653,
-            0.12826351,
-            0.25797816,
-            0.07580128,
-            0.16087243,
-            0.20510267,
-            0.3511536,
-            0.38808003,
-            0.24635612,
-            0.21798433,
-            0.28474973,
+            0.247967,
+            0.294304,
+            0.284037,
+            0.1923164,
+            0.371327,
+            0.1360093,
+            0.0328503,
+            0.1200115,
+            0.105540,
+            0.0423457,
+            0.1002559,
+            0.1442237,
+            -0.0792602,
+            0.1430506,
+            0.0736356,
+            0.238835,
+            0.388665,
+            0.226717,
+            0.1561701,
+            0.2318153,
         ]
     )
     np.testing.assert_array_almost_equal(mean.values, correct_mean)
@@ -106,10 +100,9 @@ def test_mean_historical_returns_type_warning():
     df = get_data()
     mean = expected_returns.mean_historical_return(df)
 
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(RuntimeWarning) as w:
         mean_from_array = expected_returns.mean_historical_return(np.array(df))
         assert len(w) == 1
-        assert issubclass(w[0].category, RuntimeWarning)
         assert str(w[0].message) == "prices are not in a dataframe"
 
     np.testing.assert_array_almost_equal(mean.values, mean_from_array.values, decimal=6)
@@ -117,8 +110,8 @@ def test_mean_historical_returns_type_warning():
 
 def test_mean_historical_returns_frequency():
     df = get_data()
-    mean = expected_returns.mean_historical_return(df)
-    mean2 = expected_returns.mean_historical_return(df, frequency=52)
+    mean = expected_returns.mean_historical_return(df, compounding=False)
+    mean2 = expected_returns.mean_historical_return(df, compounding=False, frequency=52)
     np.testing.assert_array_almost_equal(mean / 252, mean2 / 52)
 
 
@@ -133,54 +126,16 @@ def test_ema_historical_return():
 
 def test_ema_historical_return_frequency():
     df = get_data()
-    mean = expected_returns.ema_historical_return(df)
-    mean2 = expected_returns.ema_historical_return(df, frequency=52)
+    mean = expected_returns.ema_historical_return(df, compounding=False)
+    mean2 = expected_returns.ema_historical_return(df, compounding=False, frequency=52)
     np.testing.assert_array_almost_equal(mean / 252, mean2 / 52)
-
-    mean3 = expected_returns.ema_historical_return(df, compounding=True)
-    assert (abs(mean3) > mean).all()
 
 
 def test_ema_historical_return_limit():
     df = get_data()
-    sma = expected_returns.mean_historical_return(df)
-    ema = expected_returns.ema_historical_return(df, span=1e10)
+    sma = expected_returns.mean_historical_return(df, compounding=False)
+    ema = expected_returns.ema_historical_return(df, compounding=False, span=1e10)
     np.testing.assert_array_almost_equal(ema.values, sma.values)
-
-
-def test_james_stein():
-    df = get_data()
-    js = expected_returns.james_stein_shrinkage(df)
-    correct_mean = np.array(
-        [
-            0.25870218,
-            0.32318595,
-            0.29184719,
-            0.23082673,
-            0.41448111,
-            0.19238474,
-            0.23175124,
-            0.17825652,
-            0.20656697,
-            0.13374178,
-            0.16512141,
-            0.25217574,
-            0.12991287,
-            0.18700597,
-            0.21668984,
-            0.3147078,
-            0.33948993,
-            0.24437593,
-            0.225335,
-            0.27014272,
-        ]
-    )
-    np.testing.assert_array_almost_equal(js.values, correct_mean)
-
-    # Test shrinkage
-    y = expected_returns.returns_from_prices(df).mean(axis=0) * 252
-    nu = y.mean()
-    assert (((js <= nu) & (js >= y)) | ((js >= nu) & (js <= y))).all()
 
 
 def test_capm_no_benchmark():
@@ -192,26 +147,26 @@ def test_capm_no_benchmark():
     assert mu.dtype == "float64"
     correct_mu = np.array(
         [
-            0.21803135,
-            0.27902605,
-            0.14475533,
-            0.14668971,
-            0.40944875,
-            0.22361704,
-            0.39057166,
-            0.164807,
-            0.31280876,
-            0.17018046,
-            0.15044284,
-            0.34609161,
-            0.3233097,
-            0.1479624,
-            0.26403991,
-            0.31124465,
-            0.27312086,
-            0.16703193,
-            0.30396023,
-            0.25182927,
+            0.22148462799238577,
+            0.2835429647498704,
+            0.14693081977908462,
+            0.1488989354304723,
+            0.4162399750335195,
+            0.22716772604184535,
+            0.3970337136813829,
+            0.16733214988182069,
+            0.31791477659742146,
+            0.17279931642386534,
+            0.15271750464365566,
+            0.351778014382922,
+            0.32859883451716376,
+            0.1501938182844417,
+            0.268295486802897,
+            0.31632339201710874,
+            0.27753479916328516,
+            0.16959588523287855,
+            0.3089119447773357,
+            0.2558719211959501,
         ]
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
@@ -228,26 +183,26 @@ def test_capm_with_benchmark():
     assert mu.dtype == "float64"
     correct_mu = np.array(
         [
-            0.10903299,
-            0.11891232,
-            0.0659977,
-            0.07369941,
-            0.15948144,
-            0.12308759,
-            0.15907944,
-            0.08680978,
-            0.15778843,
-            0.0903294,
-            0.09043133,
-            0.14716681,
-            0.12510181,
-            0.0927869,
-            0.10990104,
-            0.12317033,
-            0.13596521,
-            0.09344662,
-            0.15457909,
-            0.11430041,
+            0.09115799375654746,
+            0.09905386632033128,
+            0.05676282405265752,
+            0.06291827346436336,
+            0.13147799781014877,
+            0.10239088012000815,
+            0.1311567086884512,
+            0.07339649698626659,
+            0.1301248935078549,
+            0.07620949056643983,
+            0.07629095442513395,
+            0.12163575425541985,
+            0.10400070536161658,
+            0.0781736030988492,
+            0.09185177050469516,
+            0.10245700691271296,
+            0.11268307946677197,
+            0.07870087187919145,
+            0.1275598841214107,
+            0.09536788741392595,
         ]
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
@@ -257,12 +212,7 @@ def test_risk_matrix_and_returns_data():
     # Test the switcher method for simple calls
     df = get_data()
 
-    for method in {
-        "mean_historical_return",
-        "ema_historical_return",
-        "james_stein_shrinkage",
-        "capm_return",
-    }:
+    for method in {"mean_historical_return", "ema_historical_return", "capm_return"}:
         mu = expected_returns.return_model(df, method=method)
 
         assert isinstance(mu, pd.Series)

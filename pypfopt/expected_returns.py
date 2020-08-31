@@ -15,7 +15,6 @@ Currently implemented:
     - general return model function, allowing you to run any return model from one function.
     - mean historical return
     - exponentially weighted mean historical return
-    - James-Stein shrinkage
     - CAPM estimate of returns
 
 Additionally, we provide utility functions to convert from returns to prices and vice-versa.
@@ -26,17 +25,22 @@ import pandas as pd
 import numpy as np
 
 
-def returns_from_prices(prices):
+def returns_from_prices(prices, log_returns=False):
     """
     Calculate the returns given prices.
 
     :param prices: adjusted (daily) closing prices of the asset, each row is a
                    date and each column is a ticker/id.
     :type prices: pd.DataFrame
+    :param log_returns: whether to compute using log returns
+    :type log_returns: bool, defaults to False
     :return: (daily) returns
     :rtype: pd.DataFrame
     """
-    return prices.pct_change().dropna(how="all")
+    if log_returns:
+        return np.log(1 + prices.pct_change()).dropna(how="all")
+    else:
+        return prices.pct_change().dropna(how="all")
 
 
 def log_returns_from_prices(prices):
@@ -49,10 +53,13 @@ def log_returns_from_prices(prices):
     :return: (daily) returns
     :rtype: pd.DataFrame
     """
+    warnings.warn(
+        "log_returns_from_prices is deprecated. Please use returns_from_prices(prices, log_returns=True)"
+    )
     return np.log(1 + prices.pct_change()).dropna(how="all")
 
 
-def prices_from_returns(returns):
+def prices_from_returns(returns, log_returns=False):
     """
     Calculate the pseudo-prices given returns. These are not true prices because
     the initial prices are all set to 1, but it behaves as intended when passed
@@ -60,9 +67,13 @@ def prices_from_returns(returns):
 
     :param returns: (daily) percentage returns of the assets
     :type returns: pd.DataFrame
+    :param log_returns: whether to compute using log returns
+    :type log_returns: bool, defaults to False
     :return: (daily) pseudo-prices.
     :rtype: pd.DataFrame
     """
+    if log_returns:
+        returns = np.exp(returns)
     ret = 1 + returns
     ret.iloc[0] = 1  # set first day pseudo-price
     return ret.cumprod()
@@ -81,7 +92,6 @@ def return_model(prices, method="mean_historical_return", **kwargs):
 
         - ``mean_historical_return``
         - ``ema_historical_return``
-        - ``james_stein_shrinkage``
         - ``capm_return``
 
     :type method: str, optional
@@ -93,19 +103,16 @@ def return_model(prices, method="mean_historical_return", **kwargs):
         return mean_historical_return(prices, **kwargs)
     elif method == "ema_historical_return":
         return ema_historical_return(prices, **kwargs)
-    elif method == "james_stein_shrinkage":
-        return james_stein_shrinkage(prices, **kwargs)
     elif method == "capm_return":
         return capm_return(prices, **kwargs)
     else:
         raise NotImplementedError("Return model {} not implemented".format(method))
 
 
-def mean_historical_return(
-    prices, returns_data=False, compounding=False, frequency=252
-):
+def mean_historical_return(prices, returns_data=False, compounding=True, frequency=252):
     """
     Calculate annualised mean (daily) historical return from input (daily) asset prices.
+    By default, this uses the arithmetic mean (correct if log_returns are used).
 
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
@@ -113,7 +120,7 @@ def mean_historical_return(
     :param returns_data: if true, the first argument is returns instead of prices.
     :type returns_data: bool, defaults to False.
     :param compounding: whether to properly compound the returns, optional.
-    :type compounding: bool, defaults to False
+    :type compounding: bool, defaults to True
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
@@ -128,13 +135,13 @@ def mean_historical_return(
     else:
         returns = returns_from_prices(prices)
     if compounding:
-        return (1 + returns.mean()) ** frequency - 1
+        return (1 + returns).prod() ** (frequency / returns.count()) - 1
     else:
         return returns.mean() * frequency
 
 
 def ema_historical_return(
-    prices, returns_data=False, compounding=False, span=500, frequency=252
+    prices, returns_data=False, compounding=True, span=500, frequency=252
 ):
     """
     Calculate the exponentially-weighted mean of (daily) historical returns, giving
@@ -146,7 +153,7 @@ def ema_historical_return(
     :param returns_data: if true, the first argument is returns instead of prices.
     :type returns_data: bool, defaults to False.
     :param compounding: whether to properly compound the returns, optional.
-    :type compounding: bool, defaults to False
+    :type compounding: bool, defaults to True
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
@@ -169,49 +176,10 @@ def ema_historical_return(
         return returns.ewm(span=span).mean().iloc[-1] * frequency
 
 
-def james_stein_shrinkage(prices, returns_data=False, compounding=False, frequency=252):
-    r"""
-    Compute the James-Stein shrinkage estimator, i.e
-
-    .. math::
-
-        \hat{\mu}_i^{JS} = \hat{\kappa} \bar{\mu} + (1-\hat{\kappa}) \mu_i,
-
-    where :math:`\kappa` is the shrinkage parameter, :math:`\bar{\mu}` is the shrinkage
-    target (grand average), and :math:`\mu` is the vector of mean returns.
-
-    :param prices: adjusted closing prices of the asset, each row is a date
-                   and each column is a ticker/id.
-    :type prices: pd.DataFrame
-    :param returns_data: if true, the first argument is returns instead of prices.
-    :type returns_data: bool, defaults to False.
-    :param compounded: whether to properly compound the returns, optional.
-    :type compounding: bool, defaults to False
-    :param frequency: number of time periods in a year, defaults to 252 (the number
-                      of trading days in a year)
-    :type frequency: int, optional
-    :return: James-Stein estimate of annualised return
-    :rtype: pd.Series
-    """
-    if not isinstance(prices, pd.DataFrame):
-        warnings.warn("prices are not in a dataframe", RuntimeWarning)
-        prices = pd.DataFrame(prices)
-    if returns_data:
-        returns = prices
-    else:
-        returns = returns_from_prices(prices)
-
-    T, n = returns.shape
-    mu = returns.mean(axis=0)
-    mu_bar = mu.mean()
-    sigma_squared = 1 / T * mu_bar * (1 - mu_bar)  # binomial estimate
-    kappa = 1 - (n - 3) * sigma_squared / np.sum((mu - mu_bar) ** 2)
-    theta_js = (1 - kappa) * mu + kappa * mu_bar
-
-    if compounding:
-        return (1 + theta_js) ** frequency - 1
-    else:
-        return theta_js * frequency
+def james_stein_shrinkage(prices, returns_data=False, compounding=True, frequency=252):
+    raise NotImplementedError(
+        "Deprecated because its implementation here was misguided."
+    )
 
 
 def capm_return(
@@ -219,7 +187,7 @@ def capm_return(
     market_prices=None,
     returns_data=False,
     risk_free_rate=0.02,
-    compounding=False,
+    compounding=True,
     frequency=252,
 ):
     """
@@ -244,7 +212,7 @@ def capm_return(
                            to the frequency parameter.
     :type risk_free_rate: float, optional
     :param compounding: whether to properly compound the returns, optional.
-    :type compounding: bool, defaults to False
+    :type compounding: bool, defaults to True
     :param frequency: number of time periods in a year, defaults to 252 (the number
                         of trading days in a year)
     :type frequency: int, optional
@@ -267,7 +235,6 @@ def capm_return(
     if market_returns is None:
         # Append market return to right and compute sample covariance matrix
         returns["mkt"] = returns.mean(axis=1)
-
     else:
         market_returns.columns = ["mkt"]
         returns = returns.join(market_returns, how="left")
@@ -279,7 +246,9 @@ def capm_return(
     betas = betas.drop("mkt")
     # Find mean market return on a given time period
     if compounding:
-        mkt_mean_ret = (1 + returns["mkt"].mean()) ** frequency - 1
+        mkt_mean_ret = (1 + returns["mkt"]).prod() ** (
+            frequency / returns["mkt"].count()
+        ) - 1
     else:
         mkt_mean_ret = returns["mkt"].mean() * frequency
 

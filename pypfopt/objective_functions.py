@@ -117,6 +117,12 @@ def L2_reg(w, gamma=1):
     r"""
     L2 regularisation, i.e :math:`\gamma ||w||^2`, to increase the number of nonzero weights.
 
+    Example::
+
+        ef = EfficientFrontier(mu, S)
+        ef.add_objective(objective_functions.L2_reg, gamma=2)
+        ef.min_volatility()
+
     :param w: asset weights in the portfolio
     :type w: np.ndarray OR cp.Variable
     :param gamma: L2 regularisation parameter, defaults to 1. Increase if you want more

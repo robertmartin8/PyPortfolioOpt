@@ -1,4 +1,3 @@
-import warnings
 import pandas as pd
 import numpy as np
 import pytest
@@ -27,6 +26,11 @@ def test_sample_cov_dummy():
     pd.testing.assert_frame_equal(S, test_answer)
 
 
+def test_is_positive_semidefinite():
+    a = np.zeros((100, 100))
+    assert risk_models._is_positive_semidefinite(a)
+
+
 def test_sample_cov_real_data():
     df = get_data()
     S = risk_models.sample_cov(df)
@@ -42,11 +46,9 @@ def test_sample_cov_type_warning():
     cov_from_df = risk_models.sample_cov(df)
 
     returns_as_array = np.array(df)
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(RuntimeWarning) as w:
         cov_from_array = risk_models.sample_cov(returns_as_array)
-
         assert len(w) == 1
-        assert issubclass(w[0].category, RuntimeWarning)
         assert str(w[0].message) == "data is not in a dataframe"
 
     np.testing.assert_array_almost_equal(
@@ -59,11 +61,10 @@ def test_sample_cov_npd():
     assert not risk_models._is_positive_semidefinite(S)
 
     for method in {"spectral", "diag"}:
-        with warnings.catch_warnings(record=True) as w:
+        with pytest.warns(UserWarning) as w:
             S2 = risk_models.fix_nonpositive_semidefinite(S, fix_method=method)
             assert risk_models._is_positive_semidefinite(S2)
             assert len(w) == 1
-            assert issubclass(w[0].category, UserWarning)
             assert (
                 str(w[0].message)
                 == "The covariance matrix is non positive semidefinite. Amending eigenvalues."
@@ -148,10 +149,9 @@ def test_cov_to_corr():
     test_corr = risk_models.cov_to_corr(rets.cov())
     pd.testing.assert_frame_equal(test_corr, rets.corr())
 
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(RuntimeWarning) as w:
         test_corr_numpy = risk_models.cov_to_corr(rets.cov().values)
         assert len(w) == 1
-        assert issubclass(w[0].category, RuntimeWarning)
         assert str(w[0].message) == "cov_matrix is not a dataframe"
         np.testing.assert_array_almost_equal(test_corr_numpy, rets.corr().values)
 

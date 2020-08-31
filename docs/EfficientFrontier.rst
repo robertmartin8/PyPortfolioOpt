@@ -26,7 +26,7 @@ the main difficulty is inputting our specific problem into a solver.
 
 PyPortfolioOpt aims to do the hard work for you, allowing for one-liners like ``ef.min_volatility()``
 to generate a portfolio that minimises the volatility, while at the same time allowing for more
-complex problems to be built up from modular units. This is all possible thanks to 
+complex problems to be built up from modular units. This is all possible thanks to
 `cvxpy <https://www.cvxpy.org/>`_, the *fantastic* python-embedded modelling
 language for convex optimisation upon which PyPortfolioOpt's efficient frontier functionality lies.
 
@@ -47,7 +47,7 @@ the optimisation objective, and the optimisation constraints. For example, the c
 optimisation problem is to **minimise risk** subject to a **return constraint** (i.e the portfolio
 must return more than a certain amount). From an implementation perspective, however, there is
 not much difference between an objective and a constraint. Consider a similar problem, which is to
-**maximize return** subject to a **risk constraint** -- now, the role of risk and return have swapped. 
+**maximize return** subject to a **risk constraint** -- now, the role of risk and return have swapped.
 
 To that end, PyPortfolioOpt defines an :py:mod:`objective_functions` module that contains objective functions
 (which can also act as constraints, as we have just seen). The actual optimisation occurs in the :py:class:`efficient_frontier.EfficientFrontier` class.
@@ -61,7 +61,7 @@ For example, adding a regularisation objective (explained below) to a minimum vo
     ef.min_volatility()  # find the portfolio that minimises volatility and L2_reg
 
 .. tip::
-    
+
     If you would like to plot the efficient frontier, take a look at the :ref:`plotting` module.
 
 Basic Usage
@@ -90,7 +90,7 @@ Basic Usage
             .. caution::
 
                 Because ``max_sharpe()`` makes a variable substitution, additional objectives may
-                not work as intended. 
+                not work as intended.
 
 
         .. automethod:: max_quadratic_utility
@@ -116,7 +116,7 @@ Basic Usage
             .. tip::
 
                 If you would like to use the ``portfolio_performance`` function independently of any
-                optimiser (e.g for debugging purposes), you can use:: 
+                optimiser (e.g for debugging purposes), you can use::
 
                     from pypfopt import base_optimizer
 
@@ -124,11 +124,11 @@ Basic Usage
                         weights, expected_returns, cov_matrix, verbose=True, risk_free_rate=0.02
                     )
 
-.. note:: 
+.. note::
 
     PyPortfolioOpt defers to cvxpy's default choice of solver. If you would like to explicitly
-    choose the solver and see verbose output, simply assign ``ef.solver = "ECOS"`` prior to calling
-    the actual optimisation method. You can choose from any of the `supported solvers <https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver>`_.
+    choose the solver, simply pass the optional ``solver = "ECOS"`` kwarg to the constructor.
+    You can choose from any of the `supported solvers <https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver>`_.
 
 Adding objectives and constraints
 =================================
@@ -213,7 +213,7 @@ different API. For examples, check out this `cookbook recipe <https://github.com
     .. class:: pypfopt.base_optimizer.BaseConvexOptimizer
 
         .. automethod:: convex_objective
-        
+
         .. automethod:: nonconvex_objective
 
 

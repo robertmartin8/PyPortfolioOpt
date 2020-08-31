@@ -36,9 +36,9 @@ def test_ef_plot():
     cla = CLA(rets, S)
 
     ax = plotting.plot_efficient_frontier(cla, showfig=False)
-    assert len(ax.findobj()) == 137
+    assert len(ax.findobj()) == 143
     ax = plotting.plot_efficient_frontier(cla, show_assets=False, showfig=False)
-    assert len(ax.findobj()) == 149
+    assert len(ax.findobj()) == 161
 
 
 def test_weight_plot():

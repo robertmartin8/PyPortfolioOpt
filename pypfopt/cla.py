@@ -5,7 +5,6 @@ by Marcos Lopez de Prado and David Bailey.
 """
 
 import math
-import warnings
 import numpy as np
 import pandas as pd
 from . import base_optimizer
@@ -375,7 +374,7 @@ class CLA(base_optimizer.BaseOptimizer):
         """
         Maximise the Sharpe ratio.
 
-        :return: asset weights for the volatility-minimising portfolio
+        :return: asset weights for the max-sharpe portfolio
         :rtype: OrderedDict
         """
         if not self.w:

@@ -53,7 +53,15 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
-    def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1), gamma=0):
+    def __init__(
+        self,
+        expected_returns,
+        cov_matrix,
+        weight_bounds=(0, 1),
+        gamma=0,
+        solver=None,
+        verbose=False,
+    ):
         """
         :param expected_returns: expected returns for each asset. Can be None if
                                 optimising for volatility only (but not recommended).
@@ -68,6 +76,10 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
                       non-negligible weights
         :type gamma: float, optional
+        :param solver: name of solver. list available solvers with: `cvxpy.installed_solvers()`
+        :type solver: str
+        :param verbose: whether performance and debugging info should be printed, defaults to False
+        :type verbose: bool, optional
         :raises TypeError: if ``expected_returns`` is not a series, list or array
         :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
@@ -89,7 +101,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             if cov_matrix.shape != (len(expected_returns), len(expected_returns)):
                 raise ValueError("Covariance matrix does not match expected returns")
 
-        super().__init__(len(tickers), tickers, weight_bounds)
+        super().__init__(
+            len(tickers), tickers, weight_bounds, solver=solver, verbose=verbose
+        )
 
     @staticmethod
     def _validate_expected_returns(expected_returns):
@@ -266,6 +280,15 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(target_volatility, (float, int)) or target_volatility < 0:
             raise ValueError("target_volatility should be a positive float")
+
+        global_min_volatility = np.sqrt(1 / np.sum(np.linalg.inv(self.cov_matrix)))
+
+        if target_volatility < global_min_volatility:
+            raise ValueError(
+                "The minimum volatility is {:.3f}. Please use a higher target_volatility".format(
+                    global_min_volatility
+                )
+            )
 
         self._objective = objective_functions.portfolio_return(
             self._w, self.expected_returns

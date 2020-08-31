@@ -43,10 +43,6 @@ def test_weight_bounds_minus_one_to_one():
     assert ef.max_sharpe()
     assert ef.min_volatility()
 
-    # TODO: fix
-    # assert ef.efficient_return(0.05)
-    # assert ef.efficient_risk(0.20)
-
 
 def test_none_bounds():
     ef = EfficientFrontier(
