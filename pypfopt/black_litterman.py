@@ -451,18 +451,18 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         """
         return self.bl_weights(risk_aversion)
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+    def portfolio_performance(self, risk_free_rate=0.02, verbose=False):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
         This method uses the BL posterior returns and covariance matrix.
 
-        :param verbose: whether performance should be printed, defaults to False
-        :type verbose: bool, optional
         :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
         :raises ValueError: if weights have not been calcualted yet
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)

@@ -66,8 +66,7 @@ def test_min_volatility():
 
 
 def test_min_volatility_different_solver():
-    ef = setup_efficient_frontier()
-    ef.solver = "ECOS"
+    ef = setup_efficient_frontier(solver="ECOS")
     w = ef.min_volatility()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
@@ -76,13 +75,11 @@ def test_min_volatility_different_solver():
     test_performance = (0.150567, 0.159150, 0.820403)
     np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-5)
 
-    ef = setup_efficient_frontier()
-    ef.solver = "OSQP"
+    ef = setup_efficient_frontier(solver="OSQP")
     w = ef.min_volatility()
     np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-5)
 
-    ef = setup_efficient_frontier()
-    ef.solver = "SCS"
+    ef = setup_efficient_frontier(solver="SCS")
     w = ef.min_volatility()
     np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-3)
 

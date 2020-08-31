@@ -172,14 +172,12 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         self.set_weights(weights)
         return weights
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02, frequency=252):
+    def portfolio_performance(self, risk_free_rate=0.02, frequency=252, verbose=False):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio
         assuming returns are daily
 
-        :param verbose: whether performance should be printed, defaults to False
-        :type verbose: bool, optional
         :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
@@ -187,7 +185,9 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         :param frequency: number of time periods in a year, defaults to 252 (the number
                             of trading days in a year)
         :type frequency: int, optional
-        :raises ValueError: if weights have not been calcualted yet
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
+        :raises ValueError: if weights have not been calculated yet
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """
