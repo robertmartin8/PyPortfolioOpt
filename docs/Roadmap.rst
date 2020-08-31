@@ -54,6 +54,17 @@ Matplotlib now required dependency; support for pandas 1.0.
 - Fixed bug in Ledoit-Wolf shrinkage calculation.
 - Fixed bug in plotting docs that caused them not to render. 
 
+1.2.5
+-----
+
+- Fixed compounding in ``expected_returns`` (thanks to Aditya Bhutra).
+- Improvements in advanced cvxpy API (thanks to Pat Newell).
+- Deprecating James-Stein
+- Exposed ``linkage_method`` in HRP. 
+- Added support for cvxpy 1.1.
+- Added an error check for ``efficient_risk``. 
+- Small improvements to docs.
+
 1.1.0
 =====
 
@@ -69,7 +80,6 @@ Matplotlib now required dependency; support for pandas 1.0.
   - Introduced a new API, in which the function ``expected_returns.return_model(method="...")`` allows
     all the different return models to be called. This should make testing easier.
   - Added option to 'properly' compound returns.
-  - Added the James-Stein shrinkage estimator
   - Added the CAPM return model.
 
 - ``from pypfopt import plotting``: moved all plotting functionality into a new class and added
