@@ -53,7 +53,15 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
-    def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1), gamma=0, solver=None, verbose=False):
+    def __init__(
+        self,
+        expected_returns,
+        cov_matrix,
+        weight_bounds=(0, 1),
+        gamma=0,
+        solver=None,
+        verbose=False,
+    ):
         """
         :param expected_returns: expected returns for each asset. Can be None if
                                 optimising for volatility only (but not recommended).
@@ -93,7 +101,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             if cov_matrix.shape != (len(expected_returns), len(expected_returns)):
                 raise ValueError("Covariance matrix does not match expected returns")
 
-        super().__init__(len(tickers), tickers, weight_bounds, solver=solver, verbose=verbose)
+        super().__init__(
+            len(tickers), tickers, weight_bounds, solver=solver, verbose=verbose
+        )
 
     @staticmethod
     def _validate_expected_returns(expected_returns):
@@ -346,17 +356,17 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         return self._solve_cvxpy_opt_problem()
 
-    def portfolio_performance(self, risk_free_rate=0.02, verbose=False):
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
 
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
         :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional
-        :param verbose: whether performance should be printed, defaults to False
-        :type verbose: bool, optional
         :raises ValueError: if weights have not been calcualted yet
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)

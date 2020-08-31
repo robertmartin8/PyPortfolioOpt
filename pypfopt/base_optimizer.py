@@ -141,14 +141,16 @@ class BaseConvexOptimizer(BaseOptimizer):
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
-    def __init__(self, n_assets, tickers=None, weight_bounds=(0, 1), solver=None, verbose=False):
+    def __init__(
+        self, n_assets, tickers=None, weight_bounds=(0, 1), solver=None, verbose=False
+    ):
         """
         :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
                               if all identical, defaults to (0, 1). Must be changed to (-1, 1)
                               for portfolios with shorting.
         :type weight_bounds: tuple OR tuple list, optional
-        :param solver: name of solver. list available solvers with: `cvxpy.installed_solvers()`
-        :type solver: str, optional (see cvxpy.Problem#_solve for default. spoiler: it's ECOS)
+        :param solver: name of solver. list available solvers with: ``cvxpy.installed_solvers()``
+        :type solver: str, optional. Defaults to "ECOS"
         :param verbose: whether performance and debugging info should be printed, defaults to False
         :type verbose: bool, optional
         """
