@@ -143,41 +143,6 @@ def test_ema_historical_return_limit():
     np.testing.assert_array_almost_equal(ema.values, sma.values)
 
 
-def test_james_stein():
-    df = get_data()
-    js = expected_returns.james_stein_shrinkage(df)
-    correct_mean = np.array(
-        [
-            0.25870218,
-            0.32318595,
-            0.29184719,
-            0.23082673,
-            0.41448111,
-            0.19238474,
-            0.23175124,
-            0.17825652,
-            0.20656697,
-            0.13374178,
-            0.16512141,
-            0.25217574,
-            0.12991287,
-            0.18700597,
-            0.21668984,
-            0.3147078,
-            0.33948993,
-            0.24437593,
-            0.225335,
-            0.27014272,
-        ]
-    )
-    np.testing.assert_array_almost_equal(js.values, correct_mean)
-
-    # Test shrinkage
-    y = expected_returns.returns_from_prices(df).mean(axis=0) * 252
-    nu = y.mean()
-    assert (((js <= nu) & (js >= y)) | ((js >= nu) & (js <= y))).all()
-
-
 def test_capm_no_benchmark():
     df = get_data()
     mu = expected_returns.capm_return(df)
@@ -255,7 +220,6 @@ def test_risk_matrix_and_returns_data():
     for method in {
         "mean_historical_return",
         "ema_historical_return",
-        "james_stein_shrinkage",
         "capm_return",
     }:
         mu = expected_returns.return_model(df, method=method)

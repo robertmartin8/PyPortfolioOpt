@@ -203,7 +203,6 @@ As of v1.2.0:
   - Introduced a new API, in which the function `expected_returns.return_model(method="...")` allows
     all the different return models to be called. This should make testing easier.
   - Added option to 'properly' compound returns.
-  - James-Stein shrinkage estimator
   - CAPM return model.
 - `from pypfopt import plotting`: moved all plotting functionality into a new class and added
   new plots. All other plotting functions (scattered in different classes) have been retained,
@@ -244,9 +243,6 @@ A far more comprehensive version of this can be found on [ReadTheDocs](https://p
 - Exponentially weighted mean historical returns:
     - similar to mean historical returns, except it gives exponentially more weight to recent prices
     - it is likely the case that an asset's most recent returns hold more weight than returns from 10 years ago when it comes to estimating future returns.
-- James-Stein shrinkage:
-    - a slightly more robust estimate of future returns
-    - by shrinking mean returns to the grand average, we can reduce loss.
 - Capital Asset Pricing Model (CAPM):
     - a simple model to predict returns based on the beta to the market
     - this is used all over finance!

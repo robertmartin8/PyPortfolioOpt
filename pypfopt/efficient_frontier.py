@@ -53,7 +53,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
 
-    def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1), gamma=0):
+    def __init__(self, expected_returns, cov_matrix, weight_bounds=(0, 1)):
         """
         :param expected_returns: expected returns for each asset. Can be None if
                                 optimising for volatility only (but not recommended).
@@ -65,9 +65,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                               if all identical, defaults to (0, 1). Must be changed to (-1, 1)
                               for portfolios with shorting.
         :type weight_bounds: tuple OR tuple list, optional
-        :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
-                      non-negligible weights
-        :type gamma: float, optional
         :raises TypeError: if ``expected_returns`` is not a series, list or array
         :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
@@ -266,6 +263,15 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(target_volatility, (float, int)) or target_volatility < 0:
             raise ValueError("target_volatility should be a positive float")
+
+        global_min_volatility = np.sqrt(1 / np.sum(np.linalg.inv(self.cov_matrix)))
+
+        if target_volatility < global_min_volatility:
+            raise ValueError(
+                "The minimum volatility is {:.3f}. Please use a higher target_volatility".format(
+                    global_min_volatility
+                )
+            )
 
         self._objective = objective_functions.portfolio_return(
             self._w, self.expected_returns

@@ -215,8 +215,8 @@ class BaseConvexOptimizer(BaseOptimizer):
                 opt.solve(solver=self.solver, verbose=True)
             else:
                 opt.solve()
-        except (TypeError, cp.DCPError):
-            raise exceptions.OptimizationError
+        except (TypeError, cp.DCPError) as e:
+            raise exceptions.OptimizationError from e
         if opt.status != "optimal":
             raise exceptions.OptimizationError
         self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
@@ -335,6 +335,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         weights_sum_to_one=True,
         constraints=None,
         solver="SLSQP",
+        initial_guess=None,
     ):
         """
         Optimise some objective function using the scipy backend. This can
@@ -368,6 +369,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         :param solver: which SCIPY solver to use, e.g "SLSQP", "COBYLA", "BFGS".
                        User beware: different optimisers require different inputs.
         :type solver: string
+        :param initial_guess: the initial guess for the weights, shape (n,) or (n, 1)
+        :type initial_guess: np.ndarray
         :return: asset weights that optimise the custom objective
         :rtype: OrderedDict
         """
@@ -379,7 +382,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         bound_array = np.vstack((self._lower_bounds, self._upper_bounds)).T
         bounds = list(map(tuple, bound_array))
 
-        initial_guess = np.array([1 / self.n_assets] * self.n_assets)
+        if initial_guess is None:
+            initial_guess = np.array([1 / self.n_assets] * self.n_assets)
 
         # Construct constraints
         final_constraints = []

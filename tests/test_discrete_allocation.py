@@ -208,7 +208,9 @@ def test_lp_allocation_rmse_error():
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(w, latest_prices)
     da.lp_portfolio()
-    np.testing.assert_almost_equal(da._allocation_rmse_error(verbose=False), 0.017070218149194846)
+    np.testing.assert_almost_equal(
+        da._allocation_rmse_error(verbose=False), 0.017070218149194846
+    )
 
 
 def test_lp_portfolio_allocation_short():
@@ -286,8 +288,7 @@ def test_lp_portfolio_allocation_different_params():
         "FB": 95,
         "BABA": 44,
         "AMZN": 4,
-        "AMD": 1,
-        "SHLD": 3,
+        "AMD": 2,
         "BBY": 69,
         "MA": 114,
         "PFE": 412,
