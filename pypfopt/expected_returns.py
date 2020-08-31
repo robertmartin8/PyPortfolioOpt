@@ -197,7 +197,7 @@ def capm_return(
 
     .. math::
 
-        R_i = R_f + \beta_i (E(R_m) - R_f)
+        R_i = R_f + \\beta_i (E(R_m) - R_f)
 
 
     :param prices: adjusted closing prices of the asset, each row is a date
