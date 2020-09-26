@@ -30,7 +30,7 @@ def market_implied_prior_returns(
     :param risk_aversion: risk aversion parameter
     :type risk_aversion: positive float
     :param cov_matrix: covariance matrix of asset returns
-    :type cov_matrix: pd.DataFrame or np.ndarray
+    :type cov_matrix: pd.DataFrame
     :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
                            You should use the appropriate time period, corresponding
                            to the covariance matrix.
@@ -38,6 +38,11 @@ def market_implied_prior_returns(
     :return: prior estimate of returns as implied by the market caps
     :rtype: pd.Series
     """
+    if not isinstance(cov_matrix, pd.DataFrame):
+        warnings.warn(
+            "If cov_matrix is not a dataframe, market cap index must be aligned to cov_matrix",
+            RuntimeWarning,
+        )
     mcaps = pd.Series(market_caps)
     mkt_weights = mcaps / mcaps.sum()
     # Pi is excess returns so must add risk_free_rate to get return.
@@ -263,9 +268,10 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             market_caps = kwargs.get("market_caps")
             risk_free_rate = kwargs.get("risk_free_rate", 0)
 
-            self.pi = market_implied_prior_returns(
-                market_caps, self.risk_aversion, self.cov_matrix, risk_free_rate
-            ).reshape(-1, 1)
+            market_prior = market_implied_prior_returns(
+                market_caps, self.risk_aversion, self._raw_cov_matrix, risk_free_rate
+            )
+            self.pi = market_prior.values.reshape(-1, 1)
         elif pi == "equal":
             self.pi = np.ones((self.n_assets, 1)) / self.n_assets
         else:

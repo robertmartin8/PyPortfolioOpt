@@ -227,7 +227,7 @@ def _pair_exp_cov(X, Y, span=180):
     # Exponentially weight the covariation and take the mean
     if span < 10:
         warnings.warn("it is recommended to use a higher span, e.g 30 days")
-    return covariation.ewm(span=span).mean()[-1]
+    return covariation.ewm(span=span).mean().iloc[-1]
 
 
 def exp_cov(prices, returns_data=False, span=180, frequency=252, **kwargs):

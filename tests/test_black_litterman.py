@@ -342,6 +342,10 @@ def test_bl_market_prior():
     delta = black_litterman.market_implied_risk_aversion(prices)
 
     mcaps = get_market_caps()
+
+    with pytest.warns(RuntimeWarning):
+        black_litterman.market_implied_prior_returns(mcaps, delta, S.values)
+
     prior = black_litterman.market_implied_prior_returns(mcaps, delta, S)
 
     viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
@@ -380,6 +384,44 @@ def test_bl_market_automatic():
     bl2 = BlackLittermanModel(S, pi=prior, absolute_views=viewdict)
     rets2 = bl2.bl_returns()
     pd.testing.assert_series_equal(rets, rets2)
+
+
+# def test_bl_mcap_order_invariance():
+#     df = get_data()
+#     S = risk_models.sample_cov(df)
+#     mcaps = get_market_caps()
+#     mcaps2 = {k: v for k, v in list(mcaps.items())[::-1]}
+#     # mcaps = pd.Series(mcaps)
+
+#     market_prior1 = black_litterman.market_implied_prior_returns(mcaps, 2, S.values, 0)
+#     market_prior2 = black_litterman.market_implied_prior_returns(mcaps2, 2, S.values, 0)
+#     market_prior1 == market_prior2
+
+#     mcaps = pd.Series(mcaps)
+#     mcaps2 = pd.Series(mcaps2)
+#     mkt_weights1 = mcaps / mcaps.sum()
+#     mkt_weights2 = mcaps2 / mcaps2.sum()
+#     # Pi is excess returns so must add risk_free_rate to get return.
+#     pd.testing.assert_series_equal(
+#         S.dot(mkt_weights1), S.dot(mkt_weights2), check_exact=False
+#     )
+#     S.values.dot(mkt_weights1)
+#     S.values.dot(mkt_weights2)
+
+#     return risk_aversion * cov_matrix.dot(mkt_weights) + risk_free_rate
+
+#     viewdict = {"BABA": 0, "AAPL": -0.30, "GOOG": 0.40, "FB": 0.30}
+#     bl = BlackLittermanModel(
+#         S,
+#         pi="market",
+#         absolute_views=viewdict,
+#         market_caps=mcaps,
+#         risk_aversion=2,
+#         risk_free_rate=0,
+#     )
+#     bl.pi.ravel() == market_prior
+#     # bl2 = BlackLittermanModel(S, pi=market_prior, absolute_views=viewdict)
+#     # bl2.pi
 
 
 def test_bl_tau():
