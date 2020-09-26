@@ -65,6 +65,13 @@ Matplotlib now required dependency; support for pandas 1.0.
 - Added an error check for ``efficient_risk``. 
 - Small improvements to docs.
 
+1.2.6
+-----
+
+- Fixed order-dependence bug in Black-Litterman ``market_implied_prior_returns``
+- Fixed inaccuracy in BL cookbook.
+- Fixed bug in exponential covariance.
+
 1.1.0
 =====
 
