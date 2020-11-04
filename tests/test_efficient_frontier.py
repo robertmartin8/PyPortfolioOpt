@@ -1004,6 +1004,23 @@ def test_efficient_return_short():
     assert sharpe > long_only_sharpe
 
 
+def test_efficient_return_longshort_target():
+    mu = pd.Series([-0.15, -0.12, -0.1, -0.05, -0.01, 0.02, 0.03, 0.04, 0.05])
+    cov = pd.DataFrame(np.diag([0.2, 0.2, 0.4, 0.3, 0.1, 0.5, 0.2, 0.3, 0.1]))
+
+    ef = EfficientFrontier(mu, cov, weight_bounds=(-1, 1))
+    w = ef.efficient_return(target_return=0.08, market_neutral=True)
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(ef.tickers)
+    np.testing.assert_almost_equal(ef.weights.sum(), 0)
+
+    np.testing.assert_allclose(
+        ef.portfolio_performance(),
+        (0.08, 0.16649041068958137, 0.3603811159542937),
+        atol=1e-6,
+    )
+
+
 def test_efficient_return_L2_reg():
     ef = setup_efficient_frontier()
     ef.add_objective(objective_functions.L2_reg, gamma=1)
