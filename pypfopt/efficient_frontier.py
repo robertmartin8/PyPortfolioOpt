@@ -326,7 +326,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
-        if target_return > self.expected_returns.max():
+        if target_return > np.abs(self.expected_returns).max():
             raise ValueError(
                 "target_return must be lower than the largest expected return"
             )

@@ -72,6 +72,12 @@ Matplotlib now required dependency; support for pandas 1.0.
 - Fixed inaccuracy in BL cookbook.
 - Fixed bug in exponential covariance.
 
+1.2.7
+-----
+
+- Fixed bug which required conservative risk targets for long/short portfolios.
+
+
 1.1.0
 =====
 
