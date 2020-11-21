@@ -20,7 +20,7 @@ be estimated. The Black-Litterman formula is given below:
 
 .. math:: 
 
-    E(R) = [(\tau \Sigma)^{-1} + P^T \Omega^{-1} P]^{-1}[(\tau \Sigma)^{-1} \Pi + P^T \Sigma^{-1} Q]
+    E(R) = [(\tau \Sigma)^{-1} + P^T \Omega^{-1} P]^{-1}[(\tau \Sigma)^{-1} \Pi + P^T \Omega^{-1} Q]
 
 - :math:`E(R)` is a Nx1 vector of expected returns, where *N* is the number of assets.
 - :math:`Q` is a Kx1 vector of views.
