@@ -53,16 +53,22 @@ def setup_efficient_frontier(data_only=False, solver=None, verbose=False):
     sample_cov_matrix = risk_models.sample_cov(df)
     if data_only:
         return mean_return, sample_cov_matrix
-    return EfficientFrontier(mean_return, sample_cov_matrix, solver=solver, verbose=verbose)
+    return EfficientFrontier(
+        mean_return, sample_cov_matrix, solver=solver, verbose=verbose
+    )
 
 
 def setup_efficient_semivariance(data_only=False, solver=None, verbose=False):
-    df = get_data().dropna(axis=0, how='any')
-    mean_return = expected_returns.mean_historical_return(df, frequency=1, compounding=False)
+    df = get_data().dropna(axis=0, how="any")
+    mean_return = expected_returns.mean_historical_return(
+        df, frequency=1, compounding=False
+    )
     historic_returns = returns_from_prices(df)
     if data_only:
         return mean_return, historic_returns
-    return EfficientSemivariance(mean_return, historic_returns, solver=solver, verbose=verbose)
+    return EfficientSemivariance(
+        mean_return, historic_returns, solver=solver, verbose=verbose
+    )
 
 
 def setup_cla(data_only=False):

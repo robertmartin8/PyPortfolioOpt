@@ -44,7 +44,9 @@ class EfficientSemivariance(base_optimizer.BaseConvexOptimizer):
 
         if expected_returns is not None:
             if historic_returns.shape[1] != len(expected_returns):
-                raise ValueError("Historic return matrix does not match expected returns")
+                raise ValueError(
+                    "Historic return matrix does not match expected returns"
+                )
 
         super().__init__(
             len(tickers), tickers, weight_bounds, solver=solver, verbose=verbose
@@ -95,8 +97,10 @@ class EfficientSemivariance(base_optimizer.BaseConvexOptimizer):
         n = cp.Variable(self.T, nonneg=True)
         self._objective = cp.sum(cp.square(n))
 
-        self._constraints.append(cp.sum(self._w @ self.expected_returns) >= target_return)
-        B = (self.historic_returns.values - self.benchmark)/np.sqrt(self.T)
+        self._constraints.append(
+            cp.sum(self._w @ self.expected_returns) >= target_return
+        )
+        B = (self.historic_returns.values - self.benchmark) / np.sqrt(self.T)
         self._constraints.append(B @ self._w - p + n == 0)
 
         # The equality constraint is either "weights sum to 1" (default), or
@@ -120,7 +124,7 @@ class EfficientSemivariance(base_optimizer.BaseConvexOptimizer):
         drops = np.fmin(portfolio_returns - self.benchmark, 0)
         semivariance = np.sum(np.square(drops)) / self.T * self.frequency
         semi_deviation = np.sqrt(semivariance)
-        sortino_ratio = (mu-risk_free_rate) / semi_deviation
+        sortino_ratio = (mu - risk_free_rate) / semi_deviation
 
         if verbose:
             print("Expected annual return: {:.1f}%".format(100 * mu))
