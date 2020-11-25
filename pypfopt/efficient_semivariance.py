@@ -113,6 +113,48 @@ class EfficientSemivariance(base_optimizer.BaseConvexOptimizer):
 
         return self._solve_cvxpy_opt_problem()
 
+    def min_semivariance(self, market_neutral=False):
+
+        p = cp.Variable(self.T, nonneg=True)
+        n = cp.Variable(self.T, nonneg=True)
+        self._objective = cp.sum(cp.square(n))
+        B = (self.historic_returns.values - self.benchmark) / np.sqrt(self.T)
+        self._constraints.append(B @ self._w - p + n == 0)
+
+        # The equality constraint is either "weights sum to 1" (default), or
+        # "weights sum to 0" (market neutral).
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        return self._solve_cvxpy_opt_problem()
+
+    def efficient_risk(self, target_semi_deviation, market_neutral=False):
+
+        self._objective = objective_functions.portfolio_return(
+            self._w, self.expected_returns
+        )
+
+        p = cp.Variable(self.T, nonneg=True)
+        n = cp.Variable(self.T, nonneg=True)
+
+        self._constraints.append(cp.sum(cp.square(n)) <= (target_semi_deviation ** 2))
+
+        B = (self.historic_returns.values - self.benchmark) / np.sqrt(self.T)
+        self._constraints.append(B @ self._w - p + n == 0)
+
+        # The equality constraint is either "weights sum to 1" (default), or
+        # "weights sum to 0" (market neutral).
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        return self._solve_cvxpy_opt_problem()
+
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
 
         mu = objective_functions.portfolio_return(

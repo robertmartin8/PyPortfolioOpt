@@ -5,6 +5,34 @@ from pypfopt.efficient_semivariance import EfficientSemivariance
 from tests.utilities_for_tests import setup_efficient_semivariance
 
 
+def test_min_semivariance():
+    es = setup_efficient_semivariance()
+    w = es.min_semivariance()
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
+    assert all([i >= -1e-5 for i in w.values()])
+
+    np.testing.assert_allclose(
+        es.portfolio_performance(),
+        (0.1024524845740464, 0.08497381732237187, 0.970328121911246),
+    )
+
+
+def test_efficient_risk():
+    es = setup_efficient_semivariance()
+    w = es.efficient_risk(0.1003573030786918 / np.sqrt(252))
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
+    assert all([i >= -1e-5 for i in w.values()])
+
+    np.testing.assert_allclose(
+        es.portfolio_performance(),
+        (0.2501797412008682, 0.1003873392981661, 2.292916047084368),
+    )
+
+
 def test_efficient_return():
     es = setup_efficient_semivariance()
     w = es.efficient_return(0.25 / 252)
