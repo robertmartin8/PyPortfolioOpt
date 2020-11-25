@@ -1076,7 +1076,7 @@ def test_max_sharpe_semicovariance():
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2732301946250426, 0.06603231922971581, 3.834943215368455),
+        (0.2762965426962885, 0.07372667096108301, 3.476307004714425),
     )
 
 
@@ -1092,7 +1092,7 @@ def test_max_sharpe_short_semicovariance():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.3907992623559733, 0.0809285460933456, 4.581810501430255),
+        (0.42444834528495234, 0.0898263632679403, 4.50255727350929),
     )
 
 
