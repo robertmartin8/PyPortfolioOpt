@@ -976,12 +976,12 @@ def test_efficient_return_error():
 
 def test_efficient_return_many_values():
     ef = setup_efficient_frontier()
-    for target_return in np.arange(0.25, 0.20, 0.28):
+    for target_return in np.arange(0.25, 0.28, 0.01):
         ef.efficient_return(target_return)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         assert all([i >= 0 for i in ef.weights])
         mean_return = ef.portfolio_performance()[0]
-        assert abs(target_return - mean_return) < 0.05
+        np.testing.assert_allclose(target_return, mean_return)
 
 
 def test_efficient_return_short():
