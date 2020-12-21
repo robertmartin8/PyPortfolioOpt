@@ -283,7 +283,7 @@ class BaseConvexOptimizer(BaseOptimizer):
             sector_lower = {"tech": 0.1}  # at least 10% to tech
             sector_upper = {
                 "tech": 0.4, # less than 40% tech
-                "Oil/Gas: 0.1 # less than 10% oil and gas
+                "Oil/Gas": 0.1 # less than 10% oil and gas
             }
 
         :param sector_mapper: dict that maps tickers to sectors
