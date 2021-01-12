@@ -1,6 +1,7 @@
 import json
 import os
 import numpy as np
+import pandas as pd
 import pytest
 from pypfopt import EfficientFrontier
 from pypfopt import exceptions
@@ -197,5 +198,16 @@ def test_save_weights_to_file():
         parsed = json.load(f)
     assert ef.clean_weights() == parsed
 
+    ef.save_weights_to_file("tests/test.csv")
+    with open("tests/test.csv", "r") as f:
+        df = pd.read_csv(f, header=None, names=['ticker', 'weight'], index_col=0, float_precision='high')
+    parsed = df['weight'].to_dict()
+    assert ef.clean_weights() == parsed
+
     os.remove("tests/test.txt")
     os.remove("tests/test.json")
+    os.remove("tests/test.csv")
+
+    with pytest.raises(NotImplementedError):
+        ef.save_weights_to_file("tests/test.xml")
+
