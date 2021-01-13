@@ -245,3 +245,10 @@ def test_portfolio_performance():
     # Will only support 'tickers' as dict keys that are ints starting from zero.
     w_dict = dict(zip(range(len(ef.weights)), ef.weights))
     assert portfolio_performance(w_dict, ef.expected_returns, ef.cov_matrix) == expected
+
+
+def test_add_contraint_exception():
+    ef = setup_efficient_frontier()
+    # Must be callable.
+    with pytest.raises(TypeError):
+        ef.add_constraint(42)
