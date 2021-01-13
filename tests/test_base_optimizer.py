@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 from pypfopt import EfficientFrontier
 from pypfopt import exceptions
+from pypfopt.base_optimizer import portfolio_performance
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
@@ -200,8 +201,14 @@ def test_save_weights_to_file():
 
     ef.save_weights_to_file("tests/test.csv")
     with open("tests/test.csv", "r") as f:
-        df = pd.read_csv(f, header=None, names=['ticker', 'weight'], index_col=0, float_precision='high')
-    parsed = df['weight'].to_dict()
+        df = pd.read_csv(
+            f,
+            header=None,
+            names=["ticker", "weight"],
+            index_col=0,
+            float_precision="high",
+        )
+    parsed = df["weight"].to_dict()
     assert ef.clean_weights() == parsed
 
     os.remove("tests/test.txt")
@@ -211,3 +218,30 @@ def test_save_weights_to_file():
     with pytest.raises(NotImplementedError):
         ef.save_weights_to_file("tests/test.xml")
 
+
+def test_portfolio_performance():
+    """
+    Cover logic in base_optimizer.portfolio_performance not covered elsewhere.
+    """
+    ef = setup_efficient_frontier()
+    ef.min_volatility()
+    expected = ef.portfolio_performance()
+
+    # Cover verbose logic
+    assert (
+        portfolio_performance(ef.weights, ef.expected_returns, ef.cov_matrix, True)
+        == expected
+    )
+
+    # Internal ticker creations when weights param is a dict and ...
+    w_dict = dict(zip(ef.tickers, ef.weights))
+    # ... expected_returns is a Series
+    er = pd.Series(ef.expected_returns, index=ef.tickers)
+    assert portfolio_performance(w_dict, er, ef.cov_matrix) == expected
+    # ... cov_matrix is a DataFrame
+    cov = pd.DataFrame(data=ef.cov_matrix, index=ef.tickers, columns=ef.tickers)
+    assert portfolio_performance(w_dict, ef.expected_returns, cov) == expected
+
+    # Will only support 'tickers' as dict keys that are ints starting from zero.
+    w_dict = dict(zip(range(len(ef.weights)), ef.weights))
+    assert portfolio_performance(w_dict, ef.expected_returns, ef.cov_matrix) == expected
