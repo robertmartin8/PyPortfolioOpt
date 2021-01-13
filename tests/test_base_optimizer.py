@@ -246,6 +246,11 @@ def test_portfolio_performance():
     w_dict = dict(zip(range(len(ef.weights)), ef.weights))
     assert portfolio_performance(w_dict, ef.expected_returns, ef.cov_matrix) == expected
 
+    # Weights must not sum to zero.
+    w_dict = dict(zip(range(len(ef.weights)), np.zeros(len(ef.weights))))
+    with pytest.raises(ValueError):
+        portfolio_performance(w_dict, ef.expected_returns, ef.cov_matrix)
+
 
 def test_add_contraint_exception():
     ef = setup_efficient_frontier()
