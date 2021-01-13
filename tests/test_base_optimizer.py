@@ -252,7 +252,7 @@ def test_portfolio_performance():
         portfolio_performance(w_dict, ef.expected_returns, ef.cov_matrix)
 
 
-def test_add_contraint_exception():
+def test_add_constraint_exception():
     ef = setup_efficient_frontier()
     # Must be callable.
     with pytest.raises(TypeError):
