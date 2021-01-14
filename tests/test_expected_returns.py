@@ -41,6 +41,9 @@ def test_log_returns_from_prices():
     new_nan = log_rets.isnull().sum(axis=1).sum()
     assert new_nan == old_nan
     np.testing.assert_almost_equal(log_rets.iloc[-1, -1], 0.0001682740081102576)
+    # Test the deprecated function, until it is removed.
+    deprecated_log_rets = expected_returns.log_returns_from_prices(df)
+    np.testing.assert_allclose(deprecated_log_rets, log_rets)
 
 
 def test_mean_historical_returns_dummy():
