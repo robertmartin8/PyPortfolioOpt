@@ -28,6 +28,22 @@ def test_prices_from_returns():
     assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-10).all().all()
 
 
+def test_prices_from_log_returns():
+    df = get_data()
+    returns_df = df.pct_change()  # keep NaN row
+    log_returns_df = np.log1p(returns_df)
+
+    # convert pseudo-price to price
+    pseudo_prices = expected_returns.prices_from_returns(
+        log_returns_df, log_returns=True
+    )
+    initial_prices = df.bfill().iloc[0]
+    test_prices = pseudo_prices * initial_prices
+
+    # check equality, robust to floating point issues
+    assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-10).all().all()
+
+
 def test_returns_from_prices():
     df = get_data()
     returns_df = expected_returns.returns_from_prices(df)
