@@ -125,6 +125,11 @@ def test_ema_historical_return():
     assert list(mean.index) == list(df.columns)
     assert mean.notnull().all()
     assert mean.dtype == "float64"
+    # Test the (warning triggering) case that input is not a dataFrame
+    mean_np = expected_returns.ema_historical_return(df.to_numpy())
+    mean_np.name = mean.name  # These will differ.
+    reset_mean = mean.reset_index(drop=True)  # Index labels would be tickers.
+    pd.testing.assert_series_equal(mean_np, reset_mean)
 
 
 def test_ema_historical_return_frequency():
