@@ -47,7 +47,7 @@ class DiscreteAllocation:
     """
 
     def __init__(
-        self, weights, latest_prices, total_portfolio_value=10000, short_ratio=0.30
+        self, weights, latest_prices, total_portfolio_value=10000, short_ratio=None
     ):
         """
         :param weights: continuous weights generated from the ``efficient_frontier`` module
@@ -68,14 +68,17 @@ class DiscreteAllocation:
             raise TypeError("latest_prices should be a pd.Series")
         if total_portfolio_value <= 0:
             raise ValueError("total_portfolio_value must be greater than zero")
-        if short_ratio <= 0:
-            raise ValueError("short_ratio must be positive")
+        if short_ratio is not None and short_ratio < 0:
+            raise ValueError("short_ratio must be non-negative")
 
         # Drop any companies with negligible weights. Use a tuple because order matters.
         self.weights = list(weights.items())
         self.latest_prices = latest_prices
         self.total_portfolio_value = total_portfolio_value
-        self.short_ratio = short_ratio
+        if short_ratio is None:
+            self.short_ratio = sum((-x[1] for x in self.weights if x[1] < 0))
+        else:
+            self.short_ratio = short_ratio
 
     @staticmethod
     def _remove_zero_positions(allocation):
@@ -120,11 +123,13 @@ class DiscreteAllocation:
         print("Allocation has RMSE: {:.3f}".format(rmse))
         return rmse
 
-    def greedy_portfolio(self, verbose=False):
+    def greedy_portfolio(self, reinvest=False, verbose=False):
         """
         Convert continuous weights into a discrete portfolio allocation
         using a greedy iterative approach.
 
+        :param reinvest: whether or not to reinvest cash gained from shorting
+        :type reinvest: bool
         :param verbose: print error analysis?
         :type verbose: bool
         :return: the number of shares of each ticker that should be purchased,
@@ -147,13 +152,16 @@ class DiscreteAllocation:
 
             # Construct long-only discrete allocations for each
             short_val = self.total_portfolio_value * self.short_ratio
+            long_val = self.total_portfolio_value
+            if reinvest:
+                long_val += short_val
 
             if verbose:
                 print("\nAllocating long sub-portfolio...")
             da1 = DiscreteAllocation(
                 longs,
                 self.latest_prices[longs.keys()],
-                total_portfolio_value=self.total_portfolio_value,
+                total_portfolio_value=long_val,
             )
             long_alloc, long_leftover = da1.greedy_portfolio()
 
@@ -241,11 +249,13 @@ class DiscreteAllocation:
             self._allocation_rmse_error(verbose)
         return self.allocation, available_funds
 
-    def lp_portfolio(self, verbose=False):
+    def lp_portfolio(self, reinvest=False, verbose=False):
         """
         Convert continuous weights into a discrete portfolio allocation
         using integer programming.
 
+        :param reinvest: whether or not to reinvest cash gained from shorting
+        :type reinvest: bool
         :param verbose: print error analysis?
         :type verbose: bool
         :return: the number of shares of each ticker that should be purchased, along with the amount
@@ -264,13 +274,16 @@ class DiscreteAllocation:
 
             # Construct long-only discrete allocations for each
             short_val = self.total_portfolio_value * self.short_ratio
+            long_val = self.total_portfolio_value
+            if reinvest:
+                long_val += short_val
 
             if verbose:
                 print("\nAllocating long sub-portfolio:")
             da1 = DiscreteAllocation(
                 longs,
                 self.latest_prices[longs.keys()],
-                total_portfolio_value=self.total_portfolio_value,
+                total_portfolio_value=long_val,
             )
             long_alloc, long_leftover = da1.lp_portfolio()
 
