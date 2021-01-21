@@ -178,6 +178,11 @@ def test_capm_no_benchmark():
         ]
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
+    # Test the (warning triggering) case that input is not a dataFrame
+    mu_np = expected_returns.capm_return(df.to_numpy())
+    mu_np.name = mu.name  # These will differ.
+    mu_np.index = mu.index  # Index labels would be tickers.
+    pd.testing.assert_series_equal(mu_np, mu)
 
 
 def test_capm_with_benchmark():
