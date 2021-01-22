@@ -1,5 +1,4 @@
 import warnings
-from math import sqrt
 import numpy as np
 import pandas as pd
 import cvxpy as cp
@@ -1010,7 +1009,7 @@ def test_efficient_return_max():
         weights_expected = np.zeros(len(ef.expected_returns))
         weights_expected[max_ret_i] = 1.0
         np.testing.assert_almost_equal(ef.weights, weights_expected)
-        vol = sqrt(ef.cov_matrix[max_ret_i][max_ret_i])
+        vol = np.sqrt(ef.cov_matrix[max_ret_i][max_ret_i])
         np.testing.assert_almost_equal(ef.portfolio_performance()[0], max_ret)
         np.testing.assert_almost_equal(ef.portfolio_performance()[1], vol)
 
