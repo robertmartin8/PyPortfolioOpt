@@ -64,8 +64,10 @@ class DiscreteAllocation:
         """
         if not isinstance(weights, dict):
             raise TypeError("weights should be a dictionary of {ticker: weight}")
-        if not isinstance(latest_prices, pd.Series):
-            raise TypeError("latest_prices should be a pd.Series")
+        if any(np.isnan(val) for val in weights.values()):
+            raise ValueError("weights should have no NaNs")
+        if (not isinstance(latest_prices, pd.Series)) or any(np.isnan(latest_prices)):
+            raise TypeError("latest_prices should be a pd.Series with no NaNs")
         if total_portfolio_value <= 0:
             raise ValueError("total_portfolio_value must be greater than zero")
         if short_ratio <= 0:
@@ -241,13 +243,15 @@ class DiscreteAllocation:
             self._allocation_rmse_error(verbose)
         return self.allocation, available_funds
 
-    def lp_portfolio(self, verbose=False):
+    def lp_portfolio(self, verbose=False, solver="GLPK_MI"):
         """
         Convert continuous weights into a discrete portfolio allocation
         using integer programming.
 
         :param verbose: print error analysis?
         :type verbose: bool
+        :param solver: the CVXPY solver to use (must support mixed-integer programs)
+        :type solver: str, defaults to "GLPK_MI"
         :return: the number of shares of each ticker that should be purchased, along with the amount
                 of funds leftover.
         :rtype: (dict, float)
@@ -306,7 +310,10 @@ class DiscreteAllocation:
         objective = cp.sum(u) + r
 
         opt = cp.Problem(cp.Minimize(objective), constraints)
-        opt.solve(solver="GLPK_MI")
+
+        if solver not in cp.installed_solvers():
+            raise NameError("Solver {} is not installed. ".format(solver))
+        opt.solve(solver=solver)
 
         if opt.status not in {"optimal", "optimal_inaccurate"}:
             raise exceptions.OptimizationError("Please try greedy_portfolio")

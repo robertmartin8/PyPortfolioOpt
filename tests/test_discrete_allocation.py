@@ -351,6 +351,7 @@ def test_allocation_errors():
     w = ef.max_sharpe()
     latest_prices = get_latest_prices(df)
 
+    assert DiscreteAllocation(w, latest_prices)
     with pytest.raises(TypeError):
         DiscreteAllocation(ef.weights, latest_prices)
     with pytest.raises(TypeError):
@@ -359,3 +360,13 @@ def test_allocation_errors():
         DiscreteAllocation(w, latest_prices, total_portfolio_value=0)
     with pytest.raises(ValueError):
         DiscreteAllocation(w, latest_prices, short_ratio=-0.4)
+    with pytest.raises(NameError):
+        da = DiscreteAllocation(w, latest_prices)
+        da.lp_portfolio(solver="ABCDEF")
+    w2 = w.copy()
+    w2["AAPL"] = np.nan
+    with pytest.raises(ValueError):
+        DiscreteAllocation(w2, latest_prices)
+    latest_prices.iloc[0] = np.nan
+    with pytest.raises(TypeError):
+        DiscreteAllocation(w, latest_prices)
