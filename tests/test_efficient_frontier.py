@@ -502,6 +502,16 @@ def test_max_sharpe_risk_free_rate():
     assert new_sharpe >= initial_sharpe
 
 
+def test_max_sharpe_risk_free_portfolio_performance():
+    # Issue #238 - portfolio perf should use the same rf as
+    # max_sharpe
+    ef = setup_efficient_frontier()
+    ef.max_sharpe(risk_free_rate=0.05)
+    res = ef.portfolio_performance()
+    res2 = ef.portfolio_performance(risk_free_rate=0.05)
+    np.testing.assert_allclose(res, res2)
+
+
 def test_min_vol_pair_constraint():
     ef = setup_efficient_frontier()
     ef.min_volatility()
@@ -976,12 +986,42 @@ def test_efficient_return_error():
 
 def test_efficient_return_many_values():
     ef = setup_efficient_frontier()
-    for target_return in np.arange(0.25, 0.20, 0.28):
+    for target_return in np.arange(0.25, 0.28, 0.01):
         ef.efficient_return(target_return)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         assert all([i >= 0 for i in ef.weights])
         mean_return = ef.portfolio_performance()[0]
-        assert abs(target_return - mean_return) < 0.05
+        np.testing.assert_allclose(target_return, mean_return)
+
+
+def test_efficient_return_max():
+    """
+    Test the boundary condition (that in the absence of shorting) if the
+    target return is equal to the maximum return of any of the assets
+    then the resulting portfolio is completely concentrated in that asset.
+    """
+    solver_options_map = {
+        "OSQP": {"eps_abs": 1e-8, "eps_rel": 1e-8, "max_iter": 100000},
+        "SCS": {"eps": 1e-8, "max_iters": 10000},
+    }
+    # According to https://www.cvxpy.org/tutorial/advanced/index.html
+    # "CVXPY is distributed with the open source solvers ECOS, OSQP, and SCS"
+    # and CVXOPT is a project dependency in requirements.txt
+    # and these all support QP, which is not the case for every one of cvxpy.installed_solvers():
+    qp_solvers = ["OSQP", "ECOS", "SCS", "CVXOPT"]
+    for solver in qp_solvers:
+        ef = setup_efficient_frontier(
+            verbose=True, solver=solver, solver_options=solver_options_map.get(solver)
+        )
+        max_ret_i = ef.expected_returns.argmax()
+        max_ret = ef.expected_returns[max_ret_i]
+        ef.efficient_return(max_ret)
+        weights_expected = np.zeros(len(ef.expected_returns))
+        weights_expected[max_ret_i] = 1.0
+        np.testing.assert_almost_equal(ef.weights, weights_expected)
+        vol = np.sqrt(ef.cov_matrix[max_ret_i][max_ret_i])
+        np.testing.assert_almost_equal(ef.portfolio_performance()[0], max_ret)
+        np.testing.assert_almost_equal(ef.portfolio_performance()[1], vol)
 
 
 def test_efficient_return_short():
@@ -1076,7 +1116,7 @@ def test_max_sharpe_semicovariance():
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2732301946250426, 0.06603231922971581, 3.834943215368455),
+        (0.2762965426962885, 0.07372667096108301, 3.476307004714425),
     )
 
 
@@ -1092,7 +1132,7 @@ def test_max_sharpe_short_semicovariance():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.3907992623559733, 0.0809285460933456, 4.581810501430255),
+        (0.42444834528495234, 0.0898263632679403, 4.50255727350929),
     )
 
 

@@ -28,6 +28,22 @@ def test_prices_from_returns():
     assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-10).all().all()
 
 
+def test_prices_from_log_returns():
+    df = get_data()
+    returns_df = df.pct_change()  # keep NaN row
+    log_returns_df = np.log1p(returns_df)
+
+    # convert pseudo-price to price
+    pseudo_prices = expected_returns.prices_from_returns(
+        log_returns_df, log_returns=True
+    )
+    initial_prices = df.bfill().iloc[0]
+    test_prices = pseudo_prices * initial_prices
+
+    # check equality, robust to floating point issues
+    assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-10).all().all()
+
+
 def test_returns_from_prices():
     df = get_data()
     returns_df = expected_returns.returns_from_prices(df)
@@ -41,6 +57,9 @@ def test_log_returns_from_prices():
     new_nan = log_rets.isnull().sum(axis=1).sum()
     assert new_nan == old_nan
     np.testing.assert_almost_equal(log_rets.iloc[-1, -1], 0.0001682740081102576)
+    # Test the deprecated function, until it is removed.
+    deprecated_log_rets = expected_returns.log_returns_from_prices(df)
+    np.testing.assert_allclose(deprecated_log_rets, log_rets)
 
 
 def test_mean_historical_returns_dummy():
@@ -122,6 +141,11 @@ def test_ema_historical_return():
     assert list(mean.index) == list(df.columns)
     assert mean.notnull().all()
     assert mean.dtype == "float64"
+    # Test the (warning triggering) case that input is not a dataFrame
+    mean_np = expected_returns.ema_historical_return(df.to_numpy())
+    mean_np.name = mean.name  # These will differ.
+    reset_mean = mean.reset_index(drop=True)  # Index labels would be tickers.
+    pd.testing.assert_series_equal(mean_np, reset_mean)
 
 
 def test_ema_historical_return_frequency():
@@ -170,6 +194,11 @@ def test_capm_no_benchmark():
         ]
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
+    # Test the (warning triggering) case that input is not a dataFrame
+    mu_np = expected_returns.capm_return(df.to_numpy())
+    mu_np.name = mu.name  # These will differ.
+    mu_np.index = mu.index  # Index labels would be tickers.
+    pd.testing.assert_series_equal(mu_np, mu)
 
 
 def test_capm_with_benchmark():
