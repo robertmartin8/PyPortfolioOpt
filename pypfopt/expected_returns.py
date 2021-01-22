@@ -73,8 +73,9 @@ def prices_from_returns(returns, log_returns=False):
     :rtype: pd.DataFrame
     """
     if log_returns:
-        returns = np.exp(returns)
-    ret = 1 + returns
+        ret = np.exp(returns)
+    else:
+        ret = 1 + returns
     ret.iloc[0] = 1  # set first day pseudo-price
     return ret.cumprod()
 
