@@ -230,6 +230,7 @@ def test_lp_portfolio_allocation():
     da = DiscreteAllocation(w, latest_prices, short_ratio=0.3)
     allocation, leftover = da.lp_portfolio()
 
+    #  Weirdly, this gives different answers for py3.8+ vs py3.6-3.7.
     assert allocation == {
         "AMD": 1,
         "GOOG": 1,
@@ -240,7 +241,18 @@ def test_lp_portfolio_allocation():
         "MA": 20,
         "PFE": 54,
         "SBUX": 1,
+    } or allocation == {
+        "GOOG": 1,
+        "AAPL": 4,
+        "FB": 12,
+        "BABA": 4,
+        "AMD": 1,
+        "BBY": 2,
+        "MA": 20,
+        "PFE": 54,
+        "SBUX": 1,
     }
+
     total = 0
     for ticker, num in allocation.items():
         total += num * latest_prices[ticker]
@@ -429,6 +441,7 @@ def test_allocation_errors():
     w = ef.max_sharpe()
     latest_prices = get_latest_prices(df)
 
+    assert DiscreteAllocation(w, latest_prices)
     with pytest.raises(TypeError):
         DiscreteAllocation(ef.weights, latest_prices)
     with pytest.raises(TypeError):
@@ -437,3 +450,13 @@ def test_allocation_errors():
         DiscreteAllocation(w, latest_prices, total_portfolio_value=0)
     with pytest.raises(ValueError):
         DiscreteAllocation(w, latest_prices, short_ratio=-0.4)
+    with pytest.raises(NameError):
+        da = DiscreteAllocation(w, latest_prices)
+        da.lp_portfolio(solver="ABCDEF")
+    w2 = w.copy()
+    w2["AAPL"] = np.nan
+    with pytest.raises(ValueError):
+        DiscreteAllocation(w2, latest_prices)
+    latest_prices.iloc[0] = np.nan
+    with pytest.raises(TypeError):
+        DiscreteAllocation(w, latest_prices)

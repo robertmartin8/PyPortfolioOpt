@@ -190,7 +190,7 @@ def test_custom_nonconvex_deviation_risk_parity_2():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
 
-def custom_nonconvex_sharpe():
+def test_custom_nonconvex_sharpe():
     ef = setup_efficient_frontier()
     w1 = ef.nonconvex_objective(
         objective_functions.sharpe_ratio,
@@ -220,7 +220,7 @@ def custom_nonconvex_sharpe():
         assert w >= min_weight - 1e-8 and w <= max_weight + 1e-8
 
 
-def custom_nonconvex_kelly():
+def test_custom_nonconvex_kelly():
     def kelly_objective(w, e_returns, cov_matrix, k=3):
         variance = np.dot(w.T, np.dot(cov_matrix, w))
         objective = variance * 0.5 * k - np.dot(w, e_returns)
