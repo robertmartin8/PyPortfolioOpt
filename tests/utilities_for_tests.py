@@ -45,13 +45,21 @@ def get_market_caps():
     return mcaps
 
 
-def setup_efficient_frontier(data_only=False, solver=None, verbose=False):
+def setup_efficient_frontier(
+    data_only=False, solver=None, verbose=False, solver_options=None
+):
     df = get_data()
     mean_return = expected_returns.mean_historical_return(df)
     sample_cov_matrix = risk_models.sample_cov(df)
     if data_only:
         return mean_return, sample_cov_matrix
-    return EfficientFrontier(mean_return, sample_cov_matrix, solver=solver, verbose=verbose)
+    return EfficientFrontier(
+        mean_return,
+        sample_cov_matrix,
+        solver=solver,
+        verbose=verbose,
+        solver_options=solver_options,
+    )
 
 
 def setup_cla(data_only=False):

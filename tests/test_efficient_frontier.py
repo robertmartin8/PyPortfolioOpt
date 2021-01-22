@@ -1,4 +1,5 @@
 import warnings
+from math import sqrt
 import numpy as np
 import pandas as pd
 import cvxpy as cp
@@ -982,6 +983,36 @@ def test_efficient_return_many_values():
         assert all([i >= 0 for i in ef.weights])
         mean_return = ef.portfolio_performance()[0]
         assert abs(target_return - mean_return) < 0.05
+
+
+def test_efficient_return_max():
+    """
+    Test the boundary condition (that in the absence of shorting) if the
+    target return is equal to the maximum return of any of the assets
+    then the resulting portfolio is completely concentrated in that asset.
+    """
+    solver_options_map = {
+        "OSQP": {"eps_abs": 1e-8, "eps_rel": 1e-8, "max_iter": 100000},
+        "SCS": {"eps": 1e-8, "max_iters": 10000},
+    }
+    # According to https://www.cvxpy.org/tutorial/advanced/index.html
+    # "CVXPY is distributed with the open source solvers ECOS, OSQP, and SCS"
+    # and CVXOPT is a project dependency in requirements.txt
+    # and these all support QP, which is not the case for every one of cvxpy.installed_solvers():
+    qp_solvers = ["OSQP", "ECOS", "SCS", "CVXOPT"]
+    for solver in qp_solvers:
+        ef = setup_efficient_frontier(
+            verbose=True, solver=solver, solver_options=solver_options_map.get(solver)
+        )
+        max_ret_i = ef.expected_returns.argmax()
+        max_ret = ef.expected_returns[max_ret_i]
+        ef.efficient_return(max_ret)
+        weights_expected = np.zeros(len(ef.expected_returns))
+        weights_expected[max_ret_i] = 1.0
+        np.testing.assert_almost_equal(ef.weights, weights_expected)
+        vol = sqrt(ef.cov_matrix[max_ret_i][max_ret_i])
+        np.testing.assert_almost_equal(ef.portfolio_performance()[0], max_ret)
+        np.testing.assert_almost_equal(ef.portfolio_performance()[1], vol)
 
 
 def test_efficient_return_short():

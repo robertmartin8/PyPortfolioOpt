@@ -142,7 +142,13 @@ class BaseConvexOptimizer(BaseOptimizer):
     """
 
     def __init__(
-        self, n_assets, tickers=None, weight_bounds=(0, 1), solver=None, verbose=False
+        self,
+        n_assets,
+        tickers=None,
+        weight_bounds=(0, 1),
+        solver=None,
+        verbose=False,
+        solver_options=None,
     ):
         """
         :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
@@ -153,6 +159,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         :type solver: str, optional. Defaults to "ECOS"
         :param verbose: whether performance and debugging info should be printed, defaults to False
         :type verbose: bool, optional
+        :param solver_options: parameters for the given solver
+        :type solver_options: dict, optional
         """
         super().__init__(n_assets, tickers)
 
@@ -167,6 +175,7 @@ class BaseConvexOptimizer(BaseOptimizer):
 
         self._solver = solver
         self._verbose = verbose
+        self._solver_options = solver_options if solver_options else {}
 
     def _map_bounds_to_constraints(self, test_bounds):
         """
@@ -219,9 +228,11 @@ class BaseConvexOptimizer(BaseOptimizer):
             opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
 
             if self._solver is not None:
-                opt.solve(solver=self._solver, verbose=self._verbose)
+                opt.solve(
+                    solver=self._solver, verbose=self._verbose, **self._solver_options
+                )
             else:
-                opt.solve(verbose=self._verbose)
+                opt.solve(verbose=self._verbose, **self._solver_options)
         except (TypeError, cp.DCPError) as e:
             raise exceptions.OptimizationError from e
 

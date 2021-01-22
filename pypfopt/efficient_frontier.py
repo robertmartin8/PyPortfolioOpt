@@ -61,6 +61,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         gamma=0,
         solver=None,
         verbose=False,
+        solver_options=None,
     ):
         """
         :param expected_returns: expected returns for each asset. Can be None if
@@ -80,6 +81,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :type solver: str
         :param verbose: whether performance and debugging info should be printed, defaults to False
         :type verbose: bool, optional
+        :param solver_options: parameters for the given solver
+        :type solver_options: dict, optional
         :raises TypeError: if ``expected_returns`` is not a series, list or array
         :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
@@ -102,7 +105,12 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 raise ValueError("Covariance matrix does not match expected returns")
 
         super().__init__(
-            len(tickers), tickers, weight_bounds, solver=solver, verbose=verbose
+            len(tickers),
+            tickers,
+            weight_bounds,
+            solver=solver,
+            verbose=verbose,
+            solver_options=solver_options,
         )
 
     @staticmethod
