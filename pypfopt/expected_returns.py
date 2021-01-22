@@ -113,14 +113,17 @@ def return_model(prices, method="mean_historical_return", **kwargs):
 def mean_historical_return(prices, returns_data=False, compounding=True, frequency=252):
     """
     Calculate annualised mean (daily) historical return from input (daily) asset prices.
-    By default, this uses the arithmetic mean (correct if log_returns are used).
+    Use ``compounding`` to toggle between the default geometric mean (CAGR) and the
+    arithmetic mean.
 
     :param prices: adjusted closing prices of the asset, each row is a date
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
     :param returns_data: if true, the first argument is returns instead of prices.
+                         These **should not** be log returns.
     :type returns_data: bool, defaults to False.
-    :param compounding: whether to properly compound the returns, optional.
+    :param compounding: computes geometric mean returns if True,
+                        arithmetic otherwise, optional.
     :type compounding: bool, defaults to True
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
@@ -152,8 +155,10 @@ def ema_historical_return(
                    and each column is a ticker/id.
     :type prices: pd.DataFrame
     :param returns_data: if true, the first argument is returns instead of prices.
+                         These **should not** be log returns.
     :type returns_data: bool, defaults to False.
-    :param compounding: whether to properly compound the returns, optional.
+    :param compounding: computes geometric mean returns if True,
+                        arithmetic otherwise, optional.
     :type compounding: bool, defaults to True
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
@@ -212,7 +217,8 @@ def capm_return(
                            You should use the appropriate time period, corresponding
                            to the frequency parameter.
     :type risk_free_rate: float, optional
-    :param compounding: whether to properly compound the returns, optional.
+    :param compounding: computes geometric mean returns if True,
+                        arithmetic otherwise, optional.
     :type compounding: bool, defaults to True
     :param frequency: number of time periods in a year, defaults to 252 (the number
                         of trading days in a year)
