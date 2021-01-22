@@ -5,6 +5,8 @@ from pypfopt import expected_returns
 from pypfopt import risk_models
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt.cla import CLA
+from pypfopt.efficient_semivariance import EfficientSemivariance
+from pypfopt.expected_returns import returns_from_prices
 
 
 def resource(name):
@@ -59,6 +61,19 @@ def setup_efficient_frontier(
         solver=solver,
         verbose=verbose,
         solver_options=solver_options,
+    )
+
+
+def setup_efficient_semivariance(data_only=False, solver=None, verbose=False):
+    df = get_data().dropna(axis=0, how="any")
+    mean_return = expected_returns.mean_historical_return(
+        df, frequency=1, compounding=False
+    )
+    historic_returns = returns_from_prices(df)
+    if data_only:
+        return mean_return, historic_returns
+    return EfficientSemivariance(
+        mean_return, historic_returns, solver=solver, verbose=verbose
     )
 
 
