@@ -5,7 +5,7 @@ from pypfopt import expected_returns
 from pypfopt import risk_models
 from pypfopt.efficient_frontier import EfficientFrontier
 from pypfopt.cla import CLA
-from pypfopt.efficient_semivariance import EfficientSemivariance
+from pypfopt.efficient_frontier import EfficientSemivariance
 from pypfopt.expected_returns import returns_from_prices
 
 

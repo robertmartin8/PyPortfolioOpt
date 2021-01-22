@@ -34,17 +34,15 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     Public methods:
 
-    - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``min_volatility()`` optimises for minimum volatility
+    - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``max_quadratic_utility()`` maximises the quadratic utility, given some risk aversion.
-    - ``efficient_risk()`` maximises Sharpe for a given target risk
+    - ``efficient_risk()`` maximises return for a given target risk
     - ``efficient_return()`` minimises risk for a given target return
 
     - ``add_objective()`` adds a (convex) objective to the optimisation problem
     - ``add_constraint()`` adds a (linear) constraint to the optimisation problem
     - ``convex_objective()`` solves for a generic convex objective with linear constraints
-    - ``nonconvex_objective()`` solves for a generic nonconvex objective using the scipy backend.
-      This is prone to getting stuck in local minima and is generally *not* recommended.
 
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
       the optimised portfolio.
@@ -58,7 +56,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         expected_returns,
         cov_matrix,
         weight_bounds=(0, 1),
-        gamma=0,
         solver=None,
         verbose=False,
         solver_options=None,
@@ -74,9 +71,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                               if all identical, defaults to (0, 1). Must be changed to (-1, 1)
                               for portfolios with shorting.
         :type weight_bounds: tuple OR tuple list, optional
-        :param gamma: L2 regularisation parameter, defaults to 0. Increase if you want more
-                      non-negligible weights
-        :type gamma: float, optional
         :param solver: name of solver. list available solvers with: `cvxpy.installed_solvers()`
         :type solver: str
         :param verbose: whether performance and debugging info should be printed, defaults to False
@@ -100,7 +94,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:  # use integer labels
             tickers = list(range(len(expected_returns)))
 
-        if expected_returns is not None:
+        if expected_returns is not None and cov_matrix is not None:
             if cov_matrix.shape != (len(expected_returns), len(expected_returns)):
                 raise ValueError("Covariance matrix does not match expected returns")
 
@@ -116,9 +110,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
     @staticmethod
     def _validate_expected_returns(expected_returns):
         if expected_returns is None:
-            warnings.warn(
-                "No expected returns provided. You may only use ef.min_volatility()"
-            )
             return None
         elif isinstance(expected_returns, pd.Series):
             return expected_returns.values
@@ -138,7 +129,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         elif isinstance(cov_matrix, np.ndarray):
             return cov_matrix
         else:
-            raise TypeError("cov_matrix is not a series, list or array")
+            raise TypeError("cov_matrix is not a dataframe or array")
 
     def _market_neutral_bounds_check(self):
         """
@@ -390,3 +381,164 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             verbose,
             risk_free_rate,
         )
+
+
+class EfficientSemivariance(EfficientFrontier):
+    def __init__(
+        self,
+        expected_returns,
+        historic_returns,
+        frequency=252,
+        benchmark=0,
+        weight_bounds=(0, 1),
+        solver=None,
+        verbose=False,
+        solver_options=None,
+    ):
+        # TODO: document
+        # Instantiate parent
+        super().__init__(
+            expected_returns=expected_returns,
+            cov_matrix=np.zeros((len(expected_returns),) * 2),
+            weight_bounds=weight_bounds,
+            solver=solver,
+            verbose=verbose,
+            solver_options=solver_options,
+        )
+
+        self.historic_returns = historic_returns
+        self.frequency = frequency
+        self.benchmark = benchmark
+        self.T = self.historic_returns.shape[0]
+
+        if expected_returns is not None:
+            if historic_returns.shape[1] != len(expected_returns):
+                raise ValueError(
+                    "Historic return matrix does not match expected returns"
+                )
+
+    def min_volatility(self):
+        raise NotImplementedError("Please use min_semivariance instead.")
+
+    def max_sharpe(self, risk_free_rate=0.02):
+        raise NotImplementedError("Method not available in EfficientSemivariance")
+
+    def min_semivariance(self, market_neutral=False):
+        p = cp.Variable(self.T, nonneg=True)
+        n = cp.Variable(self.T, nonneg=True)
+        self._objective = cp.sum_squares(n)
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        B = (self.historic_returns.values - self.benchmark) / np.sqrt(self.T)
+        self._constraints.append(B @ self._w - p + n == 0)
+
+        # The equality constraint is either "weights sum to 1" (default), or
+        # "weights sum to 0" (market neutral).
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        return self._solve_cvxpy_opt_problem()
+
+    def max_quadratic_utility(self, risk_aversion=1, market_neutral=False):
+        if risk_aversion <= 0:
+            raise ValueError("risk aversion coefficient must be greater than zero")
+
+        p = cp.Variable(self.T, nonneg=True)
+        n = cp.Variable(self.T, nonneg=True)
+        mu = objective_functions.portfolio_return(self._w, self.expected_returns)
+        self._objective = mu + 0.5 * risk_aversion * cp.sum_squares(n)
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        B = (self.historic_returns.values - self.benchmark) / np.sqrt(self.T)
+        self._constraints.append(B @ self._w - p + n == 0)
+
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        return self._solve_cvxpy_opt_problem()
+
+    def efficient_risk(self, target_semi_deviation, market_neutral=False):
+        target_semi_deviation /= np.sqrt(self.frequency)
+        self._objective = objective_functions.portfolio_return(
+            self._w, self.expected_returns
+        )
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        p = cp.Variable(self.T, nonneg=True)
+        n = cp.Variable(self.T, nonneg=True)
+
+        self._constraints.append(cp.sum_squares(n) <= (target_semi_deviation ** 2))
+
+        B = (self.historic_returns.values - self.benchmark) / np.sqrt(self.T)
+        self._constraints.append(B @ self._w - p + n == 0)
+
+        # The equality constraint is either "weights sum to 1" (default), or
+        # "weights sum to 0" (market neutral).
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        return self._solve_cvxpy_opt_problem()
+
+    def efficient_return(self, target_return, market_neutral=False):
+        target_return /= self.frequency
+        if not isinstance(target_return, float) or target_return < 0:
+            raise ValueError("target_return should be a positive float")
+        if target_return > np.abs(self.expected_returns).max():
+            raise ValueError(
+                "target_return must be lower than the largest expected return"
+            )
+        p = cp.Variable(self.T, nonneg=True)
+        n = cp.Variable(self.T, nonneg=True)
+        self._objective = cp.sum(cp.square(n))
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints.append(
+            cp.sum(self._w @ self.expected_returns) >= target_return
+        )
+        B = (self.historic_returns.values - self.benchmark) / np.sqrt(self.T)
+        self._constraints.append(B @ self._w - p + n == 0)
+
+        # The equality constraint is either "weights sum to 1" (default), or
+        # "weights sum to 0" (market neutral).
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
+        return self._solve_cvxpy_opt_problem()
+
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+        if self._risk_free_rate is not None:
+            risk_free_rate = self._risk_free_rate
+
+        mu = objective_functions.portfolio_return(
+            self.weights, self.expected_returns, negative=False
+        )
+        mu *= self.frequency
+
+        portfolio_returns = self.historic_returns @ self.weights
+        drops = np.fmin(portfolio_returns - self.benchmark, 0)
+        semivariance = np.sum(np.square(drops)) / self.T * self.frequency
+        semi_deviation = np.sqrt(semivariance)
+        sortino_ratio = (mu - risk_free_rate) / semi_deviation
+
+        if verbose:
+            print("Expected annual return: {:.1f}%".format(100 * mu))
+            print("Annual semi-deviation: {:.1f}%".format(100 * semi_deviation))
+            print("Sortino Ratio: {:.2f}".format(sortino_ratio))
+
+        return mu, semi_deviation, sortino_ratio
