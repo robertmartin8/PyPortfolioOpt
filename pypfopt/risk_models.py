@@ -205,8 +205,9 @@ def semicovariance(
     else:
         returns = returns_from_prices(prices)
     drops = np.fmin(returns - benchmark, 0)
+    T = len(drops.index)
     return fix_nonpositive_semidefinite(
-        drops.cov() * frequency, kwargs.get("fix_method", "spectral")
+        (drops.T @ drops) / T * frequency, kwargs.get("fix_method", "spectral")
     )
 
 
