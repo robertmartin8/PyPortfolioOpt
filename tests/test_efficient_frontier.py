@@ -502,6 +502,16 @@ def test_max_sharpe_risk_free_rate():
     assert new_sharpe >= initial_sharpe
 
 
+def test_max_sharpe_risk_free_portfolio_performance():
+    # Issue #238 - portfolio perf should use the same rf as
+    # max_sharpe
+    ef = setup_efficient_frontier()
+    ef.max_sharpe(risk_free_rate=0.05)
+    res = ef.portfolio_performance()
+    res2 = ef.portfolio_performance(risk_free_rate=0.05)
+    np.testing.assert_allclose(res, res2)
+
+
 def test_min_vol_pair_constraint():
     ef = setup_efficient_frontier()
     ef.min_volatility()

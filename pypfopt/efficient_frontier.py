@@ -191,6 +191,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
+        self._risk_free_rate = risk_free_rate
 
         # max_sharpe requires us to make a variable transformation.
         # Here we treat w as the transformed variable.
@@ -379,6 +380,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """
+        if self._risk_free_rate is not None:
+            risk_free_rate = self._risk_free_rate
+
         return base_optimizer.portfolio_performance(
             self.weights,
             self.expected_returns,

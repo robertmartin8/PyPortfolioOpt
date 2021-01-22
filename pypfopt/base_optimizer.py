@@ -45,6 +45,7 @@ class BaseOptimizer:
             self.tickers = list(range(n_assets))
         else:
             self.tickers = tickers
+        self._risk_free_rate = None
         # Outputs
         self.weights = None
 
@@ -358,8 +359,8 @@ class BaseConvexOptimizer(BaseOptimizer):
     ):
         """
         Optimise some objective function using the scipy backend. This can
-        support nonconvex objectives and nonlinear constraints, but often gets stuck
-        at local minima. This method is not recommended – caveat emptor. Example::
+        support nonconvex objectives and nonlinear constraints, but may get stuck
+        at local minima. Example::
 
             # Market-neutral efficient risk
             constraints = [
