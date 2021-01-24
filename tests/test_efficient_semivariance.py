@@ -54,12 +54,10 @@ def test_es_example_monthly():
     historical_rets = expected_returns.returns_from_prices(df).dropna()
     es = EfficientSemivariance(mu, historical_rets, frequency=12)
 
-    es.efficient_return(0.2)
-    es.portfolio_performance()
+    es.efficient_return(0.3)
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        # TODO: possible error. Very high sortino?
-        (0.20, 0.03891676858527853, 4.62525636541669),
+        (0.3, 0.04746519522734184, 5.899059271933824),
         rtol=1e-4,
         atol=1e-4,
     )

@@ -5,10 +5,13 @@ import cvxpy as cp
 import pytest
 import scipy.optimize as sco
 
-from pypfopt import EfficientFrontier
-from pypfopt import risk_models
-from pypfopt import objective_functions
-from pypfopt import exceptions
+from pypfopt import (
+    EfficientFrontier,
+    expected_returns,
+    risk_models,
+    objective_functions,
+    exceptions,
+)
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
@@ -28,6 +31,26 @@ def test_returns_dataframe():
     assert len(returns_df) == 7125
     assert returns_df.index.is_all_dates
     assert not ((returns_df > 1) & returns_df.notnull()).any().any()
+
+
+def test_ef_example():
+    df = get_data()
+    mu = expected_returns.mean_historical_return(df)
+    S = risk_models.sample_cov(df)
+
+    ef = EfficientFrontier(mu, S)
+    ef.efficient_return(0.2)
+    np.testing.assert_almost_equal(ef.portfolio_performance()[0], 0.2)
+
+
+def test_ef_example_weekly():
+    df = get_data()
+    prices_weekly = df.resample("W").first()
+    mu = expected_returns.mean_historical_return(prices_weekly, frequency=52)
+    S = risk_models.sample_cov(prices_weekly, frequency=52)
+    ef = EfficientFrontier(mu, S)
+    ef.efficient_return(0.2)
+    np.testing.assert_almost_equal(ef.portfolio_performance()[0], 0.2)
 
 
 def test_efficient_frontier_inheritance():

@@ -246,7 +246,6 @@ def test_lp_portfolio_allocation():
         "AAPL": 4,
         "FB": 12,
         "BABA": 4,
-        "AMD": 1,
         "BBY": 2,
         "MA": 20,
         "PFE": 54,
