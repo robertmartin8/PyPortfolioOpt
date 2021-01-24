@@ -469,8 +469,6 @@ class EfficientSemivariance(EfficientFrontier):
             solver_options=solver_options,
         )
 
-        # TODO: figure out frequency
-        # self.expected_returns /= frequency
         self.historic_returns = historic_returns
         self.benchmark = benchmark
         self.frequency = frequency
@@ -500,7 +498,8 @@ class EfficientSemivariance(EfficientFrontier):
         """
         p = cp.Variable(self._T, nonneg=True)
         n = cp.Variable(self._T, nonneg=True)
-        self._objective = cp.sum_squares(n)
+        self._objective = cp.sum(cp.square(n))
+
         for obj in self._additional_objectives:
             self._objective += obj
 
@@ -537,7 +536,8 @@ class EfficientSemivariance(EfficientFrontier):
         p = cp.Variable(self._T, nonneg=True)
         n = cp.Variable(self._T, nonneg=True)
         mu = objective_functions.portfolio_return(self._w, self.expected_returns)
-        self._objective = mu + 0.5 * risk_aversion * cp.sum_squares(n)
+        mu /= self.frequency
+        self._objective = mu + 0.5 * risk_aversion * cp.sum(cp.square(n))
         for obj in self._additional_objectives:
             self._objective += obj
 
@@ -566,8 +566,6 @@ class EfficientSemivariance(EfficientFrontier):
         :return: asset weights for the efficient risk portfolio
         :rtype: OrderedDict
         """
-        # TODO: figure out frequency
-        # target_semideviation /= np.sqrt(self.frequency)
         self._objective = objective_functions.portfolio_return(
             self._w, self.expected_returns
         )
@@ -577,7 +575,9 @@ class EfficientSemivariance(EfficientFrontier):
         p = cp.Variable(self._T, nonneg=True)
         n = cp.Variable(self._T, nonneg=True)
 
-        self._constraints.append(cp.sum_squares(n) <= (target_semideviation ** 2))
+        self._constraints.append(
+            self.frequency * cp.sum(cp.square(n)) <= (target_semideviation ** 2)
+        )
 
         B = (self.historic_returns.values - self.benchmark) / np.sqrt(self._T)
         self._constraints.append(B @ self._w - p + n == 0)
@@ -606,8 +606,6 @@ class EfficientSemivariance(EfficientFrontier):
         :return: asset weights for the optimal portfolio
         :rtype: OrderedDict
         """
-        # TODO: figure out frequency
-        # target_return /= self.frequency
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
         if target_return > np.abs(self.expected_returns).max():
@@ -657,8 +655,6 @@ class EfficientSemivariance(EfficientFrontier):
         mu = objective_functions.portfolio_return(
             self.weights, self.expected_returns, negative=False
         )
-        # TODO: figure out frequency
-        # mu *= self.frequency
 
         portfolio_returns = self.historic_returns @ self.weights
         drops = np.fmin(portfolio_returns - self.benchmark, 0)

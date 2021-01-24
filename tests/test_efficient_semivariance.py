@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from pypfopt import (
     risk_models,
     expected_returns,
@@ -7,6 +8,7 @@ from pypfopt import (
     objective_functions,
 )
 from tests.utilities_for_tests import setup_efficient_semivariance, get_data
+from cvxpy.error import SolverError
 
 
 def test_es_example():
@@ -32,15 +34,31 @@ def test_es_example():
 
 def test_es_example_weekly():
     df = get_data()
-    prices_weekly = df.resample("W").first()
-    mu = expected_returns.mean_historical_return(prices_weekly, frequency=52)
+    df = df.resample("W").first()
+    mu = expected_returns.mean_historical_return(df, frequency=52)
     historical_rets = expected_returns.returns_from_prices(df).dropna()
     es = EfficientSemivariance(mu, historical_rets, frequency=52)
+    es.efficient_return(0.2)
+    np.testing.assert_allclose(
+        es.portfolio_performance(),
+        (0.2000000562544616, 0.07667633475531543, 2.3475307841574087),
+        rtol=1e-4,
+        atol=1e-4,
+    )
+
+
+def test_es_example_monthly():
+    df = get_data()
+    df = df.resample("M").first()
+    mu = expected_returns.mean_historical_return(df, frequency=12)
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
+    es = EfficientSemivariance(mu, historical_rets, frequency=12)
+
     es.efficient_return(0.2)
     es.portfolio_performance()
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        # TODO: sortino looks a bit high?
+        # TODO: possible error. Very high sortino?
         (0.20, 0.03891676858527853, 4.62525636541669),
         rtol=1e-4,
         atol=1e-4,
@@ -76,67 +94,67 @@ def test_min_semivariance_extra_constraints():
 
 
 def test_min_semivariance_different_solver():
-    ef = setup_efficient_semivariance(solver="ECOS")
-    w = ef.min_semivariance()
+    es = setup_efficient_semivariance(solver="ECOS")
+    w = es.min_semivariance()
     assert isinstance(w, dict)
-    assert set(w.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
     test_performance = (0.10258693150198975, 0.08495982152369484, 0.9720704448391136)
     np.testing.assert_allclose(
-        ef.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
+        es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
     )
 
-    ef = setup_efficient_semivariance(solver="OSQP")
-    w = ef.min_semivariance()
+    es = setup_efficient_semivariance(solver="OSQP")
+    w = es.min_semivariance()
     np.testing.assert_allclose(
-        ef.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
+        es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
     )
 
     # SCS is way off.
-    # ef = setup_efficient_semivariance(solver="SCS")
-    # w = ef.min_semivariance()
-    # np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-3)
+    # es = setup_efficient_semivariance(solver="SCS")
+    # w = es.min_semivariance()
+    # np.testing.assert_allclose(es.portfolio_performance(), test_performance, atol=1e-3)
 
 
 def test_min_semivariance_tx_costs():
     # Baseline
-    ef = setup_efficient_semivariance()
-    ef.min_semivariance()
-    w1 = ef.weights
+    es = setup_efficient_semivariance()
+    es.min_semivariance()
+    w1 = es.weights
 
     # Pretend we were initally equal weight
-    ef = setup_efficient_semivariance()
-    prev_w = np.array([1 / ef.n_assets] * ef.n_assets)
-    ef.add_objective(objective_functions.transaction_cost, w_prev=prev_w)
-    ef.min_semivariance()
-    w2 = ef.weights
+    es = setup_efficient_semivariance()
+    prev_w = np.array([1 / es.n_assets] * es.n_assets)
+    es.add_objective(objective_functions.transaction_cost, w_prev=prev_w)
+    es.min_semivariance()
+    w2 = es.weights
 
     # TX cost should  pull closer to prev portfolio
     assert np.abs(prev_w - w2).sum() < np.abs(prev_w - w1).sum()
 
 
 def test_min_semivariance_L2_reg():
-    ef = setup_efficient_semivariance()
-    ef.add_objective(objective_functions.L2_reg, gamma=1)
-    weights = ef.min_semivariance()
+    es = setup_efficient_semivariance()
+    es.add_objective(objective_functions.L2_reg, gamma=1)
+    weights = es.min_semivariance()
     assert isinstance(weights, dict)
-    assert set(weights.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert set(weights.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
     assert all([i >= 0 for i in weights.values()])
 
     ef2 = setup_efficient_semivariance()
     ef2.min_semivariance()
 
     # L2_reg should pull close to equal weight
-    equal_weight = np.full((ef.n_assets,), 1 / ef.n_assets)
+    equal_weight = np.full((es.n_assets,), 1 / es.n_assets)
     assert (
-        np.abs(equal_weight - ef.weights).sum()
+        np.abs(equal_weight - es.weights).sum()
         < np.abs(equal_weight - ef2.weights).sum()
     )
 
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        es.portfolio_performance(),
         (0.11684586840374926, 0.11286393006990993, 0.8580763432902009),
         rtol=1e-4,
         atol=1e-4,
@@ -177,9 +195,9 @@ def test_min_semivariance_sector_constraints():
     }
     sector_lower = {"utility": 0.01, "fig": 0.02, "airline": 0.01}
 
-    ef = setup_efficient_semivariance()
-    ef.add_sector_constraints(sector_mapper, sector_lower, sector_upper)
-    weights = ef.min_semivariance()
+    es = setup_efficient_semivariance()
+    es.add_sector_constraints(sector_mapper, sector_lower, sector_upper)
+    weights = es.min_semivariance()
 
     for sector in list(set().union(sector_upper, sector_lower)):
         sector_sum = 0
@@ -191,14 +209,14 @@ def test_min_semivariance_sector_constraints():
 
 
 def test_max_quadratic_utility():
-    ef = setup_efficient_semivariance()
-    w = ef.max_quadratic_utility(risk_aversion=2)
+    es = setup_efficient_semivariance()
+    w = es.max_quadratic_utility(risk_aversion=2)
     assert isinstance(w, dict)
-    assert set(w.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
 
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        es.portfolio_performance(),
         (0.45386915148502716, 0.1730946893389541, 2.506542246570167),
         rtol=1e-4,
         atol=1e-4,
@@ -207,28 +225,29 @@ def test_max_quadratic_utility():
 
 def test_max_quadratic_utility_range():
     # increasing risk_aversion should lower both vol and return
-    ef = setup_efficient_semivariance()
-    ef.max_quadratic_utility(risk_aversion=0.01)
-    prev_ret, prev_semivar, _ = ef.portfolio_performance()
+    es = setup_efficient_semivariance()
+    es.solver = "ECOS"
+    es.max_quadratic_utility(risk_aversion=0.01)
+    prev_ret, prev_semivar, _ = es.portfolio_performance()
     for delta in [0.1, 0.5, 1, 3, 5, 10]:
-        ef = setup_efficient_semivariance()
-        ef.max_quadratic_utility(risk_aversion=delta)
-        print(ef.portfolio_performance())
-        ret, semivar, _ = ef.portfolio_performance()
+        es = setup_efficient_semivariance()
+        es.max_quadratic_utility(risk_aversion=delta)
+        print(es.portfolio_performance())
+        ret, semivar, _ = es.portfolio_performance()
         assert ret < prev_ret and semivar < prev_semivar
         prev_ret = ret
         prev_semivar = semivar
 
 
 def test_max_quadratic_utility_with_shorts():
-    ef = EfficientSemivariance(
+    es = EfficientSemivariance(
         *setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1)
     )
-    ef.max_quadratic_utility()
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    es.max_quadratic_utility()
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
 
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        es.portfolio_performance(),
         (3.2806086360944846, 1.0219729896939227, 3.190503730505662),
         rtol=1e-4,
         atol=1e-4,
@@ -236,15 +255,15 @@ def test_max_quadratic_utility_with_shorts():
 
 
 def test_max_quadratic_utility_market_neutral():
-    ef = EfficientSemivariance(
+    es = EfficientSemivariance(
         *setup_efficient_semivariance(data_only=True),
         weight_bounds=(-1, 1),
         solver="ECOS"
     )
-    ef.max_quadratic_utility(market_neutral=True)
-    np.testing.assert_almost_equal(ef.weights.sum(), 0)
+    es.max_quadratic_utility(market_neutral=True)
+    np.testing.assert_almost_equal(es.weights.sum(), 0)
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        es.portfolio_performance(),
         (3.106826930927578, 0.9789014670659041, 3.153358161960706),
         rtol=1e-4,
         atol=1e-4,
@@ -252,16 +271,16 @@ def test_max_quadratic_utility_market_neutral():
 
 
 def test_max_quadratic_utility_L2_reg():
-    ef = setup_efficient_semivariance()
-    ef.add_objective(objective_functions.L2_reg, gamma=5)
-    weights = ef.max_quadratic_utility()
+    es = setup_efficient_semivariance()
+    es.add_objective(objective_functions.L2_reg, gamma=5)
+    weights = es.max_quadratic_utility()
 
     assert isinstance(weights, dict)
-    assert set(weights.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert set(weights.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
     assert all([i >= 0 for i in weights.values()])
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        es.portfolio_performance(),
         (0.11717839698599568, 0.11286470279298752, 0.8610167269410781),
         rtol=1e-4,
         atol=1e-4,
@@ -271,16 +290,17 @@ def test_max_quadratic_utility_L2_reg():
     ef2.max_quadratic_utility()
 
     # L2_reg should pull close to equal weight
-    equal_weight = np.full((ef.n_assets,), 1 / ef.n_assets)
+    equal_weight = np.full((es.n_assets,), 1 / es.n_assets)
     assert (
-        np.abs(equal_weight - ef.weights).sum()
+        np.abs(equal_weight - es.weights).sum()
         < np.abs(equal_weight - ef2.weights).sum()
     )
 
 
 def test_efficient_risk():
     es = setup_efficient_semivariance()
-    w = es.efficient_risk(0.1)
+    w = es.efficient_risk(0.2)
+
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
@@ -288,23 +308,43 @@ def test_efficient_risk():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.24831131427056993, 0.1, 2.2831130151838583),
+        (0.4567521774612227, 0.2, 2.183678863194344),
+        rtol=1e-4,
+        atol=1e-4,
+    )
+
+
+def test_efficient_risk_low_risk():
+    es = setup_efficient_semivariance()
+    es.min_semivariance()
+    min_value = es.portfolio_performance()[1]
+
+    # Should fail below
+    with pytest.raises(SolverError):
+        es = setup_efficient_semivariance()
+        es.efficient_risk(min_value - 0.01)
+
+    es = setup_efficient_semivariance()
+    es.efficient_risk(min_value + 0.01)
+    np.testing.assert_allclose(
+        es.portfolio_performance(),
+        (0.22187394011764086, min_value + 0.01, 2.1248023794940822),
         rtol=1e-4,
         atol=1e-4,
     )
 
 
 def test_efficient_risk_market_neutral():
-    ef = EfficientSemivariance(
+    es = EfficientSemivariance(
         *setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1)
     )
-    w = ef.efficient_risk(0.21, market_neutral=True)
+    w = es.efficient_risk(0.21, market_neutral=True)
     assert isinstance(w, dict)
-    assert set(w.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 0)
-    assert (ef.weights < 1).all() and (ef.weights > -1).all()
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 0)
+    assert (es.weights < 1).all() and (es.weights > -1).all()
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        es.portfolio_performance(),
         (0.9257112257221027, 0.21, 4.312873624163129),
         rtol=1e-4,
         atol=1e-4,
@@ -312,29 +352,29 @@ def test_efficient_risk_market_neutral():
 
 
 def test_efficient_risk_L2_reg():
-    ef = setup_efficient_semivariance()
-    ef.add_objective(objective_functions.L2_reg, gamma=1)
-    weights = ef.efficient_risk(0.19)
+    es = setup_efficient_semivariance()
+    es.add_objective(objective_functions.L2_reg, gamma=1)
+    weights = es.efficient_risk(0.19)
 
     assert isinstance(weights, dict)
-    assert set(weights.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in weights.values()])
+    assert set(weights.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
+    np.testing.assert_array_less(np.zeros(len(weights)), es.weights + 1e-4)
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
-        (0.1185627734950254, 0.11281316907147328, 0.8736814532049936),
+        es.portfolio_performance(),
+        (0.31339234055845905, 0.14360466712901232, 2.0430557475884794),
         rtol=1e-4,
         atol=1e-4,
     )
 
     ef2 = setup_efficient_semivariance()
-    ef.add_objective(objective_functions.L2_reg, gamma=1)
+    es.add_objective(objective_functions.L2_reg, gamma=1)
     ef2.efficient_risk(0.19)
 
     # L2_reg should pull close to equal weight
-    equal_weight = np.full((ef.n_assets,), 1 / ef.n_assets)
+    equal_weight = np.full((es.n_assets,), 1 / es.n_assets)
     assert (
-        np.abs(equal_weight - ef.weights).sum()
+        np.abs(equal_weight - es.weights).sum()
         < np.abs(equal_weight - ef2.weights).sum()
     )
 
@@ -356,20 +396,20 @@ def test_efficient_return():
 
 
 def test_efficient_return_short():
-    ef = EfficientSemivariance(
+    es = EfficientSemivariance(
         *setup_efficient_semivariance(data_only=True), weight_bounds=(None, None)
     )
-    w = ef.efficient_return(0.25)
+    w = es.efficient_return(0.25)
     assert isinstance(w, dict)
-    assert set(w.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        es.portfolio_performance(),
         (0.25, 0.09073654273906914, 2.534811096726317),
         rtol=1e-4,
         atol=1e-4,
     )
-    sortino = ef.portfolio_performance()[2]
+    sortino = es.portfolio_performance()[2]
 
     ef_long_only = setup_efficient_semivariance()
     ef_long_only.efficient_return(0.25)
@@ -379,15 +419,15 @@ def test_efficient_return_short():
 
 
 def test_efficient_return_L2_reg():
-    ef = setup_efficient_semivariance()
-    ef.add_objective(objective_functions.L2_reg, gamma=1)
-    w = ef.efficient_return(0.25)
+    es = setup_efficient_semivariance()
+    es.add_objective(objective_functions.L2_reg, gamma=1)
+    w = es.efficient_return(0.25)
     assert isinstance(w, dict)
-    assert set(w.keys()) == set(ef.tickers)
-    np.testing.assert_almost_equal(ef.weights.sum(), 1)
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        es.portfolio_performance(),
         (0.25, 0.12068369208695134, 1.9058084487031388),
         rtol=1e-4,
         atol=1e-4,

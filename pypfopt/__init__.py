@@ -5,7 +5,7 @@ from .black_litterman import (
 )
 from .cla import CLA
 from .discrete_allocation import get_latest_prices, DiscreteAllocation
-from .efficient_frontier import EfficientFrontier
+from .efficient_frontier import EfficientFrontier, EfficientSemivariance
 from .hierarchical_portfolio import HRPOpt
 from .risk_models import CovarianceShrinkage
 
@@ -20,6 +20,7 @@ __all__ = [
     "get_latest_prices",
     "DiscreteAllocation",
     "EfficientFrontier",
+    "EfficientSemivariance",
     "HRPOpt",
     "CovarianceShrinkage",
 ]
