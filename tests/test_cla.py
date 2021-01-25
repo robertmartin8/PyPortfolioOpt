@@ -100,6 +100,8 @@ def test_cla_max_sharpe_semicovariance():
     np.testing.assert_allclose(
         cla.portfolio_performance(),
         (0.2721798377099145, 0.07258537193305141, 3.474251505420551),
+        atol=1e-4,
+        rtol=1e-4,
     )
 
 
