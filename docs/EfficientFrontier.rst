@@ -128,7 +128,8 @@ Basic Usage
 
     PyPortfolioOpt defers to cvxpy's default choice of solver. If you would like to explicitly
     choose the solver, simply pass the optional ``solver = "ECOS"`` kwarg to the constructor.
-    You can choose from any of the `supported solvers <https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver>`_.
+    You can choose from any of the `supported solvers <https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver>`_,
+    and pass in solver params via ``solver_options`` (a ``dict``). 
 
 Adding objectives and constraints
 =================================
@@ -137,13 +138,13 @@ EfficientFrontier inherits from the BaseConvexOptimizer class. In particular, th
 add constraints and objectives are documented below:
 
 
-    .. class:: pypfopt.base_optimizer.BaseConvexOptimizer
+.. class:: pypfopt.base_optimizer.BaseConvexOptimizer
 
-        .. automethod:: add_constraint
+    .. automethod:: add_constraint
 
-        .. automethod:: add_sector_constraints
+    .. automethod:: add_sector_constraints
 
-        .. automethod:: add_objective
+    .. automethod:: add_objective
 
 
 Objective functions
@@ -153,8 +154,6 @@ Objective functions
     :members:
 
 
-One of the experimental features implemented in PyPortfolioOpt is the L2 regularisation
-parameter ``gamma``, which is discussed below.
 
 .. _L2-Regularisation:
 
@@ -194,21 +193,80 @@ used to make them larger).
     increase ``gamma``.
 
 
+Efficient Semivariance
+======================
+
+The mean-variance optimisation methods described above can be used whenever you have a vector
+of expected returns and a covariance matrix. Most of the functions provided in :ref:`risk-models`
+are really just different ways of estimating the covariance matrix.
+
+However, you may want to construct the efficient frontier for an entirely different risk model.
+For example, instead of penalising volatility (which is symmetric), you may want to penalise
+only the downside deviation. Stocks that frequently jump upwards might be desirable for you!
+
+As of v1.3.0, PyPortfolioOpt offers this functionality via the :py:class:`EfficientSemivariance` class. 
+:py:class:`EfficientSemivariance` inherits from :py:class:`EfficientFrontier`, so it has the same utility methods
+(e.g :py:func:`add_constraint`, :py:func:`portfolio_performance`), but finds portfolios on the mean-semivariance
+frontier. Note  that some of the parent methods, like :py:func:`max_sharpe` and :py:func:`min_volatility`
+are not applicable to mean-semivariance portfolios, so calling them returns an error.
+
+:py:class:`EfficientSemivariance` has a slightly different API to :py:class:`EfficientFrontier`. Instead of passing
+in a covariance matrix, you should past in a dataframe of historical returns (this can be constructed
+from your price dataframe using the helper method :py:func:`expected_returns.returns_from_prices`). Here
+is a full example, in which we seek the portfolio that minimises the semivariance for a target
+annual return of 20%::
+
+    from pypfopt import expected_returns, EfficientSemivariance
+
+    df = ... # your dataframe of prices
+    mu = expected_returns.mean_historical_returns(df)
+    historical_returns = expected_returns.returns_from_prices(df)
+
+    es = EfficientSemivariance(mu, historical_returns)
+    es.efficient_return(0.20)
+
+    # We can use the same helper methods as before
+    weights = es.clean_weights() 
+    print(weights)
+    es.portfolio_performance(verbose=True)
+
+The ``portfolio_performance`` method outputs the expected portfolio return, semivariance,
+and the Sortino ratio (like the Sharpe ratio, but for downside deviation).
+
+Interested readers should refer to Estrada (2007) [2]_ for more details. I'd like to thank 
+`Philipp Schiele <https://github.com/phschiele>`_ for authoring the bulk
+of the efficient semivariance functionality (all errors are my own).
+
+.. caution::
+
+    Finding portfolios on the mean-semivariance frontier is computationally harder
+    than standard mean-variance optimisation. While :py:class:`EfficientSemivariance` allows for
+    additional constraints/objectives in principle, you are much more likely to run into
+    solver errors. I suggest that you keep :py:class:`EfficientSemivariance` problems small
+    and minimally constrained.
+
+.. autoclass:: pypfopt.efficient_frontier.EfficientSemivariance
+    :members:
+    :exclude-members: max_sharpe, min_volatility
+
+
+
 .. _custom-optimisation:
 
 Custom optimisation problems
 ============================
 
 Previously we described an API for adding constraints and objectives to one of the core
-optimisation problems in the ``EfficientFrontier`` class. However, what if you aren't interested
+optimisation problems in the :py:class:`EfficientFrontier` class. However, what if you aren't interested
 in anything related to ``max_sharpe()``, ``min_volatility()``, ``efficient_risk()`` etc and want to
 set up a completely new problem to optimise for some custom objective?
 
-The ``EfficientFrontier`` class inherits from the ``BaseConvexOptimizer``, which allows you to
+The :py:class:`EfficientFrontier` class inherits from the ``BaseConvexOptimizer``, which allows you to
 define your own optimisation problem. You can either optimise some generic ``convex_objective``
 (which *must* be built using ``cvxpy`` atomic functions -- see `here <https://www.cvxpy.org/tutorial/functions/index.html>`_)
 or a ``nonconvex_objective``, which uses ``scipy.optimize`` as the backend and thus has a completely
-different API. For examples, check out this `cookbook recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/3-Advanced-Mean-Variance-Optimisation.ipynb>`_
+different API. For examples, check out this `cookbook recipe
+<https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/3-Advanced-Mean-Variance-Optimisation.ipynb>`_.
 
     .. class:: pypfopt.base_optimizer.BaseConvexOptimizer
 
@@ -221,4 +279,4 @@ References
 ==========
 
 .. [1] Boyd, S.; Vandenberghe, L. (2004). `Convex Optimization <https://web.stanford.edu/~boyd/cvxbook/>`_.
-
+.. [2] Estrada, J (2007). `Mean-Semivariance Optimization: A Heuristic Approach <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1028206>`_.

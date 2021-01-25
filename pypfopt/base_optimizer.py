@@ -129,6 +129,7 @@ class BaseConvexOptimizer(BaseOptimizer):
     - ``tickers`` - str list
     - ``weights`` - np.ndarray
     - ``solver`` - str
+    - ``solver_options`` - {str: str} dict
 
     Public methods:
 

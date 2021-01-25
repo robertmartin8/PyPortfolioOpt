@@ -66,7 +66,6 @@ def setup_efficient_frontier(
 
 def setup_efficient_semivariance(data_only=False, solver=None, verbose=False):
     df = get_data().dropna(axis=0, how="any")
-    # TODO: figure out frequency
     mean_return = expected_returns.mean_historical_return(df, compounding=False)
     historic_returns = returns_from_prices(df)
     if data_only:

@@ -56,8 +56,9 @@ class DiscreteAllocation:
         :type latest_prices: pd.Series
         :param total_portfolio_value: the desired total value of the portfolio, defaults to 10000
         :type total_portfolio_value: int/float, optional
-        :param short_ratio: the short ratio, e.g 0.3 corresponds to 130/30
-        :type short_ratio: float
+        :param short_ratio: the short ratio, e.g 0.3 corresponds to 130/30. If None,
+                            defaults to the input weights.
+        :type short_ratio: float, defaults to None.
         :raises TypeError: if ``weights`` is not a dict
         :raises TypeError: if ``latest_prices`` isn't a series
         :raises ValueError: if ``short_ratio < 0``
@@ -131,9 +132,9 @@ class DiscreteAllocation:
         using a greedy iterative approach.
 
         :param reinvest: whether or not to reinvest cash gained from shorting
-        :type reinvest: bool
+        :type reinvest: bool, defaults to False
         :param verbose: print error analysis?
-        :type verbose: bool
+        :type verbose: bool, defaults to False
         :return: the number of shares of each ticker that should be purchased,
                  along with the amount of funds leftover.
         :rtype: (dict, float)
@@ -251,14 +252,13 @@ class DiscreteAllocation:
             self._allocation_rmse_error(verbose)
         return self.allocation, available_funds
 
-
     def lp_portfolio(self, reinvest=False, verbose=False, solver="GLPK_MI"):
         """
         Convert continuous weights into a discrete portfolio allocation
         using integer programming.
 
         :param reinvest: whether or not to reinvest cash gained from shorting
-        :type reinvest: bool
+        :type reinvest: bool, defaults to False
         :param verbose: print error analysis?
         :type verbose: bool
         :param solver: the CVXPY solver to use (must support mixed-integer programs)

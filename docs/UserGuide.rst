@@ -5,7 +5,7 @@ User Guide
 ##########
 
 This is designed to be a practical guide, mostly aimed at users who are interested in a
-quick way of optimally combining some assets (most likely equities). However, when
+quick way of optimally combining some assets (most likely stocks). However, when
 necessary I do introduce the required theory and also point out areas that may be
 suitable springboards for more advanced optimisation techniques. Details about the
 parameters can be found in the respective documentation pages (please see the sidebar).
@@ -51,7 +51,7 @@ of the GitHub repo.
 
 .. note::
 
-    Pricing data does not have to be daily, but the frequency should ideally
+    Pricing data does not have to be daily, but the frequency should
     be the same across all assets (workarounds exist but are not pretty).
 
 After reading your historical prices into a pandas dataframe ``df``, you need to decide
@@ -88,7 +88,7 @@ Efficient Frontier Optimisation
 ===============================
 
 Efficient Frontier Optimisation is based on Harry Markowitz's 1952 classic paper [1]_, which
-turned portfolio management from an art into a science. The key insight is that by
+spearheaded the transformation of portfolio management from an art into a science. The key insight is that by
 combining assets with different expected returns and volatilities, one can decide on a
 mathematically optimal allocation.
 
@@ -287,10 +287,10 @@ should you try?
 - Try the Hierarchical Risk Parity model (see :ref:`other-optimisers`) – which seems
   to robustly outperform mean-variance optimisation out of sample.
 - Use the Black-Litterman model to construct a more stable model of expected returns.
-  Alternatively, just drop the expected returns altogether!. There is a large body of research
+  Alternatively, just drop the expected returns altogether! There is a large body of research
   that suggests that minimum variance portfolios (``ef.min_volatility()``) consistently outperform
-  maximum Sharpe ratio portfolios out-of-sample, because of the difficulty of forecasting expected returns.
-- Try different risk models: different asset classes may require different risk models.
+  maximum Sharpe ratio portfolios out-of-sample (even when measured by Sharpe ratio), because of the difficulty of forecasting expected returns.
+- Try different risk models: shrinkage models are known to have better numerical properties compared with the sample covariance matrix.
 - Add some new objective terms or constraints. Tune the L2 regularisation parameter to see how diversification
   affects the performance.
 
