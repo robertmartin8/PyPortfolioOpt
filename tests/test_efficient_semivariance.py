@@ -63,6 +63,29 @@ def test_es_example_monthly():
     )
 
 
+def test_es_example_short():
+    df = get_data()
+    mu = expected_returns.mean_historical_return(df)
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
+    es = EfficientSemivariance(
+        mu,
+        historical_rets,
+        weight_bounds=(-1, 1),
+    )
+    w = es.efficient_return(0.2, market_neutral=True)
+    goog_weight = w["GOOG"]
+
+    historical_rets["GOOG"] -= historical_rets["GOOG"].quantile(0.75)
+    es = EfficientSemivariance(
+        mu,
+        historical_rets,
+        weight_bounds=(-1, 1),
+    )
+    w = es.efficient_return(0.2, market_neutral=True)
+    goog_weight2 = w["GOOG"]
+    assert abs(goog_weight2) >= abs(goog_weight)
+
+
 def test_min_semivariance():
     es = setup_efficient_semivariance()
     w = es.min_semivariance()
