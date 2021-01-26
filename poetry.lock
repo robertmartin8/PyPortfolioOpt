@@ -1106,7 +1106,7 @@ optionals = ["scikit-learn", "matplotlib"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "26a60ab28651b6c62027a4ca53bf70e1c393534e3e3ea8ae96d63c1694d529fe"
+content-hash = "7d45267d892e536a64f6728b8b90617fe978bad305b7757204b0d2d79cda9fa4"
 
 [metadata.files]
 appdirs = [
