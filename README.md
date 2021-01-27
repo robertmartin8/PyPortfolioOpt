@@ -19,9 +19,9 @@
     <a href="https://pyportfolioopt.readthedocs.io/en/latest/">
         <img src="https://img.shields.io/badge/docs-passing-brightgreen.svg"
             alt="docs"></a> &nbsp;
-    <a href="https://travis-ci.org/robertmartin8/PyPortfolioOpt">
-        <img src="https://travis-ci.org/robertmartin8/PyPortfolioOpt.svg?branch=master"
-            alt="travis"></a> &nbsp;
+    <a href="https://github.com/robertmartin8/PyPortfolioOpt/actions">
+        <img src="https://github.com/robertmartin8/PyPortfolioOpt/workflows/pytest/badge.svg?event=push"
+            alt="build"></a> &nbsp;
     <a href="https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master">
         <img src="https://mybinder.org/badge_logo.svg"
             alt="binder"></a> &nbsp;
