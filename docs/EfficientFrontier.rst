@@ -197,15 +197,43 @@ Efficient Semivariance
 ======================
 
 The mean-variance optimisation methods described above can be used whenever you have a vector
-of expected returns and a covariance matrix. Most of the functions provided in :ref:`risk-models`
-are really just different ways of estimating the covariance matrix.
+of expected returns and a covariance matrix.
 
 However, you may want to construct the efficient frontier for an entirely different risk model.
 For example, instead of penalising volatility (which is symmetric), you may want to penalise
-only the downside deviation. Stocks that frequently jump upwards might be desirable for you!
+only the downside deviation (with the idea that upside volatility actually benefits you!)
 
-As of v1.3.0, PyPortfolioOpt offers this functionality via the :py:class:`EfficientSemivariance` class. 
-:py:class:`EfficientSemivariance` inherits from :py:class:`EfficientFrontier`, so it has the same utility methods
+There are two approaches to the mean-semivariance optimisation problem. The first is to use a
+heuristic (i.e "quick and dirty") solution: pretending that the semicovariance matrix
+(implemented in :py:mod:`risk_models`) is a typical covariance matrix and doing standard
+mean-variance optimisation. It can be shown that this *does not* yield a portfolio that
+is efficient in mean-semivariance space (though it might be a good-enough approximation).
+
+Fortunately, it is possible to write mean-semivariance optimisation as a convex problem
+(albeit one with many variables), that can be solved to give an "exact" solution.
+For example, to maximise return for a target semivariance
+:math:`s^*` (long-only), we would solve the following problem:
+
+.. math::
+
+    \begin{equation*}
+    \begin{aligned}
+    & \underset{w}{\text{maximise}} & & w^T \mu \\
+    & \text{subject to} & & n^T n \leq s^*  \\
+    &&& B w - p + n = 0 \\
+    &&& w^T \mathbf{1} = 1 \\
+    &&& n \geq 0 \\
+    &&& p \geq 0. \\
+    \end{aligned}
+    \end{equation*}
+
+Here, **B** is the :math:`T \times N` (scaled) matrix of excess returns:
+``B = (returns - benchmark) / sqrt(T)``. Additional linear equality constraints and
+convex inequality constraints can be added. 
+
+PyPortfolioOpt allows users to optimise along the efficient semivariance frontier
+via the :py:class:`EfficientSemivariance` class. :py:class:`EfficientSemivariance` inherits from
+:py:class:`EfficientFrontier`, so it has the same utility methods 
 (e.g :py:func:`add_constraint`, :py:func:`portfolio_performance`), but finds portfolios on the mean-semivariance
 frontier. Note  that some of the parent methods, like :py:func:`max_sharpe` and :py:func:`min_volatility`
 are not applicable to mean-semivariance portfolios, so calling them returns an error.
@@ -235,15 +263,17 @@ and the Sortino ratio (like the Sharpe ratio, but for downside deviation).
 
 Interested readers should refer to Estrada (2007) [2]_ for more details. I'd like to thank 
 `Philipp Schiele <https://github.com/phschiele>`_ for authoring the bulk
-of the efficient semivariance functionality (all errors are my own).
+of the efficient semivariance functionality and documentation (all errors are my own). The
+implementation is based on Markowitz et al (2019) [3]_.
 
 .. caution::
 
     Finding portfolios on the mean-semivariance frontier is computationally harder
-    than standard mean-variance optimisation. While :py:class:`EfficientSemivariance` allows for
-    additional constraints/objectives in principle, you are much more likely to run into
-    solver errors. I suggest that you keep :py:class:`EfficientSemivariance` problems small
-    and minimally constrained.
+    than standard mean-variance optimisation: our implementation uses ``2T + N`` optimisation variables, 
+    meaning that for 50 assets and 3 years of data, there are about 1500 variables.  
+    While :py:class:`EfficientSemivariance` allows for additional constraints/objectives in principle,
+    you are much more likely to run into solver errors. I suggest that you keep :py:class:`EfficientSemivariance`
+    problems small and minimally constrained.
 
 .. autoclass:: pypfopt.efficient_frontier.EfficientSemivariance
     :members:
@@ -280,3 +310,4 @@ References
 
 .. [1] Boyd, S.; Vandenberghe, L. (2004). `Convex Optimization <https://web.stanford.edu/~boyd/cvxbook/>`_.
 .. [2] Estrada, J (2007). `Mean-Semivariance Optimization: A Heuristic Approach <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1028206>`_.
+.. [3] Markowitz, H.; Starer, D.; Fram, H.; Gerber, S. (2019). `Avoiding the Downside <https://www.hudsonbaycapital.com/documents/FG/hudsonbay/research/599440_paper.pdf>`_.
