@@ -29,6 +29,7 @@ discuss. If you have any other feature requests, please raise them using GitHub
 - Improved functionality for portfolios with short positions (thanks to `Rich Caputo <https://github.com/arcaputo3>`_).
 - Significant improvement in test coverage (thanks to `Carl Peasnell <https://github.com/SeaPea1>`_).
 - Several bug fixes and usability improvements.
+- Migrated from TravisCI to Github Actions.
 
 1.2.0
 =====
