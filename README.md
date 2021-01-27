@@ -13,15 +13,12 @@
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
             alt="MIT license"></a> &nbsp;
-    <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
-        <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg"
-            alt="issues"></a> &nbsp;
-    <a href="https://pyportfolioopt.readthedocs.io/en/latest/">
-        <img src="https://img.shields.io/badge/docs-passing-brightgreen.svg"
-            alt="docs"></a> &nbsp;
     <a href="https://github.com/robertmartin8/PyPortfolioOpt/actions">
         <img src="https://github.com/robertmartin8/PyPortfolioOpt/workflows/pytest/badge.svg?event=push"
             alt="build"></a> &nbsp;
+    <a href="https://pyportfolioopt.readthedocs.io/en/latest/">
+        <img src="https://img.shields.io/badge/docs-passing-brightgreen.svg"
+            alt="docs"></a> &nbsp;
     <a href="https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master">
         <img src="https://mybinder.org/badge_logo.svg"
             alt="binder"></a> &nbsp;
