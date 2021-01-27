@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from pypfopt.expected_returns import mean_historical_return
+from pypfopt.expected_returns import mean_historical_return, returns_from_prices
 from pypfopt import objective_functions
 from pypfopt.risk_models import sample_cov
 from tests.utilities_for_tests import get_data
@@ -90,3 +90,45 @@ def test_transaction_costs():
     k = 0.1
     tx_cost = k * np.abs(old_w - new_w).sum()
     assert tx_cost == objective_functions.transaction_cost(new_w, old_w, k=k)
+
+
+def test_ex_ante_tracking_error_dummy():
+    bm_w = np.ones(5) / 5
+    w = np.array([0.4, 0.4, 0, 0, 0])
+    S = pd.DataFrame(np.eye(5))
+
+    te = objective_functions.ex_ante_tracking_error(w, S, bm_w)
+    np.testing.assert_almost_equal(te, 0.2)
+
+
+def test_ex_ante_tracking_error():
+    df = get_data()
+    n_assets = df.shape[1]
+    # Equal weight benchmark
+    bm_w = np.ones(n_assets) / n_assets
+    portfolio_w = np.zeros(n_assets)
+    portfolio_w[:5] = 0.2
+
+    S = sample_cov(df)
+
+    te = objective_functions.ex_ante_tracking_error(portfolio_w, S, bm_w)
+    np.testing.assert_almost_equal(te, 0.028297778946639436)
+
+
+def test_ex_post_tracking_error():
+    df = get_data()
+    rets = returns_from_prices(df).dropna()
+    bm_rets = rets.mean(axis=1)
+    w = np.ones((len(df.columns),)) / len(df.columns)
+
+    # TE with the mean should be zero
+    te = objective_functions.ex_post_tracking_error(w, rets, bm_rets)
+    np.testing.assert_almost_equal(te, 0)
+
+    # Should increase
+    prev_te = te
+    for mult in range(2, 20, 4):
+        bm_rets_new = bm_rets * mult
+        te = objective_functions.ex_post_tracking_error(w, rets, bm_rets_new)
+        assert te > prev_te
+        prev_te = te

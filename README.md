@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.2.7-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.3.0-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -36,7 +36,7 @@ some novel experimental features like exponentially-weighted covariance matrices
 
 It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious practitioner. Whether you are a fundamentals-oriented investor who has identified a
 handful of undervalued picks, or an algorithmic trader who has a basket of
-interesting signals, PyPortfolioOpt can help you combine your alpha streams
+strategies, PyPortfolioOpt can help you combine your alpha sources
 in a risk-efficient way.
 
 Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/) to get an in-depth look at the project, or check out the [cookbook](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook) to see some examples showing the full process from downloading data to building a portfolio.
@@ -62,7 +62,6 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
   - [Other optimisers](#other-optimisers)
 - [Advantages over existing implementations](#advantages-over-existing-implementations)
 - [Project principles and design decisions](#project-principles-and-design-decisions)
-- [Roadmap](#roadmap)
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [Getting in touch](#getting-in-touch)
@@ -231,7 +230,7 @@ components while still making use of the framework that PyPortfolioOpt provides.
 
 ## Features
 
-In this section, we detail PyPortfolioOpt's current available functionality as per the above breakdown. More examples are offered in the Jupyter notebooks [here](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook). Another good resource is the [tests](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests).
+In this section, we detail some of PyPortfolioOpt's available functionality. More examples are offered in the Jupyter notebooks [here](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook). Another good resource is the [tests](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/tests).
 
 A far more comprehensive version of this can be found on [ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/), as well as possible extensions for more advanced users.
 
@@ -363,19 +362,6 @@ Please refer to the [documentation](https://pyportfolioopt.readthedocs.io/en/lat
 - Formatting should never get in the way of coding: because of this,
   I have deferred **all** formatting decisions to [Black](https://github.com/ambv/black).
 
-## Roadmap
-
-Feel free to raise an issue requesting any new features – here are some of the things I want to implement:
-
-- Optimising for higher moments (i.e skew and kurtosis)
-- Factor modelling: doable but not sure if it fits within the API.
-- Proper CVaR optimisation – remove NoisyOpt and use linear programming
-- More objective functions, including the Calmar Ratio, Sortino Ratio, etc.
-- Monte Carlo optimisation with custom distributions
-- Open-source backtests using either `Backtrader <https://www.backtrader.com/>`_ or
-  `Zipline <https://github.com/quantopian/zipline>`_.
-- Further support for different risk/return models
-
 ## Testing
 
 Tests are written in pytest (much more intuitive than `unittest` and the variants in my opinion), and I have tried to ensure close to 100% coverage. Run the tests by navigating to the package directory and simply running `pytest` on the command line.
@@ -401,6 +387,20 @@ been tested to work as intended.
 
 Contributions are *most welcome*. Have a look at the [Contribution Guide](https://github.com/robertmartin8/PyPortfolioOpt/blob/master/CONTRIBUTING.md) for more.
 
+I'd like to thank all of the people who have contributed to PyPortfolioOpt since its release in 2018.
+Special shout-outs to:
+
+- Philipp Schiele
+- Carl Peasnell
+- Felipe Schneider
+- Dingyuan Wang
+- Pat Newell
+- Aditya Bhutra
+- Thomas Schmelzer
+- Rich Caputo
+
 ## Getting in touch
 
-If you would like to reach out for any reason, be it consulting opportunities or just for a chat, please do so via the [form](https://reasonabledeviations.com/about/) on my website.
+If you are having a problem with PyPortfolioOpt, please raise an issue.
+
+For anything else, you can contact me via the [form](https://reasonabledeviations.com/about/) on my website.

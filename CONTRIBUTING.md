@@ -1,9 +1,10 @@
 # Contributing to PyPortfolioOpt
 
-Some of the things that I'd love for people to help with:
+Please refer to the roadmap for a list of areas that I think PyPortfolioOpt could really benefit
+from. In addition, the following is always welcome::
 
-- Improve performance of existing code (but not at the cost of readability) – are there any nice numpy hacks I've missed?
-- Add new optimisation objectives. For example, if you think that the best performance metric has not been included, write an optimiser! (or suggest it in [Issues](https://github.com/robertmartin8/PyPortfolioOpt/issues) and I will have a go).
+- Improve performance of existing code (but not at the cost of readability) – are there any nice numpy tricks I've missed?
+- Add new optimisation objective functions. For example, if you think that the best performance metric has not been included, write it into a function (or suggest it in [Issues](https://github.com/robertmartin8/PyPortfolioOpt/issues) and I will have a go).
 - Help me write more tests! If you are someone learning about quant finance and/or unit testing in python, what better way to practice than to write some tests on an open-source project! Feel free to check for edge cases, or test performance on a dataset with more stocks.
 
 ## Guidelines
@@ -12,9 +13,11 @@ Some of the things that I'd love for people to help with:
 
 Before you start coding your contribution, it may be wise to raise an issue on GitHub to discuss whether the contribution is appropriate for the project.
 
+I care a lot about having a clean API, so I am unlikely to accept a random PR that significantly complicates the API (or the dependencies).
+
 ### Code style
 
-For this project I have used [Black](https://github.com/ambv/black) as the formatting standard, with all of the default arguments. It would be much appreciated if any PRs follow this standard, because if not I will have to format before merging.
+For this project I have used [Black](https://github.com/ambv/black) as the formatting standard, with all of the default arguments. I recommend that PRs use black.
 
 ### Testing
 

@@ -64,35 +64,34 @@ def fix_nonpositive_semidefinite(matrix, fix_method="spectral"):
     """
     if _is_positive_semidefinite(matrix):
         return matrix
+
+    warnings.warn(
+        "The covariance matrix is non positive semidefinite. Amending eigenvalues."
+    )
+
+    # Eigendecomposition
+    q, V = np.linalg.eigh(matrix)
+
+    if fix_method == "spectral":
+        # Remove negative eigenvalues
+        q = np.where(q > 0, q, 0)
+        # Reconstruct matrix
+        fixed_matrix = V @ np.diag(q) @ V.T
+    elif fix_method == "diag":
+        min_eig = np.min(q)
+        fixed_matrix = matrix - 1.1 * min_eig * np.eye(len(matrix))
     else:
-        warnings.warn(
-            "The covariance matrix is non positive semidefinite. Amending eigenvalues."
-        )
+        raise NotImplementedError("Method {} not implemented".format(fix_method))
 
-        # Eigendecomposition
-        q, V = np.linalg.eigh(matrix)
+    if not _is_positive_semidefinite(fixed_matrix):
+        warnings.warn("Could not fix matrix. Please try a different risk model.")
 
-        if fix_method == "spectral":
-            # Remove negative eigenvalues
-            q = np.where(q > 0, q, 0)
-            # Reconstruct matrix
-            fixed_matrix = V @ np.diag(q) @ V.T
-        elif fix_method == "diag":
-            min_eig = np.min(q)
-            if min_eig < 0:
-                fixed_matrix = matrix - 1.1 * min_eig * np.eye(len(matrix))
-        else:
-            raise NotImplementedError("Method {} not implemented".format(fix_method))
-
-        if not _is_positive_semidefinite(fixed_matrix):
-            warnings.warn("Could not fix matrix. Please try a different risk model.")
-
-        # Rebuild labels if provided
-        if isinstance(matrix, pd.DataFrame):
-            tickers = matrix.index
-            return pd.DataFrame(fixed_matrix, index=tickers, columns=tickers)
-        else:
-            return fixed_matrix
+    # Rebuild labels if provided
+    if isinstance(matrix, pd.DataFrame):
+        tickers = matrix.index
+        return pd.DataFrame(fixed_matrix, index=tickers, columns=tickers)
+    else:
+        return fixed_matrix
 
 
 def risk_matrix(prices, method="sample_cov", **kwargs):
@@ -124,7 +123,7 @@ def risk_matrix(prices, method="sample_cov", **kwargs):
     """
     if method == "sample_cov":
         return sample_cov(prices, **kwargs)
-    elif method == "semicovariance":
+    elif method == "semicovariance" or method == "semivariance":
         return semicovariance(prices, **kwargs)
     elif method == "exp_cov":
         return exp_cov(prices, **kwargs)
@@ -205,8 +204,9 @@ def semicovariance(
     else:
         returns = returns_from_prices(prices)
     drops = np.fmin(returns - benchmark, 0)
+    T = drops.shape[0]
     return fix_nonpositive_semidefinite(
-        drops.cov() * frequency, kwargs.get("fix_method", "spectral")
+        (drops.T @ drops) / T * frequency, kwargs.get("fix_method", "spectral")
     )
 
 

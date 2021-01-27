@@ -8,17 +8,28 @@ Roadmap and Changelog
 Roadmap
 =======
 
-These are some of the things that I am thinking of adding in the near future. If you
-have any other feature requests, please raise them using GitHub
+These are some of the features that I think would greatly improve PyPortfolioOpt; if you
+are interested in implementing one of these, raise an issue or send me an email and we can
+discuss. If you have any other feature requests, please raise them using GitHub
 `issues <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_
 
-- Optimising for higher moments (i.e skew and kurtosis)
-- Factor modelling: doable but not sure if it fits within the API.
-- Proper CVaR optimisation – remove NoisyOpt and use linear programming
-- Monte Carlo optimisation with custom distributions
+- Improved plotting
 - Open-source backtests using either `Backtrader <https://www.backtrader.com/>`_ or
   `Zipline <https://github.com/quantopian/zipline>`_.
+- Optimising for higher moments (i.e skew and kurtosis)
+- Factor modelling - this is conceptually doable, but a lot of thought needs to be put into the API.
+- CVaR optimisation
+- Monte Carlo optimisation with custom distributions
 - Further support for different risk/return models
+
+1.3.0
+=====
+
+- Efficient semivariance portfolios (thanks to `Philipp Schiele <https://github.com/phschiele>`_)
+- Improved functionality for portfolios with short positions (thanks to `Rich Caputo <https://github.com/arcaputo3>`_).
+- Significant improvement in test coverage (thanks to `Carl Peasnell <https://github.com/SeaPea1>`_).
+- Several bug fixes and usability improvements.
+- Migrated from TravisCI to Github Actions.
 
 1.2.0
 =====
@@ -29,7 +40,6 @@ have any other feature requests, please raise them using GitHub
 - Improved error tracebacks
 - Adding new cookbook for examples (in progress).
 - Packaging: added bettter instructions for windows, added docker support.
-
 
 1.2.1
 -----
@@ -57,8 +67,8 @@ Matplotlib now required dependency; support for pandas 1.0.
 1.2.5
 -----
 
-- Fixed compounding in ``expected_returns`` (thanks to Aditya Bhutra).
-- Improvements in advanced cvxpy API (thanks to Pat Newell).
+- Fixed compounding in ``expected_returns`` (thanks to `Aditya Bhutra <https://github.com/bhutraaditya>`_).
+- Improvements in advanced cvxpy API (thanks to `Pat Newell <https://github.com/pmn4>`_).
 - Deprecating James-Stein
 - Exposed ``linkage_method`` in HRP. 
 - Added support for cvxpy 1.1.
