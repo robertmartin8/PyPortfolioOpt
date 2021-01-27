@@ -469,16 +469,30 @@ class EfficientSemivariance(EfficientFrontier):
             solver_options=solver_options,
         )
 
-        self.historic_returns = historic_returns
+        self.historic_returns = self._validate_historic_returns(historic_returns)
         self.benchmark = benchmark
         self.frequency = frequency
         self._T = self.historic_returns.shape[0]
 
-        if expected_returns is not None:
-            if historic_returns.shape[1] != len(expected_returns):
+    def _validate_historic_returns(self, historic_returns):
+        if not isinstance(historic_returns, (pd.DataFrame, np.ndarray)):
+            raise TypeError("historic_returns should be a pd.Dataframe or np.ndarray")
+
+        historic_returns_df = pd.DataFrame(historic_returns)
+        if historic_returns_df.isnull().values.any():
+            warnings.warn(
+                "Removing NaNs from historic returns",
+                UserWarning,
+            )
+            historic_returns_df = historic_returns_df.dropna(axis=0, how="any")
+
+        if self.expected_returns is not None:
+            if historic_returns_df.shape[1] != len(self.expected_returns):
                 raise ValueError(
-                    "Historic return matrix does not match expected returns"
+                    "historic_returns columns do not match expected_returns. Please check your tickers."
                 )
+
+        return historic_returns_df
 
     def min_volatility(self):
         raise NotImplementedError("Please use min_semivariance instead.")

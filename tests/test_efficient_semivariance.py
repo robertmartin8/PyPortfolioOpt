@@ -32,6 +32,22 @@ def test_es_example():
     )
 
 
+def test_es_errors():
+    df = get_data()
+    mu = expected_returns.mean_historical_return(df)
+    historical_rets = expected_returns.returns_from_prices(df)
+
+    with pytest.warns(UserWarning):
+        EfficientSemivariance(mu, historical_rets)
+
+    historical_rets = historical_rets.dropna(axis=0, how="any")
+    assert EfficientSemivariance(mu, historical_rets)
+
+    historical_rets = historical_rets.iloc[:, :-1]
+    with pytest.raises(ValueError):
+        EfficientSemivariance(mu, historical_rets)
+
+
 def test_es_example_weekly():
     df = get_data()
     df = df.resample("W").first()
