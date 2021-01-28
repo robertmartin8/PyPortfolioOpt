@@ -5,12 +5,13 @@ Currently implemented:
 
   - ``plot_covariance`` - plot a correlation matrix
   - ``plot_dendrogram`` - plot the hierarchical clusters in a portfolio
-  - ``plot_efficient_frontier`` – plot the efficient frontier, using the CLA algorithm.
+  - ``plot_efficient_frontier`` – plot the efficient frontier from an EfficientFrontier or CLA object
   - ``plot_weights`` - bar chart of weights
 """
-
+import copy
 import numpy as np
-from . import risk_models
+from . import risk_models, exceptions
+from . import EfficientFrontier, CLA
 import scipy.cluster.hierarchy as sch
 
 try:
@@ -112,21 +113,7 @@ def plot_dendrogram(hrp, show_tickers=True, **kwargs):
     return ax
 
 
-def plot_efficient_frontier(cla, points=100, show_assets=True, **kwargs):
-    """
-    Plot the efficient frontier based on a CLA object
-
-    :param points: number of points to plot, defaults to 100
-    :type points: int, optional
-    :param show_assets: whether we should plot the asset risks/returns also, defaults to True
-    :type show_assets: bool, optional
-    :param filename: name of the file to save to, defaults to None (doesn't save)
-    :type filename: str, optional
-    :param showfig: whether to plt.show() the figure, defaults to True
-    :type showfig: bool, optional
-    :return: matplotlib axis
-    :rtype: matplotlib.axes object
-    """
+def _plot_cla(cla, points, show_assets, **kwargs):
     if cla.weights is None:
         cla.max_sharpe()
     optimal_ret, optimal_risk, _ = cla.portfolio_performance()
@@ -138,6 +125,7 @@ def plot_efficient_frontier(cla, points=100, show_assets=True, **kwargs):
 
     fig, ax = plt.subplots()
     ax.plot(sigmas, mus, label="Efficient frontier")
+    ax.scatter(optimal_risk, optimal_ret, marker="x", s=100, color="r", label="optimal")
 
     if show_assets:
         ax.scatter(
@@ -147,8 +135,83 @@ def plot_efficient_frontier(cla, points=100, show_assets=True, **kwargs):
             color="k",
             label="assets",
         )
+    return ax
 
-    ax.scatter(optimal_risk, optimal_ret, marker="x", s=100, color="r", label="optimal")
+
+def _plot_ef(ef, ef_param, ef_param_range, show_assets):
+    mus, sigmas = [], []
+
+    # Create a portfolio for each value of ef_param_range
+    for param_value in ef_param_range:
+        ef_i = copy.deepcopy(ef)
+
+        try:
+            if ef_param == "utility":
+                ef_i.max_quadratic_utility(param_value)
+            elif ef_param == "risk":
+                ef_i.efficient_risk(param_value)
+            elif ef_param == "return":
+                ef_i.efficient_return(param_value)
+            else:
+                raise NotImplementedError(
+                    "ef_param should be one of {'utility', 'risk', 'return'}"
+                )
+        except exceptions.OptimizationError:
+            continue
+
+        ret, sigma, _ = ef_i.portfolio_performance()
+        mus.append(ret)
+        sigmas.append(sigma)
+
+    fig, ax = plt.subplots()
+    ax.plot(sigmas, mus, label="Efficient frontier")
+
+    if show_assets:
+        ax.scatter(
+            np.sqrt(np.diag(ef.cov_matrix)),
+            ef.expected_returns,
+            s=30,
+            color="k",
+            label="assets",
+        )
+    return ax
+
+
+def plot_efficient_frontier(
+    opt,
+    ef_param="utility",
+    ef_param_range=np.arange(1, 100, 1),
+    points=100,
+    show_assets=True,
+    **kwargs
+):
+    """
+    Plot the efficient frontier based on either a CLA or EfficientFrontier object.
+
+    :param opt: an instantiated optimiser object BEFORE optimising an objective
+    :type opt: EfficientFrontier or CLA
+    :param ef_param: [EfficientFrontier] whether to use a range over utility, risk, or return
+    :type ef_param: str, one of {"utility", "risk", "return"}, defaults to "utility".
+    :param ef_param_range: the range of parameter values for ef_param
+    :type ef_param_range: np.array or list (recommended to use np.arange or np.linspace)
+    :param points: [CLA] number of points to plot, defaults to 100. This is
+    :type points: int, optional
+    :param show_assets: whether we should plot the asset risks/returns also, defaults to True
+    :type show_assets: bool, optional
+    :param filename: name of the file to save to, defaults to None (doesn't save)
+    :type filename: str, optional
+    :param showfig: whether to plt.show() the figure, defaults to True
+    :type showfig: bool, optional
+    :return: matplotlib axis
+    :rtype: matplotlib.axes object
+    """
+    if isinstance(opt, CLA):
+        ax = _plot_cla(opt, points, show_assets=show_assets)
+    elif isinstance(opt, EfficientFrontier):
+        ax = _plot_ef(opt, ef_param, ef_param_range, show_assets=show_assets)
+    else:
+        raise NotImplementedError("Please pass EfficientFrontier or CLA object")
+
     ax.legend()
     ax.set_xlabel("Volatility")
     ax.set_ylabel("Return")

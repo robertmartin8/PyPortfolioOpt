@@ -25,11 +25,18 @@ discuss. If you have any other feature requests, please raise them using GitHub
 1.3.0
 =====
 
+- Significantly improved plotting functionality: can now plot constrained efficient frontier!
 - Efficient semivariance portfolios (thanks to `Philipp Schiele <https://github.com/phschiele>`_)
 - Improved functionality for portfolios with short positions (thanks to `Rich Caputo <https://github.com/arcaputo3>`_).
 - Significant improvement in test coverage (thanks to `Carl Peasnell <https://github.com/SeaPea1>`_).
 - Several bug fixes and usability improvements.
 - Migrated from TravisCI to Github Actions.
+
+1.3.1
+-----
+
+- Minor cleanup (forgotten commits from v1.3.0).
+
 
 1.2.0
 =====
