@@ -12,16 +12,16 @@
     <embed>
         <p align="center">
             <a href="https://www.python.org/">
-                <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v1.3.0-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v1.3.1-brightgreen.svg"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
-                <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
                     alt="MIT license"></a> &nbsp;
             <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
-                <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg"
                     alt="MIT license"></a> &nbsp;
         </p>
     </embed>
