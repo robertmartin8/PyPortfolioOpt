@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
+import cvxpy as cp
 from pypfopt import EfficientFrontier
 from pypfopt import exceptions
 from pypfopt.base_optimizer import portfolio_performance
@@ -257,3 +258,9 @@ def test_add_constraint_exception():
     # Must be callable.
     with pytest.raises(TypeError):
         ef.add_constraint(42)
+
+
+def test_problem_access():
+    ef = setup_efficient_frontier()
+    ef.max_sharpe()
+    assert isinstance(ef._opt, cp.Problem)
