@@ -1,14 +1,12 @@
 import numpy as np
 import pytest
 from pypfopt import (
-    risk_models,
     expected_returns,
     EfficientCVaR,
     objective_functions,
 )
 from tests.utilities_for_tests import setup_efficient_cvar, get_data
-from cvxpy.error import SolverError
-
+from pypfopt.exceptions import OptimizationError
 
 def test_cvar_example():
     df = get_data()
@@ -239,7 +237,7 @@ def test_efficient_risk_low_risk():
     min_value = cv.portfolio_performance()[1]
 
     # Should fail below
-    with pytest.raises(SolverError):
+    with pytest.raises(OptimizationError):
         cv = setup_efficient_cvar()
         cv.efficient_risk(min_value - 0.01)
 
