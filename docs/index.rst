@@ -12,16 +12,16 @@
     <embed>
         <p align="center">
             <a href="https://www.python.org/">
-                <img src="https://img.shields.io/badge/python-v3-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v1.2.7-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/pypi-v1.3.1-brightgreen.svg"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
-                <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
                     alt="MIT license"></a> &nbsp;
             <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
-                <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg?style=flat-square"
+                <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg"
                     alt="MIT license"></a> &nbsp;
         </p>
     </embed>
@@ -36,7 +36,7 @@ It is **extensive** yet easily
 **extensible**, and can be useful for both the casual investor and the serious
 practitioner. Whether you are a fundamentals-oriented investor who has identified a
 handful of undervalued picks, or an algorithmic trader who has a basket of
-interesting signals, PyPortfolioOpt can help you combine your alpha-generators
+strategies, PyPortfolioOpt can help you combine your alpha sources
 in a risk-efficient way.
 
 
@@ -48,8 +48,8 @@ Installation on macOS or linux is as simple as::
     pip install PyPortfolioOpt
 
 Windows users need to go through the additional step of downloading C++ (for ``cvxpy``). You can
-download this `here <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
-with additional instructions `here <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view>`_.
+download this `here <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`__,
+with additional instructions `here <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view>`__.
 
 For the sake of best practice, it is good to do this with a dependency manager. I suggest you
 set yourself up with `poetry <https://github.com/sdispater/poetry>`_, then within a new poetry project
@@ -193,6 +193,19 @@ Project principles and design decisions
   <https://github.com/ambv/black>`_.
 
 
+Contributors
+=============
+
+This is a non-exhaustive unordered list of contributors:
+
+- Philipp Schiele
+- Carl Peasnell
+- Felipe Schneider
+- Dingyuan Wang
+- Pat Newell
+- Aditya Bhutra
+- Thomas Schmelzer
+- Rich Caputo
 
 
 Indices and tables

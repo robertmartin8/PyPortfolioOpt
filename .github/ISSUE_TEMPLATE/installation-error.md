@@ -1,7 +1,7 @@
 ---
 name: Installation Error
 about: If you are having trouble installing
-title: Could not install on Windows Anaconda [replace with your environment]
+title: e.g Could not install on Windows Anaconda [replace with your environment]
 labels: packaging
 assignees: ''
 
@@ -14,6 +14,7 @@ e.g Windows, anaconda, python3.7
 pip install pyportfolioopt
 
 **Error message**
+
 ```
 Copy paste the terminal message here
 ```

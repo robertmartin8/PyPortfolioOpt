@@ -1,7 +1,7 @@
 ---
 name: Help needed
 about: If you have a question about how to use PyPortfolioOpt
-title: How to [insert question]?
+title: ''
 labels: question
 assignees: ''
 

@@ -24,6 +24,8 @@ Currently implemented:
 - L2 regularisation (minimising this reduces nonzero weights)
 - Quadratic utility
 - Transaction cost model (a simple one)
+- Ex-ante (squared) tracking error
+- Ex-post (squared) tracking error
 """
 
 import numpy as np
@@ -77,7 +79,7 @@ def portfolio_return(w, expected_returns, negative=True):
     :type w: np.ndarray OR cp.Variable
     :param expected_returns: expected return of each asset
     :type expected_returns: np.ndarray
-    :param negative: whether quantity should be made negative (so we can minimise) 
+    :param negative: whether quantity should be made negative (so we can minimise)
     :type negative: boolean
     :return: negative mean return
     :rtype: float
@@ -101,7 +103,7 @@ def sharpe_ratio(w, expected_returns, cov_matrix, risk_free_rate=0.02, negative=
                            The period of the risk-free rate should correspond to the
                            frequency of expected returns.
     :type risk_free_rate: float, optional
-    :param negative: whether quantity should be made negative (so we can minimise) 
+    :param negative: whether quantity should be made negative (so we can minimise)
     :type negative: boolean
     :return: (negative) Sharpe ratio
     :rtype: float
@@ -176,3 +178,46 @@ def transaction_cost(w, w_prev, k=0.001):
     :rtype: float OR cp.Expression
     """
     return _objective_value(w, k * cp.norm(w - w_prev, 1))
+
+
+def ex_ante_tracking_error(w, cov_matrix, benchmark_weights):
+    """
+    Calculate the (square of) the ex-ante Tracking Error, i.e
+    :math:`\\(w - w_b)^T \\Sigma (w-w_b)`.
+
+    :param w: asset weights in the portfolio
+    :type w: np.ndarray OR cp.Variable
+    :param cov_matrix: covariance matrix
+    :type cov_matrix: np.ndarray
+    :param benchmark_weights: asset weights in the benchmark
+    :type benchmark_weights: np.ndarray
+    :return: value of the objective function OR objective function expression
+    :rtype: float OR cp.Expression
+    """
+    relative_weights = w - benchmark_weights
+    tracking_error = cp.quad_form(relative_weights, cov_matrix)
+    return _objective_value(w, tracking_error)
+
+
+def ex_post_tracking_error(w, historic_returns, benchmark_returns):
+    """
+    Calculate the (square of) the ex-post Tracking Error, i.e :math:`\\Var(r - r_b)`.
+
+    :param w: asset weights in the portfolio
+    :type w: np.ndarray OR cp.Variable
+    :param historic_returns: historic asset returns
+    :type historic_returns: np.ndarray
+    :param benchmark_returns: historic benchmark returns
+    :type benchmark_returns: pd.Series or np.ndarray
+    :return: value of the objective function OR objective function expression
+    :rtype: float OR cp.Expression
+    """
+    if not isinstance(historic_returns, np.ndarray):
+        historic_returns = np.array(historic_returns)
+    if not isinstance(benchmark_returns, np.ndarray):
+        benchmark_returns = np.array(benchmark_returns)
+
+    x_i = w @ historic_returns.T - benchmark_returns
+    mean = cp.sum(x_i) / len(benchmark_returns)
+    tracking_error = cp.sum_squares(x_i - mean)
+    return _objective_value(w, tracking_error)

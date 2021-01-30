@@ -45,6 +45,7 @@ class BaseOptimizer:
             self.tickers = list(range(n_assets))
         else:
             self.tickers = tickers
+        self._risk_free_rate = None
         # Outputs
         self.weights = None
 
@@ -119,15 +120,17 @@ class BaseConvexOptimizer(BaseOptimizer):
     """
     The BaseConvexOptimizer contains many private variables for use by
     ``cvxpy``. For example, the immutable optimisation variable for weights
-    is stored as self._w. Interacting directly with these variables is highly
-    discouraged.
+    is stored as self._w. Interacting directly with these variables directly
+    is discouraged.
 
     Instance variables:
 
     - ``n_assets`` - int
     - ``tickers`` - str list
     - ``weights`` - np.ndarray
-    - ``solver`` - str
+    - ``_opt`` - cp.Problem
+    - ``_solver`` - str
+    - ``_solver_options`` - {str: str} dict
 
     Public methods:
 
@@ -142,7 +145,13 @@ class BaseConvexOptimizer(BaseOptimizer):
     """
 
     def __init__(
-        self, n_assets, tickers=None, weight_bounds=(0, 1), solver=None, verbose=False
+        self,
+        n_assets,
+        tickers=None,
+        weight_bounds=(0, 1),
+        solver=None,
+        verbose=False,
+        solver_options=None,
     ):
         """
         :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
@@ -153,6 +162,8 @@ class BaseConvexOptimizer(BaseOptimizer):
         :type solver: str, optional. Defaults to "ECOS"
         :param verbose: whether performance and debugging info should be printed, defaults to False
         :type verbose: bool, optional
+        :param solver_options: parameters for the given solver
+        :type solver_options: dict, optional
         """
         super().__init__(n_assets, tickers)
 
@@ -165,8 +176,10 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._upper_bounds = None
         self._map_bounds_to_constraints(weight_bounds)
 
+        self._opt = None
         self._solver = solver
         self._verbose = verbose
+        self._solver_options = solver_options if solver_options else {}
 
     def _map_bounds_to_constraints(self, test_bounds):
         """
@@ -216,17 +229,21 @@ class BaseConvexOptimizer(BaseOptimizer):
         :raises exceptions.OptimizationError: if problem is not solvable by cvxpy
         """
         try:
-            opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
+            self._opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
 
             if self._solver is not None:
-                opt.solve(solver=self._solver, verbose=self._verbose)
+                self._opt.solve(
+                    solver=self._solver, verbose=self._verbose, **self._solver_options
+                )
             else:
-                opt.solve(verbose=self._verbose)
+                self._opt.solve(verbose=self._verbose, **self._solver_options)
         except (TypeError, cp.DCPError) as e:
             raise exceptions.OptimizationError from e
 
-        if opt.status != "optimal":
-            raise exceptions.OptimizationError
+        if self._opt.status not in {"optimal", "optimal_inaccurate"}:
+            raise exceptions.OptimizationError(
+                "Solver status: {}".format(self._opt.status)
+            )
         self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
         return self._make_output_weights()
 
@@ -283,7 +300,7 @@ class BaseConvexOptimizer(BaseOptimizer):
             sector_lower = {"tech": 0.1}  # at least 10% to tech
             sector_upper = {
                 "tech": 0.4, # less than 40% tech
-                "Oil/Gas: 0.1 # less than 10% oil and gas
+                "Oil/Gas": 0.1 # less than 10% oil and gas
             }
 
         :param sector_mapper: dict that maps tickers to sectors
@@ -347,8 +364,8 @@ class BaseConvexOptimizer(BaseOptimizer):
     ):
         """
         Optimise some objective function using the scipy backend. This can
-        support nonconvex objectives and nonlinear constraints, but often gets stuck
-        at local minima. This method is not recommended – caveat emptor. Example::
+        support nonconvex objectives and nonlinear constraints, but may get stuck
+        at local minima. Example::
 
             # Market-neutral efficient risk
             constraints = [

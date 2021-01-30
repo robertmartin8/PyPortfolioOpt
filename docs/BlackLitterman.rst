@@ -225,6 +225,7 @@ Documentation reference
 
 .. automodule:: pypfopt.black_litterman
     :members:
+    :exclude-members: BlackLittermanModel
 
     .. autoclass:: BlackLittermanModel
         :members:
