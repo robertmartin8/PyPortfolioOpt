@@ -77,6 +77,29 @@ def test_cvar_example_monthly():
     )
 
 
+def test_es_example_short():
+    df = get_data()
+    mu = expected_returns.mean_historical_return(df)
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
+    cv = EfficientCVaR(
+        mu,
+        historical_rets,
+        weight_bounds=(-1, 1),
+    )
+    w = cv.efficient_return(0.2, market_neutral=True)
+    goog_weight = w["GOOG"]
+
+    historical_rets["GOOG"] -= historical_rets["GOOG"].quantile(0.75)
+    cv = EfficientCVaR(
+        mu,
+        historical_rets,
+        weight_bounds=(-1, 1),
+    )
+    w = cv.efficient_return(0.2, market_neutral=True)
+    goog_weight2 = w["GOOG"]
+    assert abs(goog_weight2) >= abs(goog_weight)
+
+
 def test_min_cvar():
     cv = setup_efficient_cvar()
     w = cv.min_cvar()
@@ -252,6 +275,23 @@ def test_efficient_risk_low_risk():
     )
 
 
+def test_efficient_risk_market_neutral():
+    cv = EfficientCVaR(
+        *setup_efficient_cvar(data_only=True), weight_bounds=(-1, 1)
+    )
+    w = cv.efficient_risk(0.21, market_neutral=True)
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(cv.tickers)
+    np.testing.assert_almost_equal(cv.weights.sum(), 0)
+    assert (cv.weights < 1).all() and (cv.weights > -1).all()
+    np.testing.assert_allclose(
+        cv.portfolio_performance(),
+        (2.575725, 0.21),
+        rtol=1e-4,
+        atol=1e-4,
+    )
+
+
 def test_efficient_risk_L2_reg():
     cv = setup_efficient_cvar()
     cv.add_objective(objective_functions.L2_reg, gamma=1)
@@ -294,6 +334,31 @@ def test_efficient_return():
         rtol=1e-4,
         atol=1e-4,
     )
+
+
+def test_efficient_return_short():
+    cv = EfficientCVaR(
+        *setup_efficient_cvar(data_only=True), weight_bounds=(-3., 3.)
+    )
+    w = cv.efficient_return(0.26)
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(cv.tickers)
+    np.testing.assert_almost_equal(cv.weights.sum(), 1)
+    np.testing.assert_allclose(
+        cv.portfolio_performance(),
+        (0.26, 0.027432),
+        rtol=1e-4,
+        atol=1e-4,
+    )
+    cvar = cv.portfolio_performance()[1]
+
+    ef_long_only = EfficientCVaR(
+        *setup_efficient_cvar(data_only=True), weight_bounds=(0., 1.)
+    )
+    ef_long_only.efficient_return(0.26)
+    long_only_cvar = ef_long_only.portfolio_performance()[1]
+
+    assert long_only_cvar > cvar
 
 
 def test_efficient_return_L2_reg():
