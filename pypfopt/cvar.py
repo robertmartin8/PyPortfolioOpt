@@ -2,12 +2,22 @@ import numpy as np
 import pandas as pd
 import cvxpy as cp
 import warnings
-from . import objective_functions, base_optimizer
+from . import objective_functions, efficient_frontier
 
 
-class EfficientCVaR(base_optimizer.BaseConvexOptimizer):
-    def __init__(self, expected_returns, historic_returns,
-                 beta=0.95, frequency=21, verbose=False):
+class EfficientCVaR(efficient_frontier.EfficientFrontier):
+    def __init__(self, expected_returns, historic_returns, beta=0.95, weight_bounds=(0, 1),
+                 solver=None,
+                 verbose=False,
+                 solver_options=None):
+        super().__init__(
+            expected_returns=expected_returns,
+            cov_matrix=np.zeros((len(expected_returns),) * 2),  # dummy
+            weight_bounds=weight_bounds,
+            solver=solver,
+            verbose=verbose,
+            solver_options=solver_options,
+        )
 
         if historic_returns is None:
             raise ValueError("Returns must be provided")
@@ -15,18 +25,11 @@ class EfficientCVaR(base_optimizer.BaseConvexOptimizer):
         if not isinstance(historic_returns, pd.DataFrame):
             raise TypeError("returns are not a dataframe")
 
-        self.frequency = frequency
-        self.expected_returns = EfficientCVaR._validate_expected_returns(
-            expected_returns
-        )
         self.historic_returns = self._validate_historic_returns(historic_returns)
 
         self.beta = beta
         self._alpha = cp.Variable()
         self._u = cp.Variable(len(self.historic_returns))
-
-        tickers = list(historic_returns.columns)
-        super().__init__(len(tickers), tickers, verbose=verbose)
 
     def _validate_historic_returns(self, historic_returns):
         if not isinstance(historic_returns, (pd.DataFrame, np.ndarray)):
@@ -48,36 +51,21 @@ class EfficientCVaR(base_optimizer.BaseConvexOptimizer):
 
         return historic_returns_df
 
-    @staticmethod
-    def _validate_expected_returns(expected_returns):
-        if expected_returns is None:
-            warnings.warn(
-                "No expected returns provided. You may only use ef.min_volatility()"
-            )
-            return None
-        elif isinstance(expected_returns, pd.Series):
-            return expected_returns.values
-        elif isinstance(expected_returns, list):
-            return np.array(expected_returns)
-        elif isinstance(expected_returns, np.ndarray):
-            return expected_returns.ravel()
-        else:
-            raise TypeError("expected_returns is not a series, list or array")
-
-
-    def min_cvar(self):
+    def min_cvar(self, market_neutral=False):
         self._objective = self._alpha + 1. / len(self.tickers) / (1 - self.beta) * cp.sum(self._u)
         for obj in self._additional_objectives:
             self._objective += obj
 
         self._constraints += [
-            cp.sum(self._w) == 1.,
-            self._w >= 0.,
             self._u >= 0.,
             self.historic_returns.values @ self._w + self._alpha + self._u >= 0.
         ]
 
-        ret = self.expected_returns.T @ self._w
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
 
         self._solve_cvxpy_opt_problem()
         # Inverse-transform
@@ -85,14 +73,12 @@ class EfficientCVaR(base_optimizer.BaseConvexOptimizer):
         self.weights = (self._w.value).round(16) + 0.0
         return self._make_output_weights()
 
-    def efficient_return(self, target_return):
+    def efficient_return(self, target_return, market_neutral=False):
         self._objective = self._alpha + 1. / len(self.tickers) / (1 - self.beta) * cp.sum(self._u)
         for obj in self._additional_objectives:
             self._objective += obj
 
         self._constraints += [
-            cp.sum(self._w) == 1.,
-            self._w >= 0.,
             self._u >= 0.,
             self.historic_returns.values @ self._w + self._alpha + self._u >= 0.
         ]
@@ -100,13 +86,19 @@ class EfficientCVaR(base_optimizer.BaseConvexOptimizer):
         ret = self.expected_returns.T @ self._w
         self._constraints.append(ret >= target_return)
 
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
+
         self._solve_cvxpy_opt_problem()
         # Inverse-transform
 
         self.weights = (self._w.value).round(16) + 0.0
         return self._make_output_weights()
 
-    def efficient_risk(self, target_cvar):
+    def efficient_risk(self, target_cvar, market_neutral=False):
         self._objective = objective_functions.portfolio_return(
             self._w, self.expected_returns
         )
@@ -115,11 +107,14 @@ class EfficientCVaR(base_optimizer.BaseConvexOptimizer):
 
         self._constraints += [
             self._alpha + 1. / len(self.tickers) / (1 - self.beta) * cp.sum(self._u) <= target_cvar,
-            cp.sum(self._w) == 1.,
-            self._w >= 0.,
             self._u >= 0.,
             self.historic_returns.values @ self._w + self._alpha + self._u >= 0.
         ]
+        if market_neutral:
+            self._market_neutral_bounds_check()
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
 
         self._solve_cvxpy_opt_problem()
 
@@ -137,7 +132,6 @@ class EfficientCVaR(base_optimizer.BaseConvexOptimizer):
         :return: expected return, CVaR.
         :rtype: (float, float)
         """
-
         mu = objective_functions.portfolio_return(
             self.weights, self.expected_returns, negative=False
         )

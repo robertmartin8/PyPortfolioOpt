@@ -8,6 +8,7 @@ from pypfopt import (
 from tests.utilities_for_tests import setup_efficient_cvar, get_data
 from pypfopt.exceptions import OptimizationError
 
+
 def test_cvar_example():
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
@@ -302,7 +303,6 @@ def test_efficient_return_L2_reg():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cv.tickers)
     np.testing.assert_almost_equal(cv.weights.sum(), 1)
-    print(w)
     assert all([i >= -1e-5 for i in w.values()])
     np.testing.assert_allclose(
         cv.portfolio_performance(),
