@@ -7,7 +7,7 @@ from . import objective_functions, efficient_frontier
 
 class EfficientCVaR(efficient_frontier.EfficientFrontier):
     def __init__(self, expected_returns, historic_returns, beta=0.95, weight_bounds=(0, 1),
-                 solver=None,
+                 solver='ECOS',
                  verbose=False,
                  solver_options=None):
         super().__init__(

@@ -51,7 +51,7 @@ def test_cvar_example_weekly():
     df = df.resample("W").first()
     mu = expected_returns.mean_historical_return(df, frequency=52)
     historical_rets = expected_returns.returns_from_prices(df).dropna()
-    cv = EfficientCVaR(mu, historical_rets, frequency=52)
+    cv = EfficientCVaR(mu, historical_rets)
     cv.efficient_return(0.2)
     np.testing.assert_allclose(
         cv.portfolio_performance(),
@@ -66,7 +66,7 @@ def test_cvar_example_monthly():
     df = df.resample("M").first()
     mu = expected_returns.mean_historical_return(df, frequency=12)
     historical_rets = expected_returns.returns_from_prices(df).dropna()
-    cv = EfficientCVaR(mu, historical_rets, frequency=12)
+    cv = EfficientCVaR(mu, historical_rets)
 
     cv.efficient_return(0.3)
     np.testing.assert_allclose(
@@ -117,7 +117,7 @@ def test_min_cvar_different_solver():
         cv.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
     )
 
-    cv = setup_efficient_cvar(solver="OSQP")
+    cv = setup_efficient_cvar(solver="SCS", verbose=True)
     w = cv.min_cvar()
     np.testing.assert_allclose(
         cv.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
@@ -142,8 +142,8 @@ def test_min_cvar_tx_costs():
 
 
 def test_min_cvar_L2_reg():
-    cv = setup_efficient_cvar()
-    cv.add_objective(objective_functions.L2_reg, gamma=.01)
+    cv = setup_efficient_cvar(solver='ECOS')
+    cv.add_objective(objective_functions.L2_reg, gamma=.1)
     weights = cv.min_cvar()
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(cv.tickers)
@@ -162,7 +162,7 @@ def test_min_cvar_L2_reg():
 
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.163864, 0.032973),
+        (0.145862, 0.037074),
         rtol=1e-4,
         atol=1e-4,
     )

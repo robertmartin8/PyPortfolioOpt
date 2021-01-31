@@ -76,14 +76,14 @@ def setup_efficient_semivariance(data_only=False, solver=None, verbose=False):
     )
 
 
-def setup_efficient_cvar(data_only=False, solver=None, verbose=False):
+def setup_efficient_cvar(data_only=False, solver=None, verbose=False, solver_options=None):
     df = get_data().dropna(axis=0, how="any")
     mean_return = expected_returns.mean_historical_return(df, compounding=False)
     historic_returns = returns_from_prices(df)
     if data_only:
         return mean_return, historic_returns
     return EfficientCVaR(
-        mean_return, historic_returns, verbose=verbose
+        mean_return, historic_returns, verbose=verbose, solver=solver, solver_options=solver_options
     )
 
 
