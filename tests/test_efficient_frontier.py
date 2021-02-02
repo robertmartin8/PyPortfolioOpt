@@ -1013,6 +1013,18 @@ def test_efficient_return_error():
         ef.efficient_return(max_ret + 0.01)
 
 
+def test_efficient_frontier_error():
+    ef = setup_efficient_frontier()
+    with pytest.raises(ValueError):
+        EfficientFrontier(ef.expected_returns[:-1], ef.cov_matrix)
+    with pytest.raises(TypeError):
+        EfficientFrontier(0.02, ef.cov_matrix)
+    with pytest.raises(ValueError):
+        EfficientFrontier(ef.expected_returns, None)
+    with pytest.raises(TypeError):
+        EfficientFrontier(ef.expected_returns, 0.01)
+
+
 def test_efficient_return_many_values():
     ef = setup_efficient_frontier()
     for target_return in np.arange(0.25, 0.28, 0.01):
