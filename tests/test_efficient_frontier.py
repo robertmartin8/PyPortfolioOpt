@@ -13,7 +13,11 @@ from pypfopt import (
     objective_functions,
     exceptions,
 )
-from tests.utilities_for_tests import get_data, setup_efficient_frontier, simple_ef_weights
+from tests.utilities_for_tests import (
+    get_data,
+    setup_efficient_frontier,
+    simple_ef_weights,
+)
 
 
 def test_data_source():
@@ -1059,10 +1063,16 @@ def test_efficient_return_short():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), weights_sum)
-    w_expected = simple_ef_weights(ef.expected_returns, ef.cov_matrix, target_return, weights_sum)
+    w_expected = simple_ef_weights(
+        ef.expected_returns, ef.cov_matrix, target_return, weights_sum
+    )
     np.testing.assert_almost_equal(ef.weights, w_expected)
-    vol_expected = math.sqrt(objective_functions.portfolio_variance(w_expected, ef.cov_matrix))
-    sharpe_expected = objective_functions.sharpe_ratio(w_expected, ef.expected_returns, ef.cov_matrix, negative=False)
+    vol_expected = math.sqrt(
+        objective_functions.portfolio_variance(w_expected, ef.cov_matrix)
+    )
+    sharpe_expected = objective_functions.sharpe_ratio(
+        w_expected, ef.expected_returns, ef.cov_matrix, negative=False
+    )
     np.testing.assert_allclose(
         ef.portfolio_performance(), (target_return, vol_expected, sharpe_expected)
     )
@@ -1133,10 +1143,16 @@ def test_efficient_return_market_neutral_unbounded():
     w = ef.efficient_return(target_return, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
-    w_expected = simple_ef_weights(ef.expected_returns, ef.cov_matrix, target_return, weights_sum)
+    w_expected = simple_ef_weights(
+        ef.expected_returns, ef.cov_matrix, target_return, weights_sum
+    )
     np.testing.assert_almost_equal(ef.weights, w_expected)
-    vol_expected = math.sqrt(objective_functions.portfolio_variance(w_expected, ef.cov_matrix))
-    sharpe_expected = objective_functions.sharpe_ratio(w_expected, ef.expected_returns, ef.cov_matrix, negative=False)
+    vol_expected = math.sqrt(
+        objective_functions.portfolio_variance(w_expected, ef.cov_matrix)
+    )
+    sharpe_expected = objective_functions.sharpe_ratio(
+        w_expected, ef.expected_returns, ef.cov_matrix, negative=False
+    )
     np.testing.assert_allclose(
         ef.portfolio_performance(), (target_return, vol_expected, sharpe_expected)
     )
