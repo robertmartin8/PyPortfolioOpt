@@ -899,6 +899,11 @@ def test_efficient_risk_error():
         # This volatility is too low
         ef.efficient_risk(min_possible_vol - 0.01)
 
+    ef = setup_efficient_frontier()
+    with pytest.raises(ValueError):
+        # This volatility is negative
+        ef.efficient_risk(-0.01)
+
 
 def test_efficient_risk_many_values():
     for target_risk in np.array([0.16, 0.21, 0.30]):
