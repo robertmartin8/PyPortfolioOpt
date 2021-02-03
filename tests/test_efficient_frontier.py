@@ -369,6 +369,12 @@ def test_max_sharpe_error():
     with pytest.raises(ValueError):
         ef.max_sharpe(risk_free_rate="0.02")
 
+    # An unsupported constraint type, which is incidentally meaningless.
+    v = cp.Variable((2, 2), PSD=True)
+    ef._constraints.append(v >> np.zeros((2, 2)))
+    with pytest.raises(TypeError):
+        ef.max_sharpe()
+
 
 def test_max_sharpe_long_only():
     ef = setup_efficient_frontier()
