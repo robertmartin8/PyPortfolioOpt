@@ -68,6 +68,17 @@ def test_efficient_frontier_inheritance():
     assert isinstance(ef._upper_bounds, np.ndarray)
 
 
+def test_efficient_frontier_expected_returns_list():
+    """Cover the edge case that the expected_returns param is a list."""
+    ef = setup_efficient_frontier()
+    ef.min_volatility()
+    ef_r = EfficientFrontier(
+        expected_returns=ef.expected_returns.tolist(), cov_matrix=ef.cov_matrix
+    )
+    ef_r.min_volatility()
+    np.testing.assert_equal(ef.portfolio_performance(), ef_r.portfolio_performance())
+
+
 def test_portfolio_performance():
     ef = setup_efficient_frontier()
     with pytest.raises(ValueError):
@@ -351,6 +362,12 @@ def test_min_volatility_nonlinear_constraint():
     ef.add_constraint(lambda x: (x + 1) / (x + 2) ** 2 <= 0.5)
     with pytest.raises(exceptions.OptimizationError):
         ef.min_volatility()
+
+
+def test_max_sharpe_error():
+    ef = setup_efficient_frontier()
+    with pytest.raises(ValueError):
+        ef.max_sharpe(risk_free_rate="0.02")
 
 
 def test_max_sharpe_long_only():
