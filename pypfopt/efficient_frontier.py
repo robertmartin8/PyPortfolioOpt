@@ -132,21 +132,27 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             raise TypeError("cov_matrix is not a dataframe or array")
 
-    def _market_neutral_bounds_check(self):
+    def _make_weight_sum_constraint(self, is_market_neutral):
         """
-        Helper method to make sure bounds are suitable for a market neutral
-        optimisation.
+        Helper method to make the weight sum constraint. If market neutral,
+        validate the weights proided in the constructor.
         """
-        portfolio_possible = np.any(self._lower_bounds < 0)
-        if not portfolio_possible:
-            warnings.warn(
-                "Market neutrality requires shorting - bounds have been amended",
-                RuntimeWarning,
-            )
-            self._map_bounds_to_constraints((-1, 1))
-            # Delete original constraints
-            del self._constraints[0]
-            del self._constraints[0]
+        if is_market_neutral:
+            #  Check and fix bounds
+            portfolio_possible = np.any(self._lower_bounds < 0)
+            if not portfolio_possible:
+                warnings.warn(
+                    "Market neutrality requires shorting - bounds have been amended",
+                    RuntimeWarning,
+                )
+                self._map_bounds_to_constraints((-1, 1))
+                # Delete original constraints
+                del self._constraints[0]
+                del self._constraints[0]
+
+            self._constraints.append(cp.sum(self._w) == 0)
+        else:
+            self._constraints.append(cp.sum(self._w) == 1)
 
     def min_volatility(self):
         """
@@ -162,7 +168,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._objective += obj
 
         self._constraints.append(cp.sum(self._w) == 1)
-
         return self._solve_cvxpy_opt_problem()
 
     def max_sharpe(self, risk_free_rate=0.02):
@@ -255,12 +260,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        if market_neutral:
-            self._market_neutral_bounds_check()
-            self._constraints.append(cp.sum(self._w) == 0)
-        else:
-            self._constraints.append(cp.sum(self._w) == 1)
-
+        self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_risk(self, target_volatility, market_neutral=False):
@@ -300,15 +300,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._objective += obj
 
         self._constraints.append(variance <= target_volatility ** 2)
-
-        # The equality constraint is either "weights sum to 1" (default), or
-        # "weights sum to 0" (market neutral).
-        if market_neutral:
-            self._market_neutral_bounds_check()
-            self._constraints.append(cp.sum(self._w) == 0)
-        else:
-            self._constraints.append(cp.sum(self._w) == 1)
-
+        self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_return(self, target_return, market_neutral=False):
@@ -346,15 +338,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._objective += obj
 
         self._constraints.append(ret >= target_return)
-
-        # The equality constraint is either "weights sum to 1" (default), or
-        # "weights sum to 0" (market neutral).
-        if market_neutral:
-            self._market_neutral_bounds_check()
-            self._constraints.append(cp.sum(self._w) == 0)
-        else:
-            self._constraints.append(cp.sum(self._w) == 1)
-
+        self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
@@ -519,15 +503,7 @@ class EfficientSemivariance(EfficientFrontier):
 
         B = (self.historic_returns.values - self.benchmark) / np.sqrt(self._T)
         self._constraints.append(B @ self._w - p + n == 0)
-
-        # The equality constraint is either "weights sum to 1" (default), or
-        # "weights sum to 0" (market neutral).
-        if market_neutral:
-            self._market_neutral_bounds_check()
-            self._constraints.append(cp.sum(self._w) == 0)
-        else:
-            self._constraints.append(cp.sum(self._w) == 1)
-
+        self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def max_quadratic_utility(self, risk_aversion=1, market_neutral=False):
@@ -557,13 +533,7 @@ class EfficientSemivariance(EfficientFrontier):
 
         B = (self.historic_returns.values - self.benchmark) / np.sqrt(self._T)
         self._constraints.append(B @ self._w - p + n == 0)
-
-        if market_neutral:
-            self._market_neutral_bounds_check()
-            self._constraints.append(cp.sum(self._w) == 0)
-        else:
-            self._constraints.append(cp.sum(self._w) == 1)
-
+        self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_risk(self, target_semideviation, market_neutral=False):
@@ -592,18 +562,9 @@ class EfficientSemivariance(EfficientFrontier):
         self._constraints.append(
             self.frequency * cp.sum(cp.square(n)) <= (target_semideviation ** 2)
         )
-
         B = (self.historic_returns.values - self.benchmark) / np.sqrt(self._T)
         self._constraints.append(B @ self._w - p + n == 0)
-
-        # The equality constraint is either "weights sum to 1" (default), or
-        # "weights sum to 0" (market neutral).
-        if market_neutral:
-            self._market_neutral_bounds_check()
-            self._constraints.append(cp.sum(self._w) == 0)
-        else:
-            self._constraints.append(cp.sum(self._w) == 1)
-
+        self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_return(self, target_return, market_neutral=False):
@@ -637,15 +598,7 @@ class EfficientSemivariance(EfficientFrontier):
         )
         B = (self.historic_returns.values - self.benchmark) / np.sqrt(self._T)
         self._constraints.append(B @ self._w - p + n == 0)
-
-        # The equality constraint is either "weights sum to 1" (default), or
-        # "weights sum to 0" (market neutral).
-        if market_neutral:
-            self._market_neutral_bounds_check()
-            self._constraints.append(cp.sum(self._w) == 0)
-        else:
-            self._constraints.append(cp.sum(self._w) == 1)
-
+        self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
