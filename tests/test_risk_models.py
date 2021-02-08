@@ -70,6 +70,9 @@ def test_sample_cov_npd():
                 == "The covariance matrix is non positive semidefinite. Amending eigenvalues."
             )
 
+    with pytest.raises(NotImplementedError):
+        risk_models.fix_nonpositive_semidefinite(S, fix_method="blah")
+
 
 def test_fix_npd_different_method():
     df = get_data()
