@@ -170,29 +170,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         self._constraints.append(cp.sum(self._w) == 1)
         return self._solve_cvxpy_opt_problem()
 
-    def _max_return(self, return_value=True):
-        """
-        Helper method to maximise return. This should not be used to optimise a portfolio.
-
-        :return: asset weights for the return-minimising portfolio
-        :rtype: OrderedDict
-        """
-        self._objective = objective_functions.portfolio_return(
-            self._w, self.expected_returns
-        )
-
-        self._constraints.append(cp.sum(self._w) == 1)
-
-        res = self._solve_cvxpy_opt_problem()
-
-        #  Cleanup constraints since this is a helper method
-        del self._constraints[-1]
-
-        if return_value:
-            return -self._opt.value
-        else:
-            return res
-
     def max_sharpe(self, risk_free_rate=0.02):
         """
         Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
@@ -342,9 +319,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
-        if target_return > self._max_return():
+        if target_return > np.abs(self.expected_returns).max():
             raise ValueError(
-                "target_return must be lower than the maximum possible return"
+                "target_return must be lower than the largest expected return"
             )
 
         self._objective = objective_functions.portfolio_variance(
@@ -353,6 +330,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         ret = objective_functions.portfolio_return(
             self._w, self.expected_returns, negative=False
         )
+
+        self.objective = cp.quad_form(self._w, self.cov_matrix)
+        ret = self.expected_returns.T @ self._w
 
         for obj in self._additional_objectives:
             self._objective += obj
