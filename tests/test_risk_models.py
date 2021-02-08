@@ -69,6 +69,14 @@ def test_sample_cov_npd():
                 str(w[0].message)
                 == "The covariance matrix is non positive semidefinite. Amending eigenvalues."
             )
+            # Test works on DataFrame too, same results, index and columns rebuilt.
+            tickers = ['A', 'B']
+            S_df = pd.DataFrame(data=S, index=tickers, columns=tickers)
+            S2_df = risk_models.fix_nonpositive_semidefinite(S_df, fix_method=method)
+            assert isinstance(S2_df, pd.DataFrame)
+            np.testing.assert_equal(S2_df.to_numpy(), S2)
+            assert S2_df.index.equals(S_df.index)
+            assert S2_df.columns.equals(S_df.columns)
 
     with pytest.raises(NotImplementedError):
         risk_models.fix_nonpositive_semidefinite(S, fix_method="blah")
