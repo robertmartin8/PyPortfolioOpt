@@ -393,6 +393,13 @@ def test_max_sharpe_error():
         ef.max_sharpe()
 
 
+def test_max_sharpe_risk_free_warning():
+    ef = setup_efficient_frontier()
+    with pytest.warns(UserWarning):
+        ef.max_sharpe(risk_free_rate=0.03)
+        ef.portfolio_performance()
+
+
 def test_max_sharpe_long_only():
     ef = setup_efficient_frontier()
     w = ef.max_sharpe()

@@ -377,6 +377,12 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :rtype: (float, float, float)
         """
         if self._risk_free_rate is not None:
+            if risk_free_rate != self._risk_free_rate:
+                warnings.warn(
+                    "The risk_free_rate provided to portfolio_performance is different"
+                    " to the one used by max_sharpe. Using the previous value.",
+                    UserWarning,
+                )
             risk_free_rate = self._risk_free_rate
 
         return base_optimizer.portfolio_performance(
@@ -636,9 +642,6 @@ class EfficientSemivariance(EfficientFrontier):
         :return: expected return, semideviation, Sortino ratio.
         :rtype: (float, float, float)
         """
-        if self._risk_free_rate is not None:
-            risk_free_rate = self._risk_free_rate
-
         mu = objective_functions.portfolio_return(
             self.weights, self.expected_returns, negative=False
         )
