@@ -303,9 +303,9 @@ def min_cov_determinant(
     assets = prices.columns
 
     if returns_data:
-        X = prices.dropna(how="all")
+        X = prices
     else:
-        X = prices.pct_change().dropna(how="all")
+        X = returns_from_prices(prices)
     X = np.nan_to_num(X.values)
     raw_cov_array = sklearn.covariance.fast_mcd(X, random_state=random_state)[1]
     cov = pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
@@ -342,7 +342,7 @@ def corr_to_cov(corr_matrix, stdevs):
     :rtype: pd.DataFrame
     """
     if not isinstance(corr_matrix, pd.DataFrame):
-        warnings.warn("cov_matrix is not a dataframe", RuntimeWarning)
+        warnings.warn("corr_matrix is not a dataframe", RuntimeWarning)
         corr_matrix = pd.DataFrame(corr_matrix)
 
     return corr_matrix * np.outer(stdevs, stdevs)
