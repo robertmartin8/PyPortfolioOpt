@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib
+import os
+import pytest
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 from pypfopt import plotting, risk_models, expected_returns
 from pypfopt import HRPOpt, CLA, EfficientFrontier
@@ -7,12 +9,24 @@ from pypfopt import HRPOpt, CLA, EfficientFrontier
 
 def test_correlation_plot():
     df = get_data()
-
     S = risk_models.CovarianceShrinkage(df).ledoit_wolf()
     ax = plotting.plot_covariance(S, showfig=False)
     assert len(ax.findobj()) == 256
+    ax = plotting.plot_covariance(S, plot_correlation=True, showfig=False)
+    assert len(ax.findobj()) == 256
     ax = plotting.plot_covariance(S, show_tickers=False, showfig=False)
     assert len(ax.findobj()) == 136
+    ax = plotting.plot_covariance(
+        S, plot_correlation=True, show_tickers=False, showfig=False
+    )
+    assert len(ax.findobj()) == 136
+
+    plot_filename = "tests/plot.png"
+    ax = plotting.plot_covariance(S, filename=plot_filename, showfig=False)
+    assert len(ax.findobj()) == 256
+    assert os.path.exists(plot_filename)
+    assert os.path.getsize(plot_filename) > 0
+    os.remove(plot_filename)
 
 
 def test_dendrogram_plot():
@@ -28,6 +42,19 @@ def test_dendrogram_plot():
     ax = plotting.plot_dendrogram(hrp, show_tickers=False, showfig=False)
     assert len(ax.findobj()) == 65
     assert type(ax.findobj()[0]) == matplotlib.collections.LineCollection
+
+    # Test that passing an unoptimized HRPOpt works, but issues a warning as
+    #  this should already have been optimized according to the API.
+    hrp = HRPOpt(returns)
+    with pytest.warns(RuntimeWarning) as w:
+        ax = plotting.plot_dendrogram(hrp, show_tickers=False, showfig=False)
+        assert len(w) == 1
+        assert (
+            str(w[0].message)
+            == "hrp param has not been optimized.  Attempting optimization."
+        )
+        assert len(ax.findobj()) == 65
+        assert type(ax.findobj()[0]) == matplotlib.collections.LineCollection
 
 
 def test_cla_plot():
@@ -49,6 +76,21 @@ def test_ef_plot_utility():
     assert len(ax.findobj()) == 125
 
 
+def test_ef_plot_errors():
+    ef = setup_efficient_frontier()
+    delta_range = np.arange(0.001, 100, 1)
+    # Test invalid ef_param
+    with pytest.raises(NotImplementedError):
+        ax = plotting.plot_efficient_frontier(
+            ef, ef_param="blah", ef_param_range=delta_range, showfig=False
+        )
+    # Test invalid optimizer
+    with pytest.raises(NotImplementedError):
+        ax = plotting.plot_efficient_frontier(
+            None, ef_param_range=delta_range, showfig=False
+        )
+
+
 def test_ef_plot_risk():
     ef = setup_efficient_frontier()
     ef.min_volatility()
@@ -62,7 +104,7 @@ def test_ef_plot_risk():
     assert len(ax.findobj()) == 125
 
 
-def ef_plot_return():
+def test_ef_plot_return():
     ef = setup_efficient_frontier()
     return_range = np.linspace(0, ef.expected_returns.max(), 50)
     ax = plotting.plot_efficient_frontier(
