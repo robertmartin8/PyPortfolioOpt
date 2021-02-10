@@ -8,6 +8,7 @@ from .discrete_allocation import get_latest_prices, DiscreteAllocation
 from .efficient_frontier import EfficientFrontier, EfficientSemivariance
 from .hierarchical_portfolio import HRPOpt
 from .risk_models import CovarianceShrinkage
+from .cvar import EfficientCVaR
 
 
 __version__ = "1.3.1"
@@ -23,4 +24,5 @@ __all__ = [
     "EfficientSemivariance",
     "HRPOpt",
     "CovarianceShrinkage",
+    "EfficientCVaR"
 ]
