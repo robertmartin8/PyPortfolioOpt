@@ -42,10 +42,25 @@ def test_cla_plot():
     assert len(ax.findobj()) == 161
 
 
+def test_default_ef_plot():
+    ef = setup_efficient_frontier()
+    ax = plotting.plot_efficient_frontier(ef)
+    assert len(ax.findobj()) == 125
+
+    # with constraints
+    ef = setup_efficient_frontier()
+    ef.add_constraint(lambda x: x <= 0.15)
+    ef.add_constraint(lambda x: x[0] == 0.05)
+    ax = plotting.plot_efficient_frontier(ef)
+    assert len(ax.findobj()) == 125
+
+
 def test_ef_plot_utility():
     ef = setup_efficient_frontier()
     delta_range = np.arange(0.001, 100, 1)
-    ax = plotting.plot_efficient_frontier(ef, ef_param_range=delta_range, showfig=False)
+    ax = plotting.plot_efficient_frontier(
+        ef, ef_param="utility", ef_param_range=delta_range, showfig=False
+    )
     assert len(ax.findobj()) == 125
 
 
@@ -76,7 +91,9 @@ def test_ef_plot_utility_short():
         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
     )
     delta_range = np.linspace(0.001, 20, 100)
-    ax = plotting.plot_efficient_frontier(ef, ef_param_range=delta_range, showfig=False)
+    ax = plotting.plot_efficient_frontier(
+        ef, ef_param="utility", ef_param_range=delta_range, showfig=False
+    )
     assert len(ax.findobj()) == 161
 
 
@@ -87,7 +104,9 @@ def test_constrained_ef_plot_utility():
     ef.add_constraint(lambda w: w[3] + w[4] <= 0.10)
 
     delta_range = np.linspace(0.001, 20, 100)
-    ax = plotting.plot_efficient_frontier(ef, ef_param_range=delta_range, showfig=False)
+    ax = plotting.plot_efficient_frontier(
+        ef, ef_param="utility", ef_param_range=delta_range, showfig=False
+    )
     assert len(ax.findobj()) == 125
 
 

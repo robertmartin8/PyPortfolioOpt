@@ -114,6 +114,9 @@ def plot_dendrogram(hrp, show_tickers=True, **kwargs):
 
 
 def _plot_cla(cla, points, show_assets, **kwargs):
+    """
+    Helper function to plot the efficient frontier from a CLA object
+    """
     if cla.weights is None:
         cla.max_sharpe()
     optimal_ret, optimal_risk, _ = cla.portfolio_performance()
@@ -138,7 +141,24 @@ def _plot_cla(cla, points, show_assets, **kwargs):
     return ax
 
 
+def _ef_default_returns_range(ef, points):
+    """
+    Helper function to generate a range of returns from the GMV returns to
+    the maximum (constrained) returns
+    """
+    ef_minvol = copy.deepcopy(ef)
+    ef_maxret = copy.deepcopy(ef)
+
+    ef_minvol.min_volatility()
+    min_ret = ef_minvol.portfolio_performance()[0]
+    max_ret = ef_maxret._max_return()
+    return np.linspace(min_ret, max_ret, points)
+
+
 def _plot_ef(ef, ef_param, ef_param_range, show_assets):
+    """
+    Helper function to plot the efficient frontier from an EfficientFrontier object
+    """
     mus, sigmas = [], []
 
     # Create a portfolio for each value of ef_param_range
@@ -178,23 +198,21 @@ def _plot_ef(ef, ef_param, ef_param_range, show_assets):
 
 
 def plot_efficient_frontier(
-    opt,
-    ef_param="utility",
-    ef_param_range=np.arange(1, 100, 1),
-    points=100,
-    show_assets=True,
-    **kwargs
+    opt, ef_param="return", ef_param_range=None, points=100, show_assets=True, **kwargs
 ):
     """
     Plot the efficient frontier based on either a CLA or EfficientFrontier object.
 
     :param opt: an instantiated optimiser object BEFORE optimising an objective
     :type opt: EfficientFrontier or CLA
-    :param ef_param: [EfficientFrontier] whether to use a range over utility, risk, or return
-    :type ef_param: str, one of {"utility", "risk", "return"}, defaults to "utility".
-    :param ef_param_range: the range of parameter values for ef_param
+    :param ef_param: [EfficientFrontier] whether to use a range over utility, risk, or return.
+                     Defaults to "return".
+    :type ef_param: str, one of {"utility", "risk", "return"}.
+    :param ef_param_range: the range of parameter values for ef_param.
+                           If None, automatically compute a range from min->max return.
     :type ef_param_range: np.array or list (recommended to use np.arange or np.linspace)
-    :param points: [CLA] number of points to plot, defaults to 100. This is
+    :param points: number of points to plot, defaults to 100. This is overridden if
+                   an `ef_param_range` is provided explicitly.
     :type points: int, optional
     :param show_assets: whether we should plot the asset risks/returns also, defaults to True
     :type show_assets: bool, optional
@@ -208,6 +226,9 @@ def plot_efficient_frontier(
     if isinstance(opt, CLA):
         ax = _plot_cla(opt, points, show_assets=show_assets)
     elif isinstance(opt, EfficientFrontier):
+        if ef_param_range is None:
+            ef_param_range = _ef_default_returns_range(opt, points)
+
         ax = _plot_ef(opt, ef_param, ef_param_range, show_assets=show_assets)
     else:
         raise NotImplementedError("Please pass EfficientFrontier or CLA object")
