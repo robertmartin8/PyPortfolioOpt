@@ -70,7 +70,7 @@ def test_sample_cov_npd():
                 == "The covariance matrix is non positive semidefinite. Amending eigenvalues."
             )
             # Test works on DataFrame too, same results, index and columns rebuilt.
-            tickers = ['A', 'B']
+            tickers = ["A", "B"]
             S_df = pd.DataFrame(data=S, index=tickers, columns=tickers)
             S2_df = risk_models.fix_nonpositive_semidefinite(S_df, fix_method=method)
             assert isinstance(S2_df, pd.DataFrame)
@@ -311,6 +311,7 @@ def test_risk_matrix_and_returns_data():
         "sample_cov",
         "semicovariance",
         "exp_cov",
+        # FIXME: this fails "min_cov_determinant",
         "ledoit_wolf",
         "ledoit_wolf_constant_variance",
         "ledoit_wolf_single_factor",
