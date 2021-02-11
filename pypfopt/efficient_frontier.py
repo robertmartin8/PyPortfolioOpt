@@ -658,3 +658,149 @@ class EfficientSemivariance(EfficientFrontier):
             print("Sortino Ratio: {:.2f}".format(sortino_ratio))
 
         return mu, semi_deviation, sortino_ratio
+
+
+class EfficientCVaR(EfficientFrontier):
+    def __init__(
+        self,
+        expected_returns,
+        historic_returns,
+        beta=0.95,
+        weight_bounds=(0, 1),
+        solver=None,
+        verbose=False,
+        solver_options=None,
+    ):
+        super().__init__(
+            expected_returns=expected_returns,
+            cov_matrix=np.zeros((len(expected_returns),) * 2),  # dummy
+            weight_bounds=weight_bounds,
+            solver=solver,
+            verbose=verbose,
+            solver_options=solver_options,
+        )
+
+        self.historic_returns = self._validate_historic_returns(historic_returns)
+        self._beta = self._validate_beta(beta)
+        self._alpha = cp.Variable()
+        self._u = cp.Variable(len(self.historic_returns))
+
+    def _validate_historic_returns(self, historic_returns):
+        if not isinstance(historic_returns, (pd.DataFrame, np.ndarray)):
+            raise TypeError("historic_returns should be a pd.Dataframe or np.ndarray")
+
+        historic_returns_df = pd.DataFrame(historic_returns)
+        if historic_returns_df.isnull().values.any():
+            warnings.warn(
+                "Removing NaNs from historic returns",
+                UserWarning,
+            )
+            historic_returns_df = historic_returns_df.dropna(axis=0, how="any")
+
+        if self.expected_returns is not None:
+            if historic_returns_df.shape[1] != len(self.expected_returns):
+                raise ValueError(
+                    "historic_returns columns do not match expected_returns. Please check your tickers."
+                )
+
+        return historic_returns_df
+
+    def _validate_beta(self, beta):
+        if not (0 <= beta < 1):
+            raise ValueError("beta must be between 0 and 1")
+        if beta <= 0.2:
+            warnings.warn(
+                "Warning: beta is the confidence-level, not the quantile. Typical values are 80%, 90%, 95%.",
+                UserWarning,
+            )
+        return beta
+
+    def min_volatility(self):
+        raise NotImplementedError("Please use min_cvar instead.")
+
+    def max_sharpe(self, risk_free_rate=0.02):
+        raise NotImplementedError("Method not available in EfficientCVaR.")
+
+    def max_quadratic_utility(self, risk_aversion=1, market_neutral=False):
+        raise NotImplementedError("Method not available in EfficientCVaR.")
+
+    def min_cvar(self, market_neutral=False):
+        self._objective = self._alpha + 1.0 / (
+            len(self.historic_returns) * (1 - self._beta)
+        ) * cp.sum(self._u)
+
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints += [
+            self._u >= 0.0,
+            self.historic_returns.values @ self._w + self._alpha + self._u >= 0.0,
+        ]
+
+        self._make_weight_sum_constraint(market_neutral)
+        return self._solve_cvxpy_opt_problem()
+
+    def efficient_return(self, target_return, market_neutral=False):
+        self._objective = self._alpha + 1.0 / (
+            len(self.historic_returns) * (1 - self._beta)
+        ) * cp.sum(self._u)
+
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        self._constraints += [
+            self._u >= 0.0,
+            self.historic_returns.values @ self._w + self._alpha + self._u >= 0.0,
+        ]
+
+        ret = self.expected_returns.T @ self._w
+        self._constraints.append(ret >= target_return)
+
+        self._make_weight_sum_constraint(market_neutral)
+        return self._solve_cvxpy_opt_problem()
+
+    def efficient_risk(self, target_cvar, market_neutral=False):
+        self._objective = objective_functions.portfolio_return(
+            self._w, self.expected_returns
+        )
+        for obj in self._additional_objectives:
+            self._objective += obj
+
+        cvar = self._alpha + 1.0 / (
+            len(self.historic_returns) * (1 - self._beta)
+        ) * cp.sum(self._u)
+
+        self._constraints += [
+            cvar <= target_cvar,
+            self._u >= 0.0,
+            self.historic_returns.values @ self._w + self._alpha + self._u >= 0.0,
+        ]
+
+        self._make_weight_sum_constraint(market_neutral)
+        return self._solve_cvxpy_opt_problem()
+
+    def portfolio_performance(self, verbose=False):
+        """
+        After optimising, calculate (and optionally print) the performance of the optimal
+        portfolio, specifically: expected return, CVaR
+
+        :param verbose: whether performance should be printed, defaults to False
+        :type verbose: bool, optional
+        :raises ValueError: if weights have not been calcualted yet
+        :return: expected return, CVaR.
+        :rtype: (float, float)
+        """
+        mu = objective_functions.portfolio_return(
+            self.weights, self.expected_returns, negative=False
+        )
+
+        cvar = self._alpha + 1.0 / (
+            len(self.historic_returns) * (1 - self._beta)
+        ) * cp.sum(self._u)
+        cvar_val = cvar.value
+
+        if verbose:
+            print("Expected annual return: {:.1f}%".format(100 * mu))
+            print("Conditional Value at Risk: {:.2f}%".format(100 * cvar_val))
+
+        return mu, cvar_val

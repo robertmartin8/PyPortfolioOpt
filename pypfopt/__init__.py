@@ -5,10 +5,9 @@ from .black_litterman import (
 )
 from .cla import CLA
 from .discrete_allocation import get_latest_prices, DiscreteAllocation
-from .efficient_frontier import EfficientFrontier, EfficientSemivariance
+from .efficient_frontier import EfficientFrontier, EfficientSemivariance, EfficientCVaR
 from .hierarchical_portfolio import HRPOpt
 from .risk_models import CovarianceShrinkage
-from .cvar import EfficientCVaR
 
 
 __version__ = "1.3.1"
@@ -22,7 +21,7 @@ __all__ = [
     "DiscreteAllocation",
     "EfficientFrontier",
     "EfficientSemivariance",
+    "EfficientCVaR",
     "HRPOpt",
     "CovarianceShrinkage",
-    "EfficientCVaR"
 ]

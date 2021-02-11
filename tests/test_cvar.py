@@ -10,74 +10,97 @@ from pypfopt.exceptions import OptimizationError
 
 
 def test_cvar_example():
+    beta = 0.95
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
     historical_rets = expected_returns.returns_from_prices(df).dropna()
 
-    cv = EfficientCVaR(mu, historical_rets)
-    w = cv.efficient_return(0.2)
+    cv = EfficientCVaR(mu, historical_rets, beta=beta)
+    w = cv.min_cvar()
 
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cv.tickers)
     np.testing.assert_almost_equal(cv.weights.sum(), 1)
     assert all([i >= -1e-5 for i in w.values()])
-    print(cv.portfolio_performance())
+
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.20, 0.032664),
+        (0.17745746040573562, 0.017049502122532853),
         rtol=1e-4,
         atol=1e-4,
     )
 
+    cvar = cv.portfolio_performance()[1]
+    portfolio_rets = historical_rets @ cv.weights
 
-def test_cvar_errors():
-    df = get_data()
-    mu = expected_returns.mean_historical_return(df)
-    historical_rets = expected_returns.returns_from_prices(df)
-
-    with pytest.warns(UserWarning):
-        EfficientCVaR(mu, historical_rets)
-
-    historical_rets = historical_rets.dropna(axis=0, how="any")
-    assert EfficientCVaR(mu, historical_rets)
-
-    historical_rets = historical_rets.iloc[:, :-1]
-    with pytest.raises(ValueError):
-        EfficientCVaR(mu, historical_rets)
+    var_hist = portfolio_rets.quantile(1 - beta)
+    cvar_hist = -portfolio_rets[portfolio_rets < var_hist].mean()
+    np.testing.assert_almost_equal(cvar_hist, cvar, decimal=3)
 
 
 def test_cvar_example_weekly():
+    beta = 0.95
     df = get_data()
     df = df.resample("W").first()
     mu = expected_returns.mean_historical_return(df, frequency=52)
     historical_rets = expected_returns.returns_from_prices(df).dropna()
-    cv = EfficientCVaR(mu, historical_rets)
+    cv = EfficientCVaR(mu, historical_rets, beta=beta)
     cv.efficient_return(0.2)
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.2000000562544616, 0.068891),
+        (0.2, 0.03447723250708958),
         rtol=1e-4,
         atol=1e-4,
     )
 
+    cvar = cv.portfolio_performance()[1]
+    portfolio_rets = historical_rets @ cv.weights
+
+    var_hist = portfolio_rets.quantile(1 - beta)
+    cvar_hist = -portfolio_rets[portfolio_rets < var_hist].mean()
+    np.testing.assert_almost_equal(cvar_hist, cvar, decimal=3)
+
 
 def test_cvar_example_monthly():
+    beta = 0.95
     df = get_data()
     df = df.resample("M").first()
     mu = expected_returns.mean_historical_return(df, frequency=12)
     historical_rets = expected_returns.returns_from_prices(df).dropna()
-    cv = EfficientCVaR(mu, historical_rets)
-
-    cv.efficient_return(0.3)
+    cv = EfficientCVaR(mu, historical_rets, beta=beta)
+    cv.efficient_return(0.2)
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.3, 0.032726),
+        (0.2, 0.02343809217822161),
         rtol=1e-4,
         atol=1e-4,
     )
 
+    cvar = cv.portfolio_performance()[1]
+    portfolio_rets = historical_rets @ cv.weights
 
-def test_es_example_short():
+    var_hist = portfolio_rets.quantile(1 - beta)
+    cvar_hist = -portfolio_rets[portfolio_rets < var_hist].mean()
+    np.testing.assert_almost_equal(cvar_hist, cvar, decimal=3)
+
+
+def test_cvar_beta():
+    # cvar should decrease (i.e higher loss) as beta increases
+    cv = setup_efficient_cvar()
+    cv._beta = 0.5
+    cv.min_cvar()
+    cvar = cv.portfolio_performance()[1]
+
+    for beta in np.arange(0.55, 1, 0.05):
+        cv = setup_efficient_cvar()
+        cv._beta = beta
+        cv.min_cvar()
+        cvar_test = cv.portfolio_performance()[1]
+        assert cvar_test >= cvar
+        cvar = cvar_test
+
+
+def test_cvar_example_short():
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
     historical_rets = expected_returns.returns_from_prices(df).dropna()
@@ -87,30 +110,13 @@ def test_es_example_short():
         weight_bounds=(-1, 1),
     )
     w = cv.efficient_return(0.2, market_neutral=True)
-    goog_weight = w["GOOG"]
-
-    historical_rets["GOOG"] -= historical_rets["GOOG"].quantile(0.75)
-    cv = EfficientCVaR(
-        mu,
-        historical_rets,
-        weight_bounds=(-1, 1),
-    )
-    w = cv.efficient_return(0.2, market_neutral=True)
-    goog_weight2 = w["GOOG"]
-    assert abs(goog_weight2) >= abs(goog_weight)
-
-
-def test_min_cvar():
-    cv = setup_efficient_cvar()
-    w = cv.min_cvar()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cv.tickers)
-    np.testing.assert_almost_equal(cv.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    np.testing.assert_almost_equal(cv.weights.sum(), 0)
 
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.12629, 0.032176),
+        (0.2, 0.013406209257292611),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -135,13 +141,7 @@ def test_min_cvar_different_solver():
     assert set(w.keys()) == set(cv.tickers)
     np.testing.assert_almost_equal(cv.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
-    test_performance = (0.12629, 0.032176)
-    np.testing.assert_allclose(
-        cv.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
-    )
-
-    cv = setup_efficient_cvar(solver="SCS", verbose=True)
-    w = cv.min_cvar()
+    test_performance = (0.08447037713814826, 0.017049502122532853)
     np.testing.assert_allclose(
         cv.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
     )
@@ -165,8 +165,8 @@ def test_min_cvar_tx_costs():
 
 
 def test_min_cvar_L2_reg():
-    cv = setup_efficient_cvar(solver='ECOS')
-    cv.add_objective(objective_functions.L2_reg, gamma=.1)
+    cv = setup_efficient_cvar(solver="ECOS")
+    cv.add_objective(objective_functions.L2_reg, gamma=0.1)
     weights = cv.min_cvar()
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(cv.tickers)
@@ -179,13 +179,13 @@ def test_min_cvar_L2_reg():
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cv.n_assets,), 1 / cv.n_assets)
     assert (
-            np.abs(equal_weight - cv.weights).sum()
-            < np.abs(equal_weight - cv2.weights).sum()
+        np.abs(equal_weight - cv.weights).sum()
+        < np.abs(equal_weight - cv2.weights).sum()
     )
 
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.145862, 0.037074),
+        (0.08981817616931259, 0.020427209685618623),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -240,7 +240,7 @@ def test_min_cvar_sector_constraints():
 
 def test_efficient_risk():
     cv = setup_efficient_cvar()
-    w = cv.efficient_risk(0.2)
+    w = cv.efficient_risk(0.02)
 
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cv.tickers)
@@ -249,7 +249,7 @@ def test_efficient_risk():
 
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.462833, 0.2),
+        (0.2267893986249195, 0.02),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -269,24 +269,22 @@ def test_efficient_risk_low_risk():
     cv.efficient_risk(min_value + 0.01)
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.359426, min_value + 0.01),
+        (0.363470415007482, min_value + 0.01),
         rtol=1e-4,
         atol=1e-4,
     )
 
 
 def test_efficient_risk_market_neutral():
-    cv = EfficientCVaR(
-        *setup_efficient_cvar(data_only=True), weight_bounds=(-1, 1)
-    )
-    w = cv.efficient_risk(0.21, market_neutral=True)
+    cv = EfficientCVaR(*setup_efficient_cvar(data_only=True), weight_bounds=(-1, 1))
+    w = cv.efficient_risk(0.025, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cv.tickers)
     np.testing.assert_almost_equal(cv.weights.sum(), 0)
     assert (cv.weights < 1).all() and (cv.weights > -1).all()
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (2.575725, 0.21),
+        (0.5895653670063358, 0.025),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -295,7 +293,7 @@ def test_efficient_risk_market_neutral():
 def test_efficient_risk_L2_reg():
     cv = setup_efficient_cvar()
     cv.add_objective(objective_functions.L2_reg, gamma=1)
-    weights = cv.efficient_risk(0.19)
+    weights = cv.efficient_risk(0.03)
 
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(cv.tickers)
@@ -303,7 +301,7 @@ def test_efficient_risk_L2_reg():
     np.testing.assert_array_less(np.zeros(len(weights)), cv.weights + 1e-4)
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.313392, 0.189838),
+        (0.2889961577134966, 0.029393474756427136),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -315,8 +313,8 @@ def test_efficient_risk_L2_reg():
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cv.n_assets,), 1 / cv.n_assets)
     assert (
-            np.abs(equal_weight - cv.weights).sum()
-            < np.abs(equal_weight - ef2.weights).sum()
+        np.abs(equal_weight - cv.weights).sum()
+        < np.abs(equal_weight - ef2.weights).sum()
     )
 
 
@@ -330,30 +328,28 @@ def test_efficient_return():
 
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.25, 0.034611),
+        (0.25, 0.021036631225933487),
         rtol=1e-4,
         atol=1e-4,
     )
 
 
 def test_efficient_return_short():
-    cv = EfficientCVaR(
-        *setup_efficient_cvar(data_only=True), weight_bounds=(-3., 3.)
-    )
+    cv = EfficientCVaR(*setup_efficient_cvar(data_only=True), weight_bounds=(-3.0, 3.0))
     w = cv.efficient_return(0.26)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cv.tickers)
     np.testing.assert_almost_equal(cv.weights.sum(), 1)
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.26, 0.027432),
+        (0.26, 0.01804624747353764),
         rtol=1e-4,
         atol=1e-4,
     )
     cvar = cv.portfolio_performance()[1]
 
     ef_long_only = EfficientCVaR(
-        *setup_efficient_cvar(data_only=True), weight_bounds=(0., 1.)
+        *setup_efficient_cvar(data_only=True), weight_bounds=(0.0, 1.0)
     )
     ef_long_only.efficient_return(0.26)
     long_only_cvar = ef_long_only.portfolio_performance()[1]
@@ -371,7 +367,47 @@ def test_efficient_return_L2_reg():
     assert all([i >= -1e-5 for i in w.values()])
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.25, 0.041786),
+        (0.25, 0.02660410793952383),
         rtol=1e-4,
         atol=1e-4,
     )
+
+
+def test_cvar_errors():
+    df = get_data()
+    mu = expected_returns.mean_historical_return(df)
+    historical_rets = expected_returns.returns_from_prices(df)
+
+    with pytest.warns(UserWarning):
+        EfficientCVaR(mu, historical_rets)
+
+    historical_rets = historical_rets.dropna(axis=0, how="any")
+    assert EfficientCVaR(mu, historical_rets)
+
+    cv = setup_efficient_cvar()
+
+    with pytest.raises(NotImplementedError):
+        cv.min_volatility()
+
+    with pytest.raises(NotImplementedError):
+        cv.max_sharpe()
+
+    with pytest.raises(NotImplementedError):
+        cv.max_quadratic_utility()
+
+    with pytest.raises(ValueError):
+        # Beta must be between 0 and 1
+        cv = EfficientCVaR(mu, historical_rets, 1)
+
+    with pytest.raises(OptimizationError):
+        # Must be <= max expected return
+        cv = EfficientCVaR(mu, historical_rets)
+        cv.efficient_return(target_return=np.abs(mu).max() + 0.01)
+
+    with pytest.raises(TypeError):
+        # list not supported.
+        EfficientCVaR(mu, historical_rets.to_numpy().tolist())
+
+    historical_rets = historical_rets.iloc[:, :-1]
+    with pytest.raises(ValueError):
+        EfficientCVaR(mu, historical_rets)
