@@ -1,6 +1,8 @@
 import numpy as np
+import pandas as pd
 import pytest
 from pypfopt import (
+    risk_models,
     expected_returns,
     EfficientCVaR,
     objective_functions,
@@ -36,6 +38,39 @@ def test_cvar_example():
     var_hist = portfolio_rets.quantile(1 - beta)
     cvar_hist = -portfolio_rets[portfolio_rets < var_hist].mean()
     np.testing.assert_almost_equal(cvar_hist, cvar, decimal=3)
+
+
+def test_es_return_sample():
+    df = get_data()
+    mu = expected_returns.mean_historical_return(df)
+    S = risk_models.sample_cov(df)
+
+    # Generate a 1y sample of daily data
+    np.random.seed(0)
+    mu_daily = (1 + mu) ** (1 / 252) - 1
+    S_daily = S / 252
+    sample_rets = pd.DataFrame(
+        np.random.multivariate_normal(mu_daily, S_daily, 300), columns=mu.index
+    )
+
+    cv = EfficientCVaR(mu, sample_rets)
+    w = cv.efficient_return(0.2)
+
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(cv.tickers)
+    np.testing.assert_almost_equal(cv.weights.sum(), 1)
+    assert all([i >= -1e-5 for i in w.values()])
+
+    np.testing.assert_allclose(
+        cv.portfolio_performance(),
+        (0.20, 0.01789275427676941),
+        rtol=1e-4,
+        atol=1e-4,
+    )
+    # Cover verbose param case
+    np.testing.assert_equal(
+        cv.portfolio_performance(verbose=True), cv.portfolio_performance()
+    )
 
 
 def test_cvar_example_weekly():
