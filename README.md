@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.3.1-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.4.0-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -67,6 +67,8 @@ Head over to the [documentation on ReadTheDocs](https://pyportfolioopt.readthedo
 
 If you would like to play with PyPortfolioOpt interactively in your browser, you may launch Binder [here](https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master). It takes a
 while to set up, but it lets you try out the cookbook recipes without having to deal with all of the requirements.
+
+*Note: macOS users will need to install [Command Line Tools](https://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/).*
 
 *Note: if you are on windows, you first need to installl C++. ([download](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16), [install instructions](https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view))*
 
@@ -395,9 +397,12 @@ Special shout-outs to:
 - Aditya Bhutra
 - Thomas Schmelzer
 - Rich Caputo
+- Nicolas Knudde
 
 ## Getting in touch
 
-If you are having a problem with PyPortfolioOpt, please raise an issue.
+If you are having a problem with PyPortfolioOpt, please raise a GitHub issue. For anything else, you can reach me at:
 
-For anything else, you can contact me via the [form](https://reasonabledeviations.com/about/) on my website.
+<center>
+<img src="https://github.com/robertmartin8/ReasonableDeviations/blob/gh-pages/assets/images/contact.png" style="width:75%;"/>
+</center>

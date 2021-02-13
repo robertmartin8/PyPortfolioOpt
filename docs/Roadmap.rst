@@ -13,7 +13,6 @@ are interested in implementing one of these, raise an issue or send me an email 
 discuss. If you have any other feature requests, please raise them using GitHub
 `issues <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_
 
-- Improved plotting
 - Open-source backtests using either `Backtrader <https://www.backtrader.com/>`_ or
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Optimising for higher moments (i.e skew and kurtosis)
@@ -21,6 +20,17 @@ discuss. If you have any other feature requests, please raise them using GitHub
 - CVaR optimisation
 - Monte Carlo optimisation with custom distributions
 - Further support for different risk/return models
+
+1.4.0
+=====
+
+- Finally implemented CVaR optimisation! This has been one of the most requested features. Many thanks
+  to `Nicolas Knudde <https://github.com/nknudde>`_ for the initial draft. 
+- Re-architected plotting so users can pass an ax, allowing for complex plots (see cookbook).
+- Helper method to compute the max-return portfolio (thanks to `Philipp Schiele <https://github.com/phschiele>`_)
+  for the suggestion). 
+- Several bug fixes and test improvements (thanks to `Carl Peasnell <https://github.com/SeaPea1>`_).
+
 
 1.3.0
 =====

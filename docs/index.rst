@@ -15,7 +15,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v1.3.1-brightgreen.svg"
+                <img src="https://img.shields.io/badge/pypi-v1.4.0-brightgreen.svg"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -43,13 +43,15 @@ in a risk-efficient way.
 Installation
 ============
 
-Installation on macOS or linux is as simple as::
+Prior to installing PyPortfolioOpt, you need to install C++. On macOS, this means that you need
+to install XCode Command Line Tools (see `here <https://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/>`__).
+
+For Windows users, download Visual Studio `here <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`__,
+with additional instructions `here <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view>`__.
+
+Installation can then be done via pip::
 
     pip install PyPortfolioOpt
-
-Windows users need to go through the additional step of downloading C++ (for ``cvxpy``). You can
-download this `here <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`__,
-with additional instructions `here <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view>`__.
 
 For the sake of best practice, it is good to do this with a dependency manager. I suggest you
 set yourself up with `poetry <https://github.com/sdispater/poetry>`_, then within a new poetry project
@@ -73,8 +75,7 @@ Thanks to Thomas Schmelzer, PyPortfolioOpt now supports Docker (requires
 
 .. note::
     If any of these methods don't work, please `raise an issue
-    <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_  on GitHub
-
+    <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_ with the 'packaging' label on GitHub
 
 
 
@@ -82,14 +83,14 @@ For developers
 --------------
 
 If you are planning on using PyPortfolioOpt as a starting template for significant
-modifications, it probably makes sense to clone this repository and to just use the
+modifications, it probably makes sense to clone the repository and to just use the
 source code
 
 .. code-block:: text
 
     git clone https://github.com/robertmartin8/PyPortfolioOpt
 
-Alternatively, if you still want the convenience of ``from pypfopt import x``,
+Alternatively, if you still want the convenience of a global ``from pypfopt import x``,
 you should try
 
 .. code-block:: text
@@ -158,24 +159,12 @@ Contents
     Plotting
 
 .. toctree::
+    :maxdepth: 1
     :caption: Other information
     
     Roadmap
     Contributing
     About
-
-Advantages over existing implementations
-========================================
-
-- Includes both classical methods (Markowitz 1952 and Black-Litterman), suggested best practices
-  (e.g covariance shrinkage), along with many recent developments and novel
-  features, like L2 regularisation, shrunk covariance, hierarchical risk parity.
-- Native support for pandas dataframes: easily input your daily prices data.
-- Extensive practical tests, which use real-life data.
-- Easy to combine with your proprietary strategies and models.
-- Robust to missing data, and price-series of different lengths (e.g FB data
-  only goes back to 2012 whereas AAPL data goes back to 1980).
-
 
 Project principles and design decisions
 =======================================
@@ -193,10 +182,24 @@ Project principles and design decisions
   <https://github.com/ambv/black>`_.
 
 
+Advantages over existing implementations
+========================================
+
+- Includes both classical methods (Markowitz 1952 and Black-Litterman), suggested best practices
+  (e.g covariance shrinkage), along with many recent developments and novel
+  features, like L2 regularisation, exponential covariance, hierarchical risk parity.
+- Native support for pandas dataframes: easily input your daily prices data.
+- Extensive practical tests, which use real-life data.
+- Easy to combine with your proprietary strategies and models.
+- Robust to missing data, and price-series of different lengths (e.g FB data
+  only goes back to 2012 whereas AAPL data goes back to 1980).
+
+
 Contributors
 =============
 
-This is a non-exhaustive unordered list of contributors:
+This is a non-exhaustive unordered list of contributors. I am sincerely grateful for all
+of your efforts!
 
 - Philipp Schiele
 - Carl Peasnell
@@ -206,6 +209,7 @@ This is a non-exhaustive unordered list of contributors:
 - Aditya Bhutra
 - Thomas Schmelzer
 - Rich Caputo
+- Nicolas Knudde 
 
 
 Indices and tables

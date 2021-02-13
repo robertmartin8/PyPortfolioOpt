@@ -30,11 +30,11 @@ def _plot_io(**kwargs):
     :type filename: str, optional
     :param dpi: dpi of figure to save or plot, defaults to 300
     :type dpi: int (between 50-500)
-    :param showfig: whether to plt.show() the figure, defaults to True
+    :param showfig: whether to plt.show() the figure, defaults to False
     :type showfig: bool, optional
     """
     filename = kwargs.get("filename", None)
-    showfig = kwargs.get("showfig", True)
+    showfig = kwargs.get("showfig", False)
     dpi = kwargs.get("dpi", 300)
 
     plt.tight_layout()
@@ -81,7 +81,7 @@ def plot_covariance(cov_matrix, plot_correlation=False, show_tickers=True, **kwa
     return ax
 
 
-def plot_dendrogram(hrp, show_tickers=True, **kwargs):
+def plot_dendrogram(hrp, ax=None, show_tickers=True, **kwargs):
     """
     Plot the clusters in the form of a dendrogram.
 
@@ -92,18 +92,19 @@ def plot_dendrogram(hrp, show_tickers=True, **kwargs):
     :type show_tickers: bool, optional
     :param filename: name of the file to save to, defaults to None (doesn't save)
     :type filename: str, optional
-    :param showfig: whether to plt.show() the figure, defaults to True
+    :param showfig: whether to plt.show() the figure, defaults to False
     :type showfig: bool, optional
     :return: matplotlib axis
     :rtype: matplotlib.axes object
     """
+    ax = ax or plt.gca()
+
     if hrp.clusters is None:
         hrp.optimize()
 
-    fig, ax = plt.subplots()
     if show_tickers:
         sch.dendrogram(hrp.clusters, labels=hrp.tickers, ax=ax, orientation="top")
-        plt.xticks(rotation=90)
+        ax.tick_params(axis="x", rotation=90)
         plt.tight_layout()
     else:
         sch.dendrogram(hrp.clusters, no_labels=True, ax=ax)
@@ -113,7 +114,10 @@ def plot_dendrogram(hrp, show_tickers=True, **kwargs):
     return ax
 
 
-def _plot_cla(cla, points, show_assets, **kwargs):
+def _plot_cla(cla, points, ax, show_assets):
+    """
+    Helper function to plot the efficient frontier from a CLA object
+    """
     if cla.weights is None:
         cla.max_sharpe()
     optimal_ret, optimal_risk, _ = cla.portfolio_performance()
@@ -123,7 +127,6 @@ def _plot_cla(cla, points, show_assets, **kwargs):
 
     mus, sigmas, _ = cla.frontier_values
 
-    fig, ax = plt.subplots()
     ax.plot(sigmas, mus, label="Efficient frontier")
     ax.scatter(optimal_risk, optimal_ret, marker="x", s=100, color="r", label="optimal")
 
@@ -138,7 +141,24 @@ def _plot_cla(cla, points, show_assets, **kwargs):
     return ax
 
 
-def _plot_ef(ef, ef_param, ef_param_range, show_assets):
+def _ef_default_returns_range(ef, points):
+    """
+    Helper function to generate a range of returns from the GMV returns to
+    the maximum (constrained) returns
+    """
+    ef_minvol = copy.deepcopy(ef)
+    ef_maxret = copy.deepcopy(ef)
+
+    ef_minvol.min_volatility()
+    min_ret = ef_minvol.portfolio_performance()[0]
+    max_ret = ef_maxret._max_return()
+    return np.linspace(min_ret, max_ret, points)
+
+
+def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets):
+    """
+    Helper function to plot the efficient frontier from an EfficientFrontier object
+    """
     mus, sigmas = [], []
 
     # Create a portfolio for each value of ef_param_range
@@ -163,7 +183,6 @@ def _plot_ef(ef, ef_param, ef_param_range, show_assets):
         mus.append(ret)
         sigmas.append(sigma)
 
-    fig, ax = plt.subplots()
     ax.plot(sigmas, mus, label="Efficient frontier")
 
     if show_assets:
@@ -179,9 +198,10 @@ def _plot_ef(ef, ef_param, ef_param_range, show_assets):
 
 def plot_efficient_frontier(
     opt,
-    ef_param="utility",
-    ef_param_range=np.arange(1, 100, 1),
+    ef_param="return",
+    ef_param_range=None,
     points=100,
+    ax=None,
     show_assets=True,
     **kwargs
 ):
@@ -190,25 +210,33 @@ def plot_efficient_frontier(
 
     :param opt: an instantiated optimiser object BEFORE optimising an objective
     :type opt: EfficientFrontier or CLA
-    :param ef_param: [EfficientFrontier] whether to use a range over utility, risk, or return
-    :type ef_param: str, one of {"utility", "risk", "return"}, defaults to "utility".
-    :param ef_param_range: the range of parameter values for ef_param
+    :param ef_param: [EfficientFrontier] whether to use a range over utility, risk, or return.
+                     Defaults to "return".
+    :type ef_param: str, one of {"utility", "risk", "return"}.
+    :param ef_param_range: the range of parameter values for ef_param.
+                           If None, automatically compute a range from min->max return.
     :type ef_param_range: np.array or list (recommended to use np.arange or np.linspace)
-    :param points: [CLA] number of points to plot, defaults to 100. This is
+    :param points: number of points to plot, defaults to 100. This is overridden if
+                   an `ef_param_range` is provided explicitly.
     :type points: int, optional
     :param show_assets: whether we should plot the asset risks/returns also, defaults to True
     :type show_assets: bool, optional
     :param filename: name of the file to save to, defaults to None (doesn't save)
     :type filename: str, optional
-    :param showfig: whether to plt.show() the figure, defaults to True
+    :param showfig: whether to plt.show() the figure, defaults to False
     :type showfig: bool, optional
     :return: matplotlib axis
     :rtype: matplotlib.axes object
     """
+    ax = ax or plt.gca()
+
     if isinstance(opt, CLA):
-        ax = _plot_cla(opt, points, show_assets=show_assets)
+        ax = _plot_cla(opt, points, ax=ax, show_assets=show_assets)
     elif isinstance(opt, EfficientFrontier):
-        ax = _plot_ef(opt, ef_param, ef_param_range, show_assets=show_assets)
+        if ef_param_range is None:
+            ef_param_range = _ef_default_returns_range(opt, points)
+
+        ax = _plot_ef(opt, ef_param, ef_param_range, ax=ax, show_assets=show_assets)
     else:
         raise NotImplementedError("Please pass EfficientFrontier or CLA object")
 
@@ -220,22 +248,25 @@ def plot_efficient_frontier(
     return ax
 
 
-def plot_weights(weights, **kwargs):
+def plot_weights(weights, ax=None, **kwargs):
     """
     Plot the portfolio weights as a horizontal bar chart
 
     :param weights: the weights outputted by any PyPortfolioOpt optimiser
     :type weights: {ticker: weight} dict
+    :param ax: ax to plot to, optional
+    :type ax: matplotlib.axes
     :return: matplotlib axis
-    :rtype: matplotlib.axes object
+    :rtype: matplotlib.axes
     """
+    ax = ax or plt.gca()
+
     desc = sorted(weights.items(), key=lambda x: x[1], reverse=True)
     labels = [i[0] for i in desc]
     vals = [i[1] for i in desc]
 
     y_pos = np.arange(len(labels))
 
-    fig, ax = plt.subplots()
     ax.barh(y_pos, vals)
     ax.set_xlabel("Weight")
     ax.set_yticks(y_pos)

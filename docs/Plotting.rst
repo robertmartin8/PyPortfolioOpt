@@ -22,18 +22,60 @@ and add constraints like you normally would, but *before* calling an optimisatio
     ef.add_constraint(lambda w: w[2] == 0.15)
     ef.add_constraint(lambda w: w[3] + w[4] <= 0.10)
 
-    # 100 portfolios with risks between 0.10 and 0.30
-    risk_range = np.linspace(0.10, 0.40, 100)
-    ax = plotting.plot_efficient_frontier(ef, ef_param="risk", ef_param_range=risk_range,
-                               show_assets=True, showfig=True)
+    fig, ax = plt.subplots()
+    plotting.plot_efficient_frontier(ef, ax=ax, show_assets=True)
+    plt.show()
 
-This produces the following plot -- you can set attributes using the returned ``ax`` object: 
+This produces the following plot:
 
     .. image:: ../media/ef_plot.png
         :width: 80%
         :align: center
         :alt: the Efficient Frontier
 
+You can explicitly pass a range of parameters (risk, utility, or returns) to generate a frontier:: 
+    
+    # 100 portfolios with risks between 0.10 and 0.30
+    risk_range = np.linspace(0.10, 0.40, 100)
+    plotting.plot_efficient_frontier(ef, ef_param="risk", ef_param_range=risk_range,
+                                    show_assets=True, showfig=True)
+
+
+We can easily generate more complex plots. The following script plots both the efficient frontier and
+randomly generated (suboptimal) portfolios, coloured by the Sharpe ratio::
+
+    fig, ax = plt.subplots()
+    plotting.plot_efficient_frontier(ef, ax=ax, show_assets=False)
+
+    # Find the tangency portfolio
+    ef.max_sharpe()
+    ret_tangent, std_tangent, _ = ef.portfolio_performance()
+    ax.scatter(std_tangent, ret_tangent, marker="*", s=100, c="r", label="Max Sharpe")
+
+    # Generate random portfolios
+    n_samples = 10000
+    w = np.random.dirichlet(np.ones(len(mu)), n_samples)
+    rets = w.dot(mu)
+    stds = np.sqrt(np.diag(w @ S @ w.T))
+    sharpes = rets / stds
+    ax.scatter(stds, rets, marker=".", c=sharpes, cmap="viridis_r")
+
+    # Output
+    ax.set_title("Efficient Frontier with random portfolios")
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig("ef_scatter.png", dpi=200)
+    plt.show()
+
+This is the result:
+
+    .. image:: ../media/ef_scatter.png
+        :width: 80%
+        :align: center
+        :alt: the Efficient Frontier with random portfolios
+
+Documentation reference
+=======================
 
 .. automodule:: pypfopt.plotting
 

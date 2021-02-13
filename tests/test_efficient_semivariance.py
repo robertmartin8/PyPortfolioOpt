@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 from pypfopt import (
     risk_models,
@@ -30,6 +31,43 @@ def test_es_example():
         rtol=1e-4,
         atol=1e-4,
     )
+    # Cover verbose param case
+    np.testing.assert_equal(
+        es.portfolio_performance(verbose=True), es.portfolio_performance()
+    )
+
+
+def test_es_return_sample():
+    df = get_data()
+    mu = expected_returns.mean_historical_return(df)
+    S = risk_models.sample_cov(df)
+
+    # Generate a 1y sample of daily data
+    np.random.seed(0)
+    mu_daily = (1 + mu) ** (1 / 252) - 1
+    S_daily = S / 252
+    sample_rets = pd.DataFrame(
+        np.random.multivariate_normal(mu_daily, S_daily, 300), columns=mu.index
+    )
+
+    es = EfficientSemivariance(mu, sample_rets)
+    w = es.efficient_return(0.2)
+
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
+    assert all([i >= -1e-5 for i in w.values()])
+
+    np.testing.assert_allclose(
+        es.portfolio_performance(),
+        (0.20, 0.10050247458629837, 1.7910016727029479),
+        rtol=1e-4,
+        atol=1e-4,
+    )
+    # Cover verbose param case
+    np.testing.assert_equal(
+        es.portfolio_performance(verbose=True), es.portfolio_performance()
+    )
 
 
 def test_es_errors():
@@ -41,7 +79,29 @@ def test_es_errors():
         EfficientSemivariance(mu, historical_rets)
 
     historical_rets = historical_rets.dropna(axis=0, how="any")
-    assert EfficientSemivariance(mu, historical_rets)
+    es = EfficientSemivariance(mu, historical_rets)
+
+    with pytest.raises(NotImplementedError):
+        es.min_volatility()
+
+    with pytest.raises(NotImplementedError):
+        es.max_sharpe()
+
+    with pytest.raises(ValueError):
+        # Must be > 0
+        es.max_quadratic_utility(risk_aversion=-0.01)
+
+    with pytest.raises(ValueError):
+        # Must be > 0
+        es.efficient_return(target_return=-0.01)
+
+    with pytest.raises(ValueError):
+        # Must be <= max expected return
+        es.efficient_return(target_return=np.abs(mu).max() + 0.01)
+
+    with pytest.raises(TypeError):
+        # list not supported.
+        EfficientSemivariance(mu, historical_rets.to_numpy().tolist())
 
     historical_rets = historical_rets.iloc[:, :-1]
     with pytest.raises(ValueError):
@@ -83,20 +143,12 @@ def test_es_example_short():
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
     historical_rets = expected_returns.returns_from_prices(df).dropna()
-    es = EfficientSemivariance(
-        mu,
-        historical_rets,
-        weight_bounds=(-1, 1),
-    )
+    es = EfficientSemivariance(mu, historical_rets, weight_bounds=(-1, 1))
     w = es.efficient_return(0.2, market_neutral=True)
     goog_weight = w["GOOG"]
 
     historical_rets["GOOG"] -= historical_rets["GOOG"].quantile(0.75)
-    es = EfficientSemivariance(
-        mu,
-        historical_rets,
-        weight_bounds=(-1, 1),
-    )
+    es = EfficientSemivariance(mu, historical_rets, weight_bounds=(-1, 1))
     w = es.efficient_return(0.2, market_neutral=True)
     goog_weight2 = w["GOOG"]
     assert abs(goog_weight2) >= abs(goog_weight)

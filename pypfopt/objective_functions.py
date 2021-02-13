@@ -183,7 +183,7 @@ def transaction_cost(w, w_prev, k=0.001):
 def ex_ante_tracking_error(w, cov_matrix, benchmark_weights):
     """
     Calculate the (square of) the ex-ante Tracking Error, i.e
-    :math:`\\(w - w_b)^T \\Sigma (w-w_b)`.
+    :math:`(w - w_b)^T \\Sigma (w-w_b)`.
 
     :param w: asset weights in the portfolio
     :type w: np.ndarray OR cp.Variable
@@ -201,7 +201,7 @@ def ex_ante_tracking_error(w, cov_matrix, benchmark_weights):
 
 def ex_post_tracking_error(w, historic_returns, benchmark_returns):
     """
-    Calculate the (square of) the ex-post Tracking Error, i.e :math:`\\Var(r - r_b)`.
+    Calculate the (square of) the ex-post Tracking Error, i.e :math:`Var(r - r_b)`.
 
     :param w: asset weights in the portfolio
     :type w: np.ndarray OR cp.Variable

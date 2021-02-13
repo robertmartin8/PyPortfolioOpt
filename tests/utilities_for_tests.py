@@ -1,11 +1,15 @@
 import os
 
+import numpy as np
 import pandas as pd
 from pypfopt import expected_returns
 from pypfopt import risk_models
-from pypfopt.efficient_frontier import EfficientFrontier
+from pypfopt.efficient_frontier import (
+    EfficientFrontier,
+    EfficientSemivariance,
+    EfficientCVaR,
+)
 from pypfopt.cla import CLA
-from pypfopt.efficient_frontier import EfficientSemivariance
 from pypfopt.expected_returns import returns_from_prices
 
 
@@ -75,6 +79,23 @@ def setup_efficient_semivariance(data_only=False, solver=None, verbose=False):
     )
 
 
+def setup_efficient_cvar(
+    data_only=False, solver=None, verbose=False, solver_options=None
+):
+    df = get_data().dropna(axis=0, how="any")
+    mean_return = expected_returns.mean_historical_return(df)
+    historic_returns = returns_from_prices(df)
+    if data_only:
+        return mean_return, historic_returns
+    return EfficientCVaR(
+        mean_return,
+        historic_returns,
+        verbose=verbose,
+        solver=solver,
+        solver_options=solver_options,
+    )
+
+
 def setup_cla(data_only=False):
     df = get_data()
     mean_return = expected_returns.mean_historical_return(df)
@@ -82,3 +103,38 @@ def setup_cla(data_only=False):
     if data_only:
         return mean_return, sample_cov_matrix
     return CLA(mean_return, sample_cov_matrix)
+
+
+def simple_ef_weights(expected_returns, cov_matrix, target_return, weights_sum):
+    """
+    Calculate weights to achieve target_return on the efficient frontier.
+    The only constraint is the sum of the weights.
+    Note: This is just a simple test utility, it does not support the generalised
+    constraints that EfficientFrontier does and is used to check the results
+    of EfficientFrontier in simple cases.  In particular it is not capable of
+    preventing negative weights (shorting).
+    :param expected_returns: expected returns for each asset.
+    :type expected_returns: np.ndarray
+    :param cov_matrix: covariance of returns for each asset.
+    :type cov_matrix: np.ndarray
+    :param target_return: the target return for the portfolio to achieve.
+    :type target_return: float
+    :param weights_sum: the sum of the returned weights, optimisation constraint.
+    :type weights_sum: float
+    :return: weight for each asset, which sum to 1.0
+    :rtype: np.ndarray
+    """
+    # Solve using Lagrangian and matrix inversion.
+    r = expected_returns.reshape((-1, 1))
+    m = np.block(
+        [
+            [cov_matrix, r, np.ones(r.shape)],
+            [r.transpose(), 0, 0],
+            [np.ones(r.shape).transpose(), 0, 0],
+        ]
+    )
+    y = np.block([[np.zeros(r.shape)], [target_return], [weights_sum]])
+    x = np.linalg.inv(m) @ y
+    # Weights are all but the last 2 elements, which are the lambdas.
+    w = x.flatten()[:-2]
+    return w
