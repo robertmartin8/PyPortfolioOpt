@@ -193,14 +193,13 @@ class DiscreteAllocation:
         # First round
         for ticker, weight in self.weights:
             price = self.latest_prices[ticker]
-            # Attempt to buy the lower integer number of shares
+            # Attempt to buy the lower integer number of shares, which could be zero.
             n_shares = int(weight * self.total_portfolio_value / price)
             cost = n_shares * price
-            if cost > available_funds:
-                # Buy as many as possible
-                n_shares = available_funds // price
-                if n_shares == 0:
-                    print("Insufficient funds")
+            # As weights are all > 0 (long only) we always round down n_shares
+            # so the cost is always <= simple weighted share of portfolio value,
+            # so we can not run out of funds just here.
+            assert cost <= available_funds, "Unexpectedly insufficient funds."
             available_funds -= cost
             shares_bought.append(n_shares)
             buy_prices.append(price)
