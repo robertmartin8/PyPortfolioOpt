@@ -43,6 +43,10 @@ in a risk-efficient way.
 Installation
 ============
 
+If you would like to play with PyPortfolioOpt interactively in your browser, you may launch Binder
+`here <https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master>`__. It takes a
+while to set up, but it lets you try out the cookbook recipes without having to install anything.
+
 Prior to installing PyPortfolioOpt, you need to install C++. On macOS, this means that you need
 to install XCode Command Line Tools (see `here <https://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/>`__).
 
