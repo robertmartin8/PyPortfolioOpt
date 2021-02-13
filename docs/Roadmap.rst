@@ -17,7 +17,6 @@ discuss. If you have any other feature requests, please raise them using GitHub
   `Zipline <https://github.com/quantopian/zipline>`_.
 - Optimising for higher moments (i.e skew and kurtosis)
 - Factor modelling - this is conceptually doable, but a lot of thought needs to be put into the API.
-- CVaR optimisation
 - Monte Carlo optimisation with custom distributions
 - Further support for different risk/return models
 
