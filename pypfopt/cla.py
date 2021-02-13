@@ -4,7 +4,6 @@ generates optimal portfolios using the Critical Line Algorithm as implemented
 by Marcos Lopez de Prado and David Bailey.
 """
 
-import math
 import numpy as np
 import pandas as pd
 from . import base_optimizer
@@ -266,7 +265,7 @@ class CLA(base_optimizer.BaseOptimizer):
             sign = -1
         if "args" in kargs:
             args = kargs["args"]
-        numIter = int(math.ceil(-2.078087 * math.log(tol / abs(b - a))))
+        numIter = int(np.ceil(-2.078087 * np.log(tol / abs(b - a))))
         r = 0.618033989
         c = 1.0 - r
         # Initialize

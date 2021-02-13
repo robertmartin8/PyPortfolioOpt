@@ -32,7 +32,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
 
         - ``n_assets`` - int
         - ``tickers`` - str list
-        - ``returns`` - pd.Series
+        - ``returns`` - pd.DataFrame
 
     - Output:
 
