@@ -1,8 +1,5 @@
 FROM python:3.7.7-slim-stretch as builder
 
-# File Author / Maintainer
-# MAINTAINER
-
 # this will be user root regardless whether home/beakerx is not
 COPY . /tmp/pypfopt
 

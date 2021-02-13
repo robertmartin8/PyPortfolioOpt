@@ -10,8 +10,12 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                os: [ubuntu-latest, windows-latest]
+                os: [ubuntu-latest]
                 python-version: [3.6, 3.7, 3.8]
+                include:
+                    - os: [windows-latest, macos-latest]
+                      python-version: 3.8
+
         steps:
             - uses: actions/checkout@v2
             - name: Set up Python ${{ matrix.python-version }}
