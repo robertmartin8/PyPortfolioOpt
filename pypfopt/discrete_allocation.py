@@ -162,9 +162,7 @@ class DiscreteAllocation:
             if verbose:
                 print("\nAllocating long sub-portfolio...")
             da1 = DiscreteAllocation(
-                longs,
-                self.latest_prices[longs.keys()],
-                total_portfolio_value=long_val,
+                longs, self.latest_prices[longs.keys()], total_portfolio_value=long_val
             )
             long_alloc, long_leftover = da1.greedy_portfolio()
 
@@ -285,9 +283,7 @@ class DiscreteAllocation:
             if verbose:
                 print("\nAllocating long sub-portfolio:")
             da1 = DiscreteAllocation(
-                longs,
-                self.latest_prices[longs.keys()],
-                total_portfolio_value=long_val,
+                longs, self.latest_prices[longs.keys()], total_portfolio_value=long_val
             )
             long_alloc, long_leftover = da1.lp_portfolio()
 
