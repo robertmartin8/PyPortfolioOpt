@@ -685,7 +685,7 @@ class EfficientCVaR(EfficientFrontier):
 
     Public methods:
 
-    - ``min_semivariance()`` minimises the CVaR
+    - ``min_cvar()`` minimises the CVaR
     - ``efficient_risk()`` maximises return for a given CVaR
     - ``efficient_return()`` minimises CVaR for a given target return
     - ``add_objective()`` adds a (convex) objective to the optimisation problem
