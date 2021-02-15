@@ -272,3 +272,9 @@ def test_return_model_not_implemented():
     df = get_data()
     with pytest.raises(NotImplementedError):
         expected_returns.return_model(df, method="fancy_new!")
+
+
+def test_james_stein_shrinkage():
+    df = get_data()
+    with pytest.raises(NotImplementedError):
+        expected_returns.james_stein_shrinkage(df)
