@@ -359,7 +359,7 @@ The CDaR can then be written as:
     CDaR(w, \beta) = \frac{1}{1-\beta} \int_{D(w, r, t) \geq \alpha (w)} D(w, r, t) p(r(t))dr(t).
 
 This is a nasty expression to optimise because we are essentially integrating over VaR values. The key insight
-of Rockafellar and Uryasev (2001) [5]_ is that we can can equivalently optimise the following convex function. Analogous
+of Chekhlov, Rockafellar and Uryasev (2005) [5]_ is that we can can equivalently optimise the following convex function. Analogous
 to CVaR, this can be transformed to a linear problem.
 
 .. autoclass:: pypfopt.efficient_frontier.EfficientCDaR
@@ -398,4 +398,4 @@ References
 .. [2] Estrada, J (2007). `Mean-Semivariance Optimization: A Heuristic Approach <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1028206>`_.
 .. [3] Markowitz, H.; Starer, D.; Fram, H.; Gerber, S. (2019). `Avoiding the Downside <https://www.hudsonbaycapital.com/documents/FG/hudsonbay/research/599440_paper.pdf>`_.
 .. [4] Rockafellar, R.; Uryasev, D. (2001). `Optimization of conditional value-at-risk <https://www.ise.ufl.edu/uryasev/files/2011/11/CVaR1_JOR.pdf>`_
-.. [5] Chekhlov, A.; Rockafellar, R.; Uryasev, D. (2001). `Drawdown measure in portfolio optimization <http://www.math.columbia.edu/~chekhlov/IJTheoreticalAppliedFinance.8.1.2005.pdf>`_
+.. [5] Chekhlov, A.; Rockafellar, R.; Uryasev, D. (2005). `Drawdown measure in portfolio optimization <http://www.math.columbia.edu/~chekhlov/IJTheoreticalAppliedFinance.8.1.2005.pdf>`_
