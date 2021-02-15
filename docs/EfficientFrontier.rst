@@ -333,6 +333,39 @@ provide a sample of data that is large enough to include tail events.
     :members:
     :exclude-members: max_sharpe, min_volatility, max_quadratic_utility
 
+Efficient CDaR
+==============
+
+The **conditional drawdown at risk** is a more exotic measure of tail risk. It tries to alleviate the problem
+of above measure in that it takes into account the timespan of serious decreases in value. The CDaR can be
+thought of as the average of losses that occur on "very bad periods", where "very bad" is quantified by the parameter
+:math:`\beta`. The drawdown is defined as the difference in non-compounded return to the previous peak.
+
+Put differently, the CDaR is the average of all drawdowns so severe that they only occur
+:math:`(1-\beta)\%` of the time. When :math:`\beta = 1` CDaR is simply the maximum drawdown.
+
+While drawdown is quite an intuitive concept, a lot of new notation is required to formulate it mathematically (see
+`the wiki page <https://en.wikipedia.org/wiki/Drawdown_(economics)>`_ for more details). We will adopt the following
+notation:
+
+- *w* for the vector of portfolio weights
+- *r* for a vector of cumulative asset returns (daily), with probability distribution :math:`p(r(t))`.
+- :math:`D(w, r, t) = \max_{\tau<t}(w^T r(\tau))-w^T r(t)` for the drawdown of the portfolio
+- :math:`\alpha` for the portfolio drawdown (DaR) with confidence :math:`\beta`.
+
+The CDaR can then be written as:
+
+.. math::
+    CDaR(w, \beta) = \frac{1}{1-\beta} \int_{D(w, r, t) \geq \alpha (w)} D(w, r, t) p(r(t))dr(t).
+
+This is a nasty expression to optimise because we are essentially integrating over VaR values. The key insight
+of Rockafellar and Uryasev (2001) [5]_ is that we can can equivalently optimise the following convex function. Analogous
+to CVaR, this can be transformed to a linear problem.
+
+.. autoclass:: pypfopt.efficient_frontier.EfficientCDaR
+    :members:
+    :exclude-members: max_sharpe, min_volatility, max_quadratic_utility
+
 
 .. _custom-optimisation:
 
@@ -365,3 +398,4 @@ References
 .. [2] Estrada, J (2007). `Mean-Semivariance Optimization: A Heuristic Approach <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1028206>`_.
 .. [3] Markowitz, H.; Starer, D.; Fram, H.; Gerber, S. (2019). `Avoiding the Downside <https://www.hudsonbaycapital.com/documents/FG/hudsonbay/research/599440_paper.pdf>`_.
 .. [4] Rockafellar, R.; Uryasev, D. (2001). `Optimization of conditional value-at-risk <https://www.ise.ufl.edu/uryasev/files/2011/11/CVaR1_JOR.pdf>`_
+.. [5] Chekhlov, A.; Rockafellar, R.; Uryasev, D. (2001). `Drawdown measure in portfolio optimization <http://www.math.columbia.edu/~chekhlov/IJTheoreticalAppliedFinance.8.1.2005.pdf>`_
