@@ -57,7 +57,7 @@ class CLA(base_optimizer.BaseOptimizer):
         :type cov_matrix: pd.DataFrame or np.array
         :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1).
                               Must be changed to (-1, 1) for portfolios with shorting.
-        :type weight_bounds: tuple (float, float) or (list/ndarray, list/ndarray)
+        :type weight_bounds: tuple (float, float) or (list/ndarray, list/ndarray) or list(tuple(float, float))
         :raises TypeError: if ``expected_returns`` is not a series, list or array
         :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
