@@ -14,8 +14,8 @@ def test_correlation_plot():
     S = risk_models.CovarianceShrinkage(df).ledoit_wolf()
     ax = plotting.plot_covariance(S, showfig=False)
     assert len(ax.findobj()) == 256
-    ax = plotting.plot_covariance(S, plot_correlation=True, showfig=False)
     plt.clf()
+    ax = plotting.plot_covariance(S, plot_correlation=True, showfig=False)
     assert len(ax.findobj()) == 256
     plt.clf()
     ax = plotting.plot_covariance(S, show_tickers=False, showfig=False)
@@ -67,6 +67,8 @@ def test_dendrogram_plot():
         )
         assert len(ax.findobj()) == 65
         assert type(ax.findobj()[0]) == matplotlib.collections.LineCollection
+    plt.clf()
+    plt.close()
 
 
 def test_cla_plot():
@@ -130,6 +132,7 @@ def test_ef_plot_utility():
 
 
 def test_ef_plot_errors():
+    plt.figure()
     ef = setup_efficient_frontier()
     delta_range = np.arange(0.001, 100, 1)
     # Test invalid ef_param
@@ -142,6 +145,8 @@ def test_ef_plot_errors():
         ax = plotting.plot_efficient_frontier(
             None, ef_param_range=delta_range, showfig=False
         )
+    plt.clf()
+    plt.close()
 
 
 def test_ef_plot_risk():
@@ -163,7 +168,10 @@ def test_ef_plot_risk():
 def test_ef_plot_return():
     plt.figure()
     ef = setup_efficient_frontier()
-    return_range = np.linspace(0, ef.expected_returns.max(), 50)
+    # FIXME:  Internally _max_return() is used, which uses a solver so can have numerical differences to the inputs.
+    # hence the epsilon here
+    max_ret = ef.expected_returns.max() - 0.0001
+    return_range = np.linspace(0, max_ret, 50)
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="return", ef_param_range=return_range, showfig=False
     )
