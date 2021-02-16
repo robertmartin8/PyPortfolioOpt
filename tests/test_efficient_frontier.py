@@ -1,4 +1,3 @@
-import math
 import warnings
 import numpy as np
 import pandas as pd
@@ -362,6 +361,24 @@ def test_min_volatility_nonlinear_constraint():
     ef.add_constraint(lambda x: (x + 1) / (x + 2) ** 2 <= 0.5)
     with pytest.raises(exceptions.OptimizationError):
         ef.min_volatility()
+
+
+def test_max_returns():
+    ef = setup_efficient_frontier()
+    #  In unconstrained case, should equal maximal asset return
+    max_ret_idx = ef.expected_returns.argmax()
+    pf_max_ret = ef._max_return()
+    np.testing.assert_almost_equal(ef.expected_returns[max_ret_idx], pf_max_ret)
+
+    # ... and weights should in the max return asset
+    test_res = np.zeros(len(ef.tickers))
+    test_res[max_ret_idx] = 1
+    np.testing.assert_allclose(ef.weights, test_res, atol=1e-5, rtol=1e-5)
+
+    # Max ret should go down when constrained
+    ef = setup_efficient_frontier()
+    ef.add_constraint(lambda w: w <= 0.2)
+    assert ef._max_return() < pf_max_ret
 
 
 def test_max_sharpe_error():
@@ -888,9 +905,21 @@ def test_efficient_risk():
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.2552422849133517, 0.1900000002876062, 1.2381172871434818),
+        (0.2552422849133517, 0.19, 1.2381172871434818),
         atol=1e-6,
     )
+
+
+def test_efficient_risk_limit():
+    #  In the limit of high target risk, efficient risk should just maximise return
+    ef = setup_efficient_frontier()
+    ef.efficient_risk(1)
+    w = ef.weights
+
+    ef = setup_efficient_frontier()
+    ef._max_return(return_value=False)
+    w2 = ef.weights
+    np.testing.assert_allclose(w, w2, atol=5)
 
 
 def test_efficient_risk_error():
@@ -932,7 +961,7 @@ def test_efficient_risk_short():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.30035471606347336, 0.1900000003049494, 1.4755511348079207),
+        (0.30035471606347336, 0.19, 1.4755511348079207),
         atol=1e-6,
     )
     sharpe = ef.portfolio_performance()[2]
@@ -981,7 +1010,7 @@ def test_efficient_risk_market_neutral():
     assert (ef.weights < 1).all() and (ef.weights > -1).all()
     np.testing.assert_allclose(
         ef.portfolio_performance(),
-        (0.28640632960825885, 0.20999999995100788, 1.2686015698590967),
+        (0.28640632960825885, 0.21, 1.2686015698590967),
         atol=1e-6,
     )
     sharpe = ef.portfolio_performance()[2]
@@ -1070,36 +1099,6 @@ def test_efficient_return_many_values():
         np.testing.assert_allclose(target_return, mean_return)
 
 
-def test_efficient_return_max():
-    """
-    Test the boundary condition (that in the absence of shorting) if the
-    target return is equal to the maximum return of any of the assets
-    then the resulting portfolio is completely concentrated in that asset.
-    """
-    solver_options_map = {
-        "OSQP": {"eps_abs": 1e-8, "eps_rel": 1e-8, "max_iter": 100000},
-        "SCS": {"eps": 1e-8, "max_iters": 10000},
-    }
-    # According to https://www.cvxpy.org/tutorial/advanced/index.html
-    # "CVXPY is distributed with the open source solvers ECOS, OSQP, and SCS"
-    # and CVXOPT is a project dependency in requirements.txt
-    # and these all support QP, which is not the case for every one of cvxpy.installed_solvers():
-    qp_solvers = ["OSQP", "ECOS", "SCS", "CVXOPT"]
-    for solver in qp_solvers:
-        ef = setup_efficient_frontier(
-            verbose=True, solver=solver, solver_options=solver_options_map.get(solver)
-        )
-        max_ret_i = ef.expected_returns.argmax()
-        max_ret = ef.expected_returns[max_ret_i]
-        ef.efficient_return(max_ret)
-        weights_expected = np.zeros(len(ef.expected_returns))
-        weights_expected[max_ret_i] = 1.0
-        np.testing.assert_almost_equal(ef.weights, weights_expected)
-        vol = np.sqrt(ef.cov_matrix[max_ret_i][max_ret_i])
-        np.testing.assert_almost_equal(ef.portfolio_performance()[0], max_ret)
-        np.testing.assert_almost_equal(ef.portfolio_performance()[1], vol)
-
-
 def test_efficient_return_short():
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
@@ -1114,7 +1113,7 @@ def test_efficient_return_short():
         ef.expected_returns, ef.cov_matrix, target_return, weights_sum
     )
     np.testing.assert_almost_equal(ef.weights, w_expected)
-    vol_expected = math.sqrt(
+    vol_expected = np.sqrt(
         objective_functions.portfolio_variance(w_expected, ef.cov_matrix)
     )
     sharpe_expected = objective_functions.sharpe_ratio(
@@ -1194,7 +1193,7 @@ def test_efficient_return_market_neutral_unbounded():
         ef.expected_returns, ef.cov_matrix, target_return, weights_sum
     )
     np.testing.assert_almost_equal(ef.weights, w_expected)
-    vol_expected = math.sqrt(
+    vol_expected = np.sqrt(
         objective_functions.portfolio_variance(w_expected, ef.cov_matrix)
     )
     sharpe_expected = objective_functions.sharpe_ratio(

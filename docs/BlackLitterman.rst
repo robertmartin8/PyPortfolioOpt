@@ -5,7 +5,7 @@ Black-Litterman Allocation
 ##########################
 
 The Black-Litterman (BL) model [1]_ takes a Bayesian approach to asset allocation.
-Specifically, it combines a **prior** estimate of returns (canonically, the market-implied
+Specifically, it combines a **prior** estimate of returns (for example, the market-implied
 returns) with **views** on certain assets, to produce a **posterior** estimate of expected
 returns. The advantages of this are:
 
@@ -52,11 +52,10 @@ I'd like to thank  `Felipe Schneider <https://github.com/schneiderfelipe>`_ for 
 contributions to the Black-Litterman implementation. A full example of its usage, including the acquistion
 of market cap data for free, please refer to the `cookbook recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/4-Black-Litterman-Allocation.ipynb>`_.
 
-.. caution:: 
+.. tip:: 
 
-    Our implementation of Black-Litterman makes frequent use of the fact that python 3.6+ dictionaries
-    remain ordered. It is still possible to use python 3.5 but you will have to construct the BL inputs
-    explicitly (``Q``, ``P``, ``omega``).
+    Thomas Kirschenmann has built a neat interactive `Black-Litterman tool <https://github.com/thk3421-models/cardiel>`_
+    on top of PyPortfolioOpt, which allows you to visualise BL outputs and compare optimisation objectives.
 
 Priors
 ======

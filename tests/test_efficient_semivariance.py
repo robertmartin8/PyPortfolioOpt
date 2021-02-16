@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pytest
 from pypfopt import (
     risk_models,
@@ -27,6 +28,39 @@ def test_es_example():
     np.testing.assert_allclose(
         es.portfolio_performance(),
         (0.20, 0.08558991313395496, 2.1030523036993265),
+        rtol=1e-4,
+        atol=1e-4,
+    )
+    # Cover verbose param case
+    np.testing.assert_equal(
+        es.portfolio_performance(verbose=True), es.portfolio_performance()
+    )
+
+
+def test_es_return_sample():
+    df = get_data()
+    mu = expected_returns.mean_historical_return(df)
+    S = risk_models.sample_cov(df)
+
+    # Generate a 1y sample of daily data
+    np.random.seed(0)
+    mu_daily = (1 + mu) ** (1 / 252) - 1
+    S_daily = S / 252
+    sample_rets = pd.DataFrame(
+        np.random.multivariate_normal(mu_daily, S_daily, 300), columns=mu.index
+    )
+
+    es = EfficientSemivariance(mu, sample_rets)
+    w = es.efficient_return(0.2)
+
+    assert isinstance(w, dict)
+    assert set(w.keys()) == set(es.tickers)
+    np.testing.assert_almost_equal(es.weights.sum(), 1)
+    assert all([i >= -1e-5 for i in w.values()])
+
+    np.testing.assert_allclose(
+        es.portfolio_performance(),
+        (0.20, 0.10050247458629837, 1.7910016727029479),
         rtol=1e-4,
         atol=1e-4,
     )

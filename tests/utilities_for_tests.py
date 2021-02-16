@@ -4,9 +4,12 @@ import numpy as np
 import pandas as pd
 from pypfopt import expected_returns
 from pypfopt import risk_models
-from pypfopt.efficient_frontier import EfficientFrontier
+from pypfopt.efficient_frontier import (
+    EfficientFrontier,
+    EfficientSemivariance,
+    EfficientCVaR,
+)
 from pypfopt.cla import CLA
-from pypfopt.efficient_frontier import EfficientSemivariance
 from pypfopt.expected_returns import returns_from_prices
 
 
@@ -73,6 +76,23 @@ def setup_efficient_semivariance(data_only=False, solver=None, verbose=False):
         return mean_return, historic_returns
     return EfficientSemivariance(
         mean_return, historic_returns, solver=solver, verbose=verbose
+    )
+
+
+def setup_efficient_cvar(
+    data_only=False, solver=None, verbose=False, solver_options=None
+):
+    df = get_data().dropna(axis=0, how="any")
+    mean_return = expected_returns.mean_historical_return(df)
+    historic_returns = returns_from_prices(df)
+    if data_only:
+        return mean_return, historic_returns
+    return EfficientCVaR(
+        mean_return,
+        historic_returns,
+        verbose=verbose,
+        solver=solver,
+        solver_options=solver_options,
     )
 
 

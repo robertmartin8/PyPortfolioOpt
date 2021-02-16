@@ -183,7 +183,7 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     def _map_bounds_to_constraints(self, test_bounds):
         """
-        Process input bounds into a form acceptable by cvxpy and add to the constraints list.
+        Convert input bounds into a form acceptable by cvxpy and add to the constraints list.
 
         :param test_bounds: minimum and maximum weight of each asset OR single min/max pair
                             if all identical OR pair of arrays corresponding to lower/upper bounds. defaults to (0, 1).

@@ -20,7 +20,7 @@ class of problems, which happen to be incredibly useful for finance. A convex pr
 
 where :math:`\mathbf{x} \in \mathbb{R}^n`, and :math:`f(\mathbf{x}), g_i(\mathbf{x})` are convex functions. [1]_
 
-Fortunately, portfolio optimisation problems (with standard and objective constraints) are convex. This
+Fortunately, portfolio optimisation problems (with standard objectives and constraints) are convex. This
 allows us to immediately apply the vast body of theory as well as the refined solving routines -- accordingly,
 the main difficulty is inputting our specific problem into a solver.
 
@@ -239,7 +239,7 @@ frontier. Note  that some of the parent methods, like :py:func:`max_sharpe` and 
 are not applicable to mean-semivariance portfolios, so calling them returns an error.
 
 :py:class:`EfficientSemivariance` has a slightly different API to :py:class:`EfficientFrontier`. Instead of passing
-in a covariance matrix, you should past in a dataframe of historical returns (this can be constructed
+in a covariance matrix, you should past in a dataframe of historical/simulated returns (this can be constructed
 from your price dataframe using the helper method :py:func:`expected_returns.returns_from_prices`). Here
 is a full example, in which we seek the portfolio that minimises the semivariance for a target
 annual return of 20%::
@@ -279,6 +279,59 @@ implementation is based on Markowitz et al (2019) [3]_.
     :members:
     :exclude-members: max_sharpe, min_volatility
 
+Efficient CVaR
+==============
+
+The **conditional value-at-risk** (a.k.a **expected shortfall**) is a popular measure of tail risk. The CVaR can be
+thought of as the average of losses that occur on "very bad days", where "very bad" is quantified by the parameter
+:math:`\beta`.
+
+For example, if we calculate the CVaR to be 10% for :math:`\beta = 0.95`, we can be 95% confident that the worst-case
+average daily loss will be 3%. Put differently, the CVaR is the average of all losses so severe that they only occur
+:math:`(1-\beta)\%` of the time. 
+
+While CVaR is quite an intuitive concept, a lot of new notation is required to formulate it mathematically (see
+the `wiki page <https://en.wikipedia.org/wiki/Expected_shortfall>`_ for more details). We will adopt the following
+notation: 
+
+- *w* for the vector of portfolio weights
+- *r* for a vector of asset returns (daily), with probability distribution :math:`p(r)`.
+- :math:`L(w, r) = - w^T r` for the loss of the portfolio
+- :math:`\alpha` for the portfolio value-at-risk (VaR) with confidence :math:`\beta`.
+
+The CVaR can then be written as:
+
+.. math::
+    CVaR(w, \beta) = \frac{1}{1-\beta} \int_{L(w, r) \geq \alpha (w)} L(w, r) p(r)dr.
+
+This is a nasty expression to optimise because we are essentially integrating over VaR values. The key insight
+of Rockafellar and Uryasev (2001) [4]_ is that we can can equivalently optimise the following convex function:
+
+.. math:: 
+    F_\beta (w, \alpha) = \alpha + \frac{1}{1-\beta} \int [-w^T r - \alpha]^+ p(r) dr,
+
+where :math:`[x]^+ = \max(x, 0)`. The authors prove that minimising :math:`F_\beta(w, \alpha)` over all
+:math:`w, \alpha` minimises the CVaR. Suppose we have a sample of *T* daily returns (these
+can either be historical or simulated). The integral in the expression becomes a sum, so the CVaR optimisation
+problem reduces to a linear program:
+
+.. math::
+
+    \begin{equation*}
+    \begin{aligned}
+    & \underset{w, \alpha}{\text{minimise}} & & \alpha + \frac{1}{1-\beta} \frac 1 T \sum_{i=1}^T u_i \\
+    & \text{subject to} & & u_i \geq 0  \\
+    &&&  u_i \geq -w^T r_i - \alpha. \\
+    \end{aligned}
+    \end{equation*}
+
+This formulation introduces a new variable for each datapoint (similar to Efficient Semivariance), so
+you may run into performance issues for long returns dataframes. At the same time, you should aim to
+provide a sample of data that is large enough to include tail events. 
+
+.. autoclass:: pypfopt.efficient_frontier.EfficientCVaR
+    :members:
+    :exclude-members: max_sharpe, min_volatility, max_quadratic_utility
 
 
 .. _custom-optimisation:
@@ -295,7 +348,7 @@ The :py:class:`EfficientFrontier` class inherits from the ``BaseConvexOptimizer`
 define your own optimisation problem. You can either optimise some generic ``convex_objective``
 (which *must* be built using ``cvxpy`` atomic functions -- see `here <https://www.cvxpy.org/tutorial/functions/index.html>`_)
 or a ``nonconvex_objective``, which uses ``scipy.optimize`` as the backend and thus has a completely
-different API. For examples, check out this `cookbook recipe
+different API. For more examples, check out this `cookbook recipe
 <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/3-Advanced-Mean-Variance-Optimisation.ipynb>`_.
 
     .. class:: pypfopt.base_optimizer.BaseConvexOptimizer
@@ -311,3 +364,4 @@ References
 .. [1] Boyd, S.; Vandenberghe, L. (2004). `Convex Optimization <https://web.stanford.edu/~boyd/cvxbook/>`_.
 .. [2] Estrada, J (2007). `Mean-Semivariance Optimization: A Heuristic Approach <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1028206>`_.
 .. [3] Markowitz, H.; Starer, D.; Fram, H.; Gerber, S. (2019). `Avoiding the Downside <https://www.hudsonbaycapital.com/documents/FG/hudsonbay/research/599440_paper.pdf>`_.
+.. [4] Rockafellar, R.; Uryasev, D. (2001). `Optimization of conditional value-at-risk <https://www.ise.ufl.edu/uryasev/files/2011/11/CVaR1_JOR.pdf>`_
