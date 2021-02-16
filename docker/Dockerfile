@@ -1,7 +1,7 @@
 FROM python:3.8-slim-buster
 
 WORKDIR pypfopt
-COPY pyproject.toml poetry.lock ./
+COPY ../pyproject.toml ../poetry.lock ./
 
 RUN buildDeps='gcc g++' && \
     apt-get update && apt-get install -y $buildDeps --no-install-recommends && \
@@ -10,7 +10,7 @@ RUN buildDeps='gcc g++' && \
     poetry install -E optionals --no-root && \
     apt-get purge -y --auto-remove $buildDeps
 
-COPY . .
+COPY ../. .
 
 # Usage examples:
 #
