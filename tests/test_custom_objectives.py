@@ -17,6 +17,22 @@ def test_custom_convex_equal_weights():
     np.testing.assert_allclose(ef.weights, np.array([1 / 20] * 20))
 
 
+def test_custom_convex_additional():
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=1)
+    w_co = ef.convex_objective(
+        objective_functions.portfolio_variance, cov_matrix=ef.cov_matrix
+    )
+
+    # Same as test_min_volatility_L2_reg:
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=1)
+    w_mv = ef.min_volatility()
+    # Weights from custom convex objective match those from min_volatility where
+    # an additional objective is applied to both.
+    assert dict(w_co) == dict(w_mv)
+
+
 def test_custom_convex_abs_exposure():
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)

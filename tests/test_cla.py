@@ -62,6 +62,12 @@ def test_cla_custom_bounds():
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
     assert (0.01 <= cla.weights[::2]).all() and (cla.weights[::2] <= 0.13).all()
     assert (0.02 <= cla.weights[1::2]).all() and (cla.weights[1::2] <= 0.11).all()
+    # Test polymorphism of the weight_bounds param.
+    bounds2 = ([bounds[0][0], bounds[1][0]] * 10, [bounds[0][1], bounds[1][1]] * 10)
+    cla2 = CLA(*setup_cla(data_only=True), weight_bounds=bounds2)
+    cla2.cov_matrix = risk_models.exp_cov(df).values
+    w2 = cla2.min_volatility()
+    assert dict(w2) == dict(w)
 
 
 def test_cla_min_volatility():

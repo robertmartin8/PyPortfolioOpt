@@ -6,6 +6,21 @@ from pypfopt import HRPOpt, CovarianceShrinkage
 from tests.utilities_for_tests import get_data, resource
 
 
+def test_hrp_errors():
+    with pytest.raises(ValueError):
+        hrp = HRPOpt()
+
+    df = get_data()
+    returns = df.pct_change().dropna(how="all")
+    returns_np = returns.to_numpy()
+    with pytest.raises(TypeError):
+        hrp = HRPOpt(returns_np)
+
+    hrp = HRPOpt(returns)
+    with pytest.raises(ValueError):
+        hrp.optimize(linkage_method="blah")
+
+
 def test_hrp_portfolio():
     df = get_data()
     returns = df.pct_change().dropna(how="all")

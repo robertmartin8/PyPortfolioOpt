@@ -69,6 +69,17 @@ def test_sample_cov_npd():
                 str(w[0].message)
                 == "The covariance matrix is non positive semidefinite. Amending eigenvalues."
             )
+            # Test works on DataFrame too, same results, index and columns rebuilt.
+            tickers = ["A", "B"]
+            S_df = pd.DataFrame(data=S, index=tickers, columns=tickers)
+            S2_df = risk_models.fix_nonpositive_semidefinite(S_df, fix_method=method)
+            assert isinstance(S2_df, pd.DataFrame)
+            np.testing.assert_equal(S2_df.to_numpy(), S2)
+            assert S2_df.index.equals(S_df.index)
+            assert S2_df.columns.equals(S_df.columns)
+
+    with pytest.raises(NotImplementedError):
+        risk_models.fix_nonpositive_semidefinite(S, fix_method="blah")
 
 
 def test_fix_npd_different_method():
@@ -96,6 +107,10 @@ def test_semicovariance():
     assert risk_models._is_positive_semidefinite(S)
     S2 = risk_models.semicovariance(df, frequency=2)
     pd.testing.assert_frame_equal(S / 126, S2)
+    # Cover that it works on np.ndarray, with a warning
+    with pytest.warns(RuntimeWarning):
+        S2_np = risk_models.semicovariance(df.to_numpy(), frequency=2)
+        np.testing.assert_equal(S2_np, S2.to_numpy())
 
 
 def test_semicovariance_benchmark():
@@ -120,6 +135,13 @@ def test_exp_cov_matrix():
     assert risk_models._is_positive_semidefinite(S)
     S2 = risk_models.exp_cov(df, frequency=2)
     pd.testing.assert_frame_equal(S / 126, S2)
+    # Cover that it works on np.ndarray, with a warning
+    with pytest.warns(RuntimeWarning):
+        S2_np = risk_models.exp_cov(df.to_numpy(), frequency=2)
+        np.testing.assert_equal(S2_np, S2.to_numpy())
+    # Too short a span causes a warning.
+    with pytest.warns(UserWarning):
+        risk_models.exp_cov(df, frequency=2, span=9)
 
 
 def test_exp_cov_limits():
@@ -141,6 +163,11 @@ def test_min_cov_det():
     assert S.index.equals(S.columns)
     assert S.notnull().all().all()
     # assert risk_models._is_positive_semidefinite(S)
+    # Cover that it works on np.ndarray, with a warning
+    with pytest.warns(RuntimeWarning):
+        S2 = risk_models.min_cov_determinant(df.to_numpy(), random_state=8)
+        assert isinstance(S2, pd.DataFrame)
+        np.testing.assert_equal(S.to_numpy(), S2.to_numpy())
 
 
 def test_cov_to_corr():
@@ -153,6 +180,7 @@ def test_cov_to_corr():
         test_corr_numpy = risk_models.cov_to_corr(rets.cov().values)
         assert len(w) == 1
         assert str(w[0].message) == "cov_matrix is not a dataframe"
+        assert isinstance(test_corr_numpy, pd.DataFrame)
         np.testing.assert_array_almost_equal(test_corr_numpy, rets.corr().values)
 
 
@@ -162,6 +190,13 @@ def test_corr_to_cov():
     test_corr = risk_models.cov_to_corr(rets.cov())
     new_cov = risk_models.corr_to_cov(test_corr, rets.std())
     pd.testing.assert_frame_equal(new_cov, rets.cov())
+
+    with pytest.warns(RuntimeWarning) as w:
+        cov_numpy = risk_models.corr_to_cov(test_corr.to_numpy(), rets.std())
+        assert len(w) == 1
+        assert str(w[0].message) == "corr_matrix is not a dataframe"
+        assert isinstance(cov_numpy, pd.DataFrame)
+        np.testing.assert_equal(cov_numpy.to_numpy(), new_cov.to_numpy())
 
 
 def test_covariance_shrinkage_init():
@@ -181,6 +216,13 @@ def test_shrunk_covariance():
     assert list(shrunk_cov.columns) == list(df.columns)
     assert not shrunk_cov.isnull().any().any()
     assert risk_models._is_positive_semidefinite(shrunk_cov)
+    with pytest.warns(RuntimeWarning) as w:
+        cs_numpy = risk_models.CovarianceShrinkage(df.to_numpy())
+        assert len(w) == 1
+        assert str(w[0].message) == "data is not in a dataframe"
+        shrunk_cov_numpy = cs_numpy.shrunk_covariance(0.2)
+        assert isinstance(shrunk_cov_numpy, pd.DataFrame)
+        np.testing.assert_equal(shrunk_cov_numpy.to_numpy(), shrunk_cov.to_numpy())
 
 
 def test_shrunk_covariance_extreme_delta():
@@ -269,6 +311,7 @@ def test_risk_matrix_and_returns_data():
         "sample_cov",
         "semicovariance",
         "exp_cov",
+        # FIXME: this fails "min_cov_determinant",
         "ledoit_wolf",
         "ledoit_wolf_constant_variance",
         "ledoit_wolf_single_factor",

@@ -13,6 +13,7 @@ import numpy as np
 from . import risk_models, exceptions
 from . import EfficientFrontier, CLA
 import scipy.cluster.hierarchy as sch
+import warnings
 
 try:
     import matplotlib.pyplot as plt
@@ -100,6 +101,10 @@ def plot_dendrogram(hrp, ax=None, show_tickers=True, **kwargs):
     ax = ax or plt.gca()
 
     if hrp.clusters is None:
+        warnings.warn(
+            "hrp param has not been optimized.  Attempting optimization.",
+            RuntimeWarning,
+        )
         hrp.optimize()
 
     if show_tickers:
