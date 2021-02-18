@@ -83,8 +83,10 @@ def fix_nonpositive_semidefinite(matrix, fix_method="spectral"):
     else:
         raise NotImplementedError("Method {} not implemented".format(fix_method))
 
-    if not _is_positive_semidefinite(fixed_matrix):
-        warnings.warn("Could not fix matrix. Please try a different risk model.")
+    if not _is_positive_semidefinite(fixed_matrix):  # pragma: no cover
+        warnings.warn(
+            "Could not fix matrix. Please try a different risk model.", UserWarning
+        )
 
     # Rebuild labels if provided
     if isinstance(matrix, pd.DataFrame):
@@ -109,7 +111,6 @@ def risk_matrix(prices, method="sample_cov", **kwargs):
         - ``sample_cov``
         - ``semicovariance``
         - ``exp_cov``
-        - ``min_cov_determinant``
         - ``ledoit_wolf``
         - ``ledoit_wolf_constant_variance``
         - ``ledoit_wolf_single_factor``
@@ -127,8 +128,6 @@ def risk_matrix(prices, method="sample_cov", **kwargs):
         return semicovariance(prices, **kwargs)
     elif method == "exp_cov":
         return exp_cov(prices, **kwargs)
-    elif method == "min_cov_determinant":
-        return min_cov_determinant(prices, **kwargs)
     elif method == "ledoit_wolf" or method == "ledoit_wolf_constant_variance":
         return CovarianceShrinkage(prices, **kwargs).ledoit_wolf()
     elif method == "ledoit_wolf_single_factor":
@@ -290,6 +289,8 @@ def min_cov_determinant(
     :return: annualised estimate of covariance matrix
     :rtype: pd.DataFrame
     """
+    warnings.warn("min_cov_determinant is deprecated and will be removed in v1.5")
+
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("data is not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
@@ -306,7 +307,8 @@ def min_cov_determinant(
         X = prices
     else:
         X = returns_from_prices(prices)
-    X = np.nan_to_num(X.values)
+    # X = np.nan_to_num(X.values)
+    X = X.dropna().values
     raw_cov_array = sklearn.covariance.fast_mcd(X, random_state=random_state)[1]
     cov = pd.DataFrame(raw_cov_array, index=assets, columns=assets) * frequency
     return fix_nonpositive_semidefinite(cov, kwargs.get("fix_method", "spectral"))
@@ -377,7 +379,7 @@ class CovarianceShrinkage:
             from sklearn import covariance
 
             self.covariance = covariance
-        except (ModuleNotFoundError, ImportError):
+        except (ModuleNotFoundError, ImportError):  # pragma: no cover
             raise ImportError("Please install scikit-learn via pip or poetry")
 
         if not isinstance(prices, pd.DataFrame):

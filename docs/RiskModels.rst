@@ -44,6 +44,8 @@ covariance.
 
 .. automodule:: pypfopt.risk_models
 
+    :exclude-members: min_cov_determinant
+
     .. note::
 
         For any of these methods, if you would prefer to pass returns (the default is prices),
@@ -93,13 +95,6 @@ covariance.
         explanation of how this estimator works, please refer to the
         `blog post <https://reasonabledeviations.com/2018/08/15/exponential-covariance/>`_
         on my academic website.
-
-    .. autofunction:: min_cov_determinant
-
-        The minimum covariance determinant (MCD) estimator is designed to be robust to
-        outliers and 'contaminated' data [3]_. An efficient estimator is implemented in the
-        :py:mod:`sklearn.covariance` module, which is based on the algorithm presented in
-        Rousseeuw (1999) [4]_.
 
     .. autofunction:: cov_to_corr
 
