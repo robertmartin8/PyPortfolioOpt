@@ -271,7 +271,7 @@ def exp_cov(prices, returns_data=False, span=180, frequency=252, **kwargs):
 
 def min_cov_determinant(
     prices, returns_data=False, frequency=252, random_state=None, **kwargs
-):
+):  # pragma: no cover
     """
     Calculate the minimum covariance determinant, an estimator of the covariance matrix
     that is more robust to noise.

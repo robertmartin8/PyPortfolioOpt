@@ -165,8 +165,8 @@ def test_min_semivariance():
     np.testing.assert_allclose(
         es.portfolio_performance(),
         (0.1024524845740464, 0.08497381732237187, 0.970328121911246),
-        rtol=1e-4,
-        atol=1e-4,
+        rtol=1e-3,
+        atol=1e-3,
     )
 
 

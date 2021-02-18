@@ -741,7 +741,8 @@ class EfficientCVaR(EfficientFrontier):
         self._alpha = cp.Variable()
         self._u = cp.Variable(len(self.returns))
 
-    def _validate_beta(self, beta):
+    @staticmethod
+    def _validate_beta(beta):
         if not (0 <= beta < 1):
             raise ValueError("beta must be between 0 and 1")
         if beta <= 0.2:

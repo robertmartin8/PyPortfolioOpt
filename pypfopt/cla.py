@@ -62,8 +62,8 @@ class CLA(base_optimizer.BaseOptimizer):
         """
         # Initialize the class
         self.mean = np.array(expected_returns).reshape((len(expected_returns), 1))
-        if (self.mean == np.ones(self.mean.shape) * self.mean.mean()).all():
-            self.mean[-1, 0] += 1e-5
+        # if (self.mean == np.ones(self.mean.shape) * self.mean.mean()).all():
+        #     self.mean[-1, 0] += 1e-5
         self.expected_returns = self.mean.reshape((len(self.mean),))
         self.cov_matrix = np.asarray(cov_matrix)
 
@@ -159,7 +159,7 @@ class CLA(base_optimizer.BaseOptimizer):
         c3 = np.dot(np.dot(onesF.T, covarF_inv), meanF)
         c4 = np.dot(covarF_inv, onesF)
         c = -c1 * c2[i] + c3 * c4[i]
-        if c == 0:
+        if c == 0:  # pragma: no cover
             return None, None
         # 2) bi
         if type(bi) == list:
@@ -221,7 +221,7 @@ class CLA(base_optimizer.BaseOptimizer):
                     if (
                         self.w[i][j] - self.lB[j] < -tol
                         or self.w[i][j] - self.uB[j] > tol
-                    ):
+                    ):  #  pragma: no cover
                         flag = True
                         break
             if flag is True:

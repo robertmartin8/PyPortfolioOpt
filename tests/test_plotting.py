@@ -122,7 +122,7 @@ def test_default_ef_plot():
 def test_ef_plot_utility():
     plt.figure()
     ef = setup_efficient_frontier()
-    delta_range = np.arange(0.001, 100, 1)
+    delta_range = np.arange(0.001, 50, 1)
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="utility", ef_param_range=delta_range, showfig=False
     )
@@ -134,15 +134,15 @@ def test_ef_plot_utility():
 def test_ef_plot_errors():
     plt.figure()
     ef = setup_efficient_frontier()
-    delta_range = np.arange(0.001, 100, 1)
+    delta_range = np.arange(0.001, 50, 1)
     # Test invalid ef_param
     with pytest.raises(NotImplementedError):
-        ax = plotting.plot_efficient_frontier(
+        plotting.plot_efficient_frontier(
             ef, ef_param="blah", ef_param_range=delta_range, showfig=False
         )
     # Test invalid optimizer
     with pytest.raises(NotImplementedError):
-        ax = plotting.plot_efficient_frontier(
+        plotting.plot_efficient_frontier(
             None, ef_param_range=delta_range, showfig=False
         )
     plt.clf()
@@ -156,7 +156,7 @@ def test_ef_plot_risk():
     min_risk = ef.portfolio_performance()[1]
 
     ef = setup_efficient_frontier()
-    risk_range = np.linspace(min_risk + 0.05, 0.5, 50)
+    risk_range = np.linspace(min_risk + 0.05, 0.5, 30)
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="risk", ef_param_range=risk_range, showfig=False
     )
@@ -168,10 +168,9 @@ def test_ef_plot_risk():
 def test_ef_plot_return():
     plt.figure()
     ef = setup_efficient_frontier()
-    # FIXME:  Internally _max_return() is used, which uses a solver so can have numerical differences to the inputs.
-    # hence the epsilon here
+    # Internally _max_return() is used, so subtract epsilon
     max_ret = ef.expected_returns.max() - 0.0001
-    return_range = np.linspace(0, max_ret, 50)
+    return_range = np.linspace(0, max_ret, 30)
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="return", ef_param_range=return_range, showfig=False
     )
@@ -185,7 +184,7 @@ def test_ef_plot_utility_short():
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
     )
-    delta_range = np.linspace(0.001, 20, 100)
+    delta_range = np.linspace(0.001, 20, 50)
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="utility", ef_param_range=delta_range, showfig=False
     )
@@ -201,7 +200,7 @@ def test_constrained_ef_plot_utility():
     ef.add_constraint(lambda w: w[2] == 0.15)
     ef.add_constraint(lambda w: w[3] + w[4] <= 0.10)
 
-    delta_range = np.linspace(0.001, 20, 100)
+    delta_range = np.linspace(0.001, 20, 50)
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="utility", ef_param_range=delta_range, showfig=False
     )
@@ -221,7 +220,7 @@ def test_constrained_ef_plot_risk():
     ef.add_constraint(lambda w: w[3] + w[4] <= 0.10)
 
     # 100 portfolios with risks between 0.10 and 0.30
-    risk_range = np.linspace(0.157, 0.40, 100)
+    risk_range = np.linspace(0.157, 0.40, 50)
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="risk", ef_param_range=risk_range, show_assets=True, showfig=False
     )

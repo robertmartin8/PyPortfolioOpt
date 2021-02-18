@@ -232,7 +232,7 @@ class DiscreteAllocation:
                 price = self.latest_prices[ticker]
                 counter += 1
 
-            if deficit[idx] <= 0 or counter == 10:
+            if deficit[idx] <= 0 or counter == 10:  # pragma: no cover
                 # Dirty solution to break out of both loops
                 break
 
@@ -324,7 +324,7 @@ class DiscreteAllocation:
             raise NameError("Solver {} is not installed. ".format(solver))
         opt.solve(solver=solver)
 
-        if opt.status not in {"optimal", "optimal_inaccurate"}:
+        if opt.status not in {"optimal", "optimal_inaccurate"}:  # pragma: no cover
             raise exceptions.OptimizationError("Please try greedy_portfolio")
 
         vals = np.rint(x.value).astype(int)

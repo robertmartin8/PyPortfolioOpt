@@ -236,6 +236,9 @@ def test_capm_with_benchmark():
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
 
+    mu2 = expected_returns.capm_return(df, market_prices=mkt_df, compounding=False)
+    assert (mu2 >= mu).all()
+
 
 def test_risk_matrix_and_returns_data():
     # Test the switcher method for simple calls

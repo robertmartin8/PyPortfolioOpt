@@ -19,7 +19,7 @@ try:
     import matplotlib.pyplot as plt
 
     plt.style.use("seaborn-deep")
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError):  # pragma: no cover
     raise ImportError("Please install matplotlib via pip or poetry")
 
 
@@ -41,7 +41,7 @@ def _plot_io(**kwargs):
     plt.tight_layout()
     if filename:
         plt.savefig(fname=filename, dpi=dpi)
-    if showfig:
+    if showfig:  # pragma: no cover
         plt.show()
 
 
@@ -157,7 +157,7 @@ def _ef_default_returns_range(ef, points):
     ef_minvol.min_volatility()
     min_ret = ef_minvol.portfolio_performance()[0]
     max_ret = ef_maxret._max_return()
-    return np.linspace(min_ret, max_ret, points)
+    return np.linspace(min_ret, max_ret - 0.0001, points)
 
 
 def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets):

@@ -168,7 +168,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param risk_free_rate: (kwarg) risk_free_rate is needed in some methods
         :type risk_free_rate: float, defaults to 0.02
         """
-        if sys.version_info[1] == 5:  # if python 3.5
+        if sys.version_info[1] == 5:  # pragma: no cover
             warnings.warn(
                 "When using python 3.5 you must explicitly construct the Black-Litterman inputs"
             )
