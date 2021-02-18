@@ -13,8 +13,8 @@ A clear and concise description of what the bug is.
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Code sample**
+Add a minimal reproducible example (see [here](https://stackoverflow.com/help/minimal-reproducible-example)).
 
 **Operating system, python version, PyPortfolioOpt version**
 e.g MacOS 10.146, python 3.7.3, PyPortfolioOpt 1.2.6
