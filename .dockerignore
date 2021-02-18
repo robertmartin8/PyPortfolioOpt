@@ -1,15 +1,11 @@
-#https://stackoverflow.com/questions/28097064/dockerignore-ignore-everything-except-a-file-and-the-dockerfile
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Ignore Everything
-**
-
-!pypfopt
-!tests
-!setup.py
-!README.md
-!requirements.txt
-!binder
-!cookbook
-
-**/__pycache__
-**/*.pyc
+*/__pycache__
+*/*.pyc
