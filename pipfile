@@ -9,7 +9,7 @@ pandas = ">=0.19"
 cvxpy = "==1.*,>=1.1.10"
 cvxopt = "!=1.2.5.post1,==1.*,>=1.2.0"
 matplotlib = "==3.*,>=3.2.0"
-scikit-learn = "==0.*,>=0.19.0"
+scikit-learn = "==0.*,>=0.24.1"
 
 [dev-packages]
 black = "==20.*,>=20.8.0.b1"
