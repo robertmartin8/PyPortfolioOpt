@@ -320,7 +320,7 @@ class DiscreteAllocation:
 
         opt = cp.Problem(cp.Minimize(objective), constraints)
 
-        if solver not in cp.installed_solvers():
+        if solver is not None and solver not in cp.installed_solvers():
             raise NameError("Solver {} is not installed. ".format(solver))
         opt.solve(solver=solver)
 
