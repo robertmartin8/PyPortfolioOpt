@@ -16,6 +16,7 @@ classifiers=[
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.6",
@@ -31,13 +32,13 @@ packages = [ {include = "pypfopt"} ]
 "Personal website" = "https://reasonabledeviations.com"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.1"
 numpy = "^1.12"
 scipy = "^1.3"
 pandas = ">=0.19"
 cvxopt = "^1.2, !=1.2.5.post1"
 cvxpy = "^1.1.10"
-scikit-learn = {version="^0.19", optional= true }
+scikit-learn = {version="^0.24.1", optional= true }
 matplotlib = { version = "^3.2.0", optional = true }
 
 [tool.poetry.dev-dependencies]
