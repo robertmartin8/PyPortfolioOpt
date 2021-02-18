@@ -13,6 +13,9 @@ DEV/
 
 pip-selfcheck.json
 
+.coverage
+.coverage*
+
 html-coverage
 html-report
 

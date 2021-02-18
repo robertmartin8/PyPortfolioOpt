@@ -47,6 +47,7 @@ jupyter = "^1.0.0"
 black = "^20.8b1"
 ipykernel = "^5.4.3"
 jedi = "0.17.2"
+pytest-cov = "^2.11.1"
 
 [tool.poetry.extras]
 optionals = ["scikit-learn", "matplotlib"]
