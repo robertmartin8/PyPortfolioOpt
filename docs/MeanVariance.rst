@@ -1,3 +1,5 @@
+.. _mean-variance:
+
 ##########################
 Mean-Variance Optimization
 ##########################
