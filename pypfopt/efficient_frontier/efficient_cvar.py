@@ -13,7 +13,7 @@ from .efficient_frontier import EfficientFrontier
 
 class EfficientCVaR(EfficientFrontier):
     """
-    The EfficientCVaR class allows for optimisation along the mean-CVaR frontier, using the
+    The EfficientCVaR class allows for optimization along the mean-CVaR frontier, using the
     formulation of Rockafellar and Ursayev (2001).
 
     Instance variables:
@@ -36,8 +36,8 @@ class EfficientCVaR(EfficientFrontier):
     - ``min_cvar()`` minimises the CVaR
     - ``efficient_risk()`` maximises return for a given CVaR
     - ``efficient_return()`` minimises CVaR for a given target return
-    - ``add_objective()`` adds a (convex) objective to the optimisation problem
-    - ``add_constraint()`` adds a constraint to the optimisation problem
+    - ``add_objective()`` adds a (convex) objective to the optimization problem
+    - ``add_constraint()`` adds a constraint to the optimization problem
 
     - ``portfolio_performance()`` calculates the expected return and CVaR of the portfolio
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict

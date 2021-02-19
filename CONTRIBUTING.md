@@ -4,7 +4,7 @@ Please refer to the roadmap for a list of areas that I think PyPortfolioOpt coul
 from. In addition, the following is always welcome::
 
 - Improve performance of existing code (but not at the cost of readability) – are there any nice numpy tricks I've missed?
-- Add new optimisation objective functions. For example, if you think that the best performance metric has not been included, write it into a function (or suggest it in [Issues](https://github.com/robertmartin8/PyPortfolioOpt/issues) and I will have a go).
+- Add new optimization objective functions. For example, if you think that the best performance metric has not been included, write it into a function (or suggest it in [Issues](https://github.com/robertmartin8/PyPortfolioOpt/issues) and I will have a go).
 - Help me write more tests! If you are someone learning about quant finance and/or unit testing in python, what better way to practice than to write some tests on an open-source project! Feel free to check for edge cases, or test performance on a dataset with more stocks.
 
 ## Guidelines
@@ -37,7 +37,7 @@ If you have questions unrelated to the project, drop me an email – contact det
 
 ## Bugs/issues
 
-If you find any bugs or the portfolio optimisation is not working as expected, feel free to [raise an issue](https://github.com/robertmartin8/PyPortfolioOpt/issues). I would ask that you provide the following information in the issue:
+If you find any bugs or the portfolio optimization is not working as expected, feel free to [raise an issue](https://github.com/robertmartin8/PyPortfolioOpt/issues). I would ask that you provide the following information in the issue:
 
 - Descriptive title so that other users can see the existing issues
 - Operating system, python version, and python distribution (optional).

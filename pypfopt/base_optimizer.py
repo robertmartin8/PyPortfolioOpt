@@ -1,7 +1,7 @@
 """
 The ``base_optimizer`` module houses the parent classes ``BaseOptimizer`` from which all
-optimisers will inherit. ``BaseConvexOptimizer`` is the base class for all ``cvxpy`` (and ``scipy``)
-optimisation.
+optimizers will inherit. ``BaseConvexOptimizer`` is the base class for all ``cvxpy`` (and ``scipy``)
+optimization.
 
 Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
@@ -119,7 +119,7 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     """
     The BaseConvexOptimizer contains many private variables for use by
-    ``cvxpy``. For example, the immutable optimisation variable for weights
+    ``cvxpy``. For example, the immutable optimization variable for weights
     is stored as self._w. Interacting directly with these variables directly
     is discouraged.
 
@@ -134,8 +134,8 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     Public methods:
 
-    - ``add_objective()`` adds a (convex) objective to the optimisation problem
-    - ``add_constraint()`` adds a constraint to the optimisation problem
+    - ``add_objective()`` adds a (convex) objective to the optimization problem
+    - ``add_constraint()`` adds a constraint to the optimization problem
     - ``convex_objective()`` solves for a generic convex objective with linear constraints
     - ``nonconvex_objective()`` solves for a generic nonconvex objective using the scipy backend.
       This is prone to getting stuck in local minima and is generally *not* recommended.
@@ -167,7 +167,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         """
         super().__init__(n_assets, tickers)
 
-        # Optimisation variables
+        # Optimization variables
         self._w = cp.Variable(n_assets)
         self._objective = None
         self._additional_objectives = []
@@ -266,7 +266,7 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     def add_constraint(self, new_constraint):
         """
-        Add a new constraint to the optimisation problem. This constraint must satisfy DCP rules,
+        Add a new constraint to the optimization problem. This constraint must satisfy DCP rules,
         i.e be either a linear equality constraint or convex inequality constraint.
 
         Examples::
@@ -323,12 +323,12 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
         """
-        Optimise a custom convex objective function. Constraints should be added with
-        ``ef.add_constraint()``. Optimiser arguments must be passed as keyword-args. Example::
+        Optimize a custom convex objective function. Constraints should be added with
+        ``ef.add_constraint()``. Optimizer arguments must be passed as keyword-args. Example::
 
             # Could define as a lambda function instead
             def logarithmic_barrier(w, cov_matrix, k=0.1):
-                # 60 Years of Portfolio Optimisation, Kolm et al (2014)
+                # 60 Years of Portfolio Optimization, Kolm et al (2014)
                 return cp.quad_form(w, cov_matrix) - k * cp.sum(cp.log(w))
 
             w = ef.convex_objective(logarithmic_barrier, cov_matrix=ef.cov_matrix)
@@ -363,7 +363,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         initial_guess=None,
     ):
         """
-        Optimise some objective function using the scipy backend. This can
+        Optimize some objective function using the scipy backend. This can
         support nonconvex objectives and nonlinear constraints, but may get stuck
         at local minima. Example::
 
@@ -392,11 +392,11 @@ class BaseConvexOptimizer(BaseOptimizer):
         :param constraints: list of constraints in the scipy format (i.e dicts)
         :type constraints: dict list
         :param solver: which SCIPY solver to use, e.g "SLSQP", "COBYLA", "BFGS".
-                       User beware: different optimisers require different inputs.
+                       User beware: different optimizers require different inputs.
         :type solver: string
         :param initial_guess: the initial guess for the weights, shape (n,) or (n, 1)
         :type initial_guess: np.ndarray
-        :return: asset weights that optimise the custom objective
+        :return: asset weights that optimize the custom objective
         :rtype: OrderedDict
         """
         # Sanitise inputs

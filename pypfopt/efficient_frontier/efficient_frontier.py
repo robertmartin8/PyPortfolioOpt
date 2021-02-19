@@ -15,7 +15,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     """
     An EfficientFrontier object (inheriting from BaseConvexOptimizer) contains multiple
-    optimisation methods that can be called (corresponding to different objective
+    optimization methods that can be called (corresponding to different objective
     functions) with various parameters. Note: a new EfficientFrontier object should
     be instantiated if you want to make any change to objectives/constraints/bounds/parameters.
 
@@ -35,18 +35,18 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     Public methods:
 
-    - ``min_volatility()`` optimises for minimum volatility
-    - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
+    - ``min_volatility()`` optimizes for minimum volatility
+    - ``max_sharpe()`` optimizes for maximal Sharpe ratio (a.k.a the tangency portfolio)
     - ``max_quadratic_utility()`` maximises the quadratic utility, given some risk aversion.
     - ``efficient_risk()`` maximises return for a given target risk
     - ``efficient_return()`` minimises risk for a given target return
 
-    - ``add_objective()`` adds a (convex) objective to the optimisation problem
-    - ``add_constraint()`` adds a constraint to the optimisation problem
+    - ``add_objective()`` adds a (convex) objective to the optimization problem
+    - ``add_constraint()`` adds a constraint to the optimization problem
     - ``convex_objective()`` solves for a generic convex objective with linear constraints
 
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
-      the optimised portfolio.
+      the optimized portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
     - ``clean_weights()`` rounds the weights and clips near-zeros.
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
@@ -66,7 +66,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                                 optimising for volatility only (but not recommended).
         :type expected_returns: pd.Series, list, np.ndarray
         :param cov_matrix: covariance of returns for each asset. This **must** be
-                           positive semidefinite, otherwise optimisation will fail.
+                           positive semidefinite, otherwise optimization will fail.
         :type cov_matrix: pd.DataFrame or np.array
         :param weight_bounds: minimum and maximum weight of each asset OR single min/max pair
                               if all identical, defaults to (0, 1). Must be changed to (-1, 1)
@@ -195,7 +195,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
     def _max_return(self, return_value=True):
         """
-        Helper method to maximise return. This should not be used to optimise a portfolio.
+        Helper method to maximise return. This should not be used to optimize a portfolio.
 
         :return: asset weights for the return-minimising portfolio
         :rtype: OrderedDict
@@ -221,7 +221,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
         as it is the portfolio for which the capital market line is tangent to the efficient frontier.
 
-        This is a convex optimisation problem after making a certain variable substitution. See
+        This is a convex optimization problem after making a certain variable substitution. See
         `Cornuejols and Tutuncu (2006) <http://web.math.ku.dk/~rolf/CT_FinOpt.pdf>`_ for more.
 
         :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
@@ -245,7 +245,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         # between how these objectives work for max_sharpe vs min_volatility
         if len(self._additional_objectives) > 0:
             warnings.warn(
-                "max_sharpe transforms the optimisation problem so additional objectives may not work as expected."
+                "max_sharpe transforms the optimization problem so additional objectives may not work as expected."
             )
         for obj in self._additional_objectives:
             self._objective += obj

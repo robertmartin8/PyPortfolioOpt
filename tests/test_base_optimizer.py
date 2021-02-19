@@ -93,7 +93,7 @@ def test_bound_input_types():
 
 
 def test_bound_failure():
-    # Ensure optimisation fails when lower bound is too high or upper bound is too low
+    # Ensure optimization fails when lower bound is too high or upper bound is too low
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(0.06, 0.13)
     )

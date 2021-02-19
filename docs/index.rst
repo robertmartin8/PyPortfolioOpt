@@ -6,7 +6,7 @@
 .. raw:: html
 
     <meta prefix="og: http://ogp.me/ns#" property="og:title" content="PyPortfolioOpt" />
-    <meta prefix="og: http://ogp.me/ns#" property="og:description" content="Portfolio optimisation in python" />
+    <meta prefix="og: http://ogp.me/ns#" property="og:description" content="Portfolio optimization in python" />
     <meta prefix="og: http://ogp.me/ns#" property="og:image" content="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v1.png"/>
 
     <embed>
@@ -27,7 +27,7 @@
     </embed>
 
 
-PyPortfolioOpt is a library that implements portfolio optimisation methods, including
+PyPortfolioOpt is a library that implements portfolio optimization methods, including
 classical efficient frontier techniques and Black-Litterman allocation, as well as more
 recent developments in the field like shrinkage and Hierarchical Risk Parity, along with
 some novel experimental features like exponentially-weighted covariance matrices.
@@ -133,7 +133,7 @@ that's fine too::
     mu = expected_returns.mean_historical_return(df)
     S = risk_models.sample_cov(df)
 
-    # Optimise for maximal Sharpe ratio
+    # Optimize for maximal Sharpe ratio
     ef = EfficientFrontier(mu, S)
     weights = ef.max_sharpe()
     ef.portfolio_performance(verbose=True)
@@ -159,7 +159,7 @@ Contents
     MeanVariance
     GeneralEfficientFrontier
     BlackLitterman
-    OtherOptimisers
+    OtherOptimizers
     Postprocessing
     Plotting
 
@@ -174,10 +174,10 @@ Contents
 Project principles and design decisions
 =======================================
 
-- It should be easy to swap out individual components of the optimisation process
+- It should be easy to swap out individual components of the optimization process
   with the user's proprietary improvements.
 - Usability is everything: it is better to be self-explanatory than consistent.
-- There is no point in portfolio optimisation unless it can be practically
+- There is no point in portfolio optimization unless it can be practically
   applied to real asset prices.
 - Everything that has been implemented should be tested.
 - Inline documentation is good: dedicated (separate) documentation is better.

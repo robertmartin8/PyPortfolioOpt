@@ -31,9 +31,7 @@ def test_hrp_portfolio():
     # pd.Series(w).to_csv(resource("weights_hrp.csv"))
 
     x = pd.read_csv(resource("weights_hrp.csv"), squeeze=True, index_col=0)
-    pd.testing.assert_series_equal(
-        x, pd.Series(w), check_names=False, check_less_precise=True
-    )
+    pd.testing.assert_series_equal(x, pd.Series(w), check_names=False, rtol=1e-2)
 
     assert isinstance(w, dict)
     assert set(w.keys()) == set(df.columns)

@@ -119,7 +119,7 @@ def simple_ef_weights(expected_returns, cov_matrix, target_return, weights_sum):
     :type cov_matrix: np.ndarray
     :param target_return: the target return for the portfolio to achieve.
     :type target_return: float
-    :param weights_sum: the sum of the returned weights, optimisation constraint.
+    :param weights_sum: the sum of the returned weights, optimization constraint.
     :type weights_sum: float
     :return: weight for each asset, which sum to 1.0
     :rtype: np.ndarray

@@ -77,9 +77,9 @@ def test_sample_cov_npd():
             np.testing.assert_equal(S2_df.to_numpy(), S2)
             assert S2_df.index.equals(S_df.index)
             assert S2_df.columns.equals(S_df.columns)
-
-    with pytest.raises(NotImplementedError):
-        risk_models.fix_nonpositive_semidefinite(S, fix_method="blah")
+    with pytest.warns(UserWarning):
+        with pytest.raises(NotImplementedError):
+            risk_models.fix_nonpositive_semidefinite(S, fix_method="blah")
 
 
 def test_fix_npd_different_method():

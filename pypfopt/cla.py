@@ -24,7 +24,7 @@ class CLA(base_optimizer.BaseOptimizer):
         - ``lb`` - np.ndarray
         - ``ub`` - np.ndarray
 
-    - Optimisation parameters:
+    - Optimization parameters:
 
         - ``w`` - np.ndarray list
         - ``ls`` - float list
@@ -38,11 +38,11 @@ class CLA(base_optimizer.BaseOptimizer):
 
     Public methods:
 
-    - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
-    - ``min_volatility()`` optimises for minimum volatility
+    - ``max_sharpe()`` optimizes for maximal Sharpe ratio (a.k.a the tangency portfolio)
+    - ``min_volatility()`` optimizes for minimum volatility
     - ``efficient_frontier()`` computes the entire efficient frontier
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
-      the optimised portfolio.
+      the optimized portfolio.
     - ``clean_weights()`` rounds the weights and clips near-zeros.
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """

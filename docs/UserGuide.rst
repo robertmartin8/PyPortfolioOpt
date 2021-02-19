@@ -7,14 +7,14 @@ User Guide
 This is designed to be a practical guide, mostly aimed at users who are interested in a
 quick way of optimally combining some assets (most likely stocks). However, when
 necessary I do introduce the required theory and also point out areas that may be
-suitable springboards for more advanced optimisation techniques. Details about the
+suitable springboards for more advanced optimization techniques. Details about the
 parameters can be found in the respective documentation pages (please see the sidebar).
 
-For this guide, we will be focusing on mean-variance optimisation (MVO), which is what
-most people think of when they hear "portfolio optimisation". MVO forms the core of
+For this guide, we will be focusing on mean-variance optimization (MVO), which is what
+most people think of when they hear "portfolio optimization". MVO forms the core of
 PyPortfolioOpt's offering, though it should be noted that MVO comes in many flavours,
 which can have very different performance characteristics. Please refer to the sidebar
-to get a feeling for the possibilities, as well as the other optimisation methods
+to get a feeling for the possibilities, as well as the other optimization methods
 offered. But for now, we will continue with the standard Efficient Frontier.
 
 PyPortfolioOpt is designed with modularity in mind; the below flowchart sums up the
@@ -26,7 +26,7 @@ current functionality and overall layout of PyPortfolioOpt.
 Processing historical prices
 ============================
 
-Mean-variance optimisation requires two things: the expected returns of the assets,
+Mean-variance optimization requires two things: the expected returns of the assets,
 and the covariance matrix (or more generally, a *risk model* quantifying asset risk).
 PyPortfolioOpt provides methods for estimating both (located in
 :py:mod:`expected_returns` and :py:mod:`risk_models` respectively), but also supports
@@ -81,13 +81,13 @@ and ``S`` will be the estimated covariance matrix (part of it is shown below)::
 
 
 Now that we have expected returns and a risk model, we are ready to move on to the
-actual portfolio optimisation.
+actual portfolio optimization.
 
 
-Mean-variance optimisation
+Mean-variance optimization
 ===============================
 
-Mean-variance optimisation is based on Harry Markowitz's 1952 classic paper [1]_, which
+Mean-variance optimization is based on Harry Markowitz's 1952 classic paper [1]_, which
 spearheaded the transformation of portfolio management from an art into a science. The key insight is that by
 combining assets with different expected returns and volatilities, one can decide on a
 mathematically optimal allocation.
@@ -95,10 +95,10 @@ mathematically optimal allocation.
 If :math:`w` is the weight vector of stocks with expected returns :math:`\mu`, then the
 portfolio return is equal to each stock's weight multiplied by its return, i.e
 :math:`w^T \mu`. The portfolio risk in terms of the covariance matrix :math:`\Sigma`
-is given by :math:`w^T \Sigma w`. Portfolio optimisation can then be regarded as a
-convex optimisation problem, and a solution can be found using quadratic programming.
+is given by :math:`w^T \Sigma w`. Portfolio optimization can then be regarded as a
+convex optimization problem, and a solution can be found using quadratic programming.
 If we denote the target return as :math:`\mu^*`, the precise statement of the long-only
-portfolio optimisation problem is as follows:
+portfolio optimization problem is as follows:
 
 .. math::
 
@@ -122,7 +122,7 @@ portfolio) – the set of all these optimal portfolios is referred to as the
 Each dot on this diagram represents a different possible portfolio, with darker blue
 corresponding to 'better' portfolios (in terms of the Sharpe Ratio). The dotted
 black line is the efficient frontier itself. The triangular markers represent the
-best portfolios for different optimisation objectives.
+best portfolios for different optimization objectives.
 
 The Sharpe ratio is the portfolio's return in excess of the risk-free rate, per unit risk
 (volatility).
@@ -143,7 +143,7 @@ dataframe ``S`` from before::
     weights = ef.max_sharpe()
 
 If you print these weights, you will get quite an ugly result, because they will
-be the raw output from the optimiser. As such, it is recommended that you use
+be the raw output from the optimizer. As such, it is recommended that you use
 the :py:meth:`clean_weights` method, which truncates tiny weights to zero
 and rounds the rest::
 
@@ -186,7 +186,7 @@ weights ``w``, we can use the :py:meth:`portfolio_performance` method::
     Annual volatility: 21.7%
     Sharpe Ratio: 1.43
 
-A detailed discussion of optimisation parameters is presented in
+A detailed discussion of optimization parameters is presented in
 :ref:`efficient-frontier`. However, there are two main variations which
 are discussed below.
 
@@ -201,7 +201,7 @@ with bounds that allow negative weights, for example::
 
 This can be extended to generate **market neutral portfolios** (with weights
 summing to zero), but these are only available for the :py:meth:`efficient_risk`
-and :py:meth:`efficient_return` optimisation methods for mathematical reasons.
+and :py:meth:`efficient_return` optimization methods for mathematical reasons.
 If you want a market neutral portfolio, pass ``market_neutral=True`` as shown below::
 
     ef.efficient_return(target_return=0.2, market_neutral=True)
@@ -209,13 +209,13 @@ If you want a market neutral portfolio, pass ``market_neutral=True`` as shown be
 Dealing with many negligible weights
 ------------------------------------
 
-From experience, I have found that mean-variance optimisation often sets many
+From experience, I have found that mean-variance optimization often sets many
 of the asset weights to be zero. This may not be ideal if you need to have a certain
 number of positions in your portfolio, for diversification purposes or otherwise.
 
 To combat this, I have introduced an objective function which borrows the idea of
 regularisation from machine learning. Essentially, by adding an additional cost
-function to the objective, you can 'encourage' the optimiser to choose different
+function to the objective, you can 'encourage' the optimizer to choose different
 weights (mathematical details are provided in the :ref:`L2-Regularisation` section).
 To use this feature, change the ``gamma`` parameter::
 
@@ -284,8 +284,8 @@ Improving performance
 Let's say you have conducted backtests and the results aren't spectacular. What
 should you try?
 
-- Try the Hierarchical Risk Parity model (see :ref:`other-optimisers`) – which seems
-  to robustly outperform mean-variance optimisation out of sample.
+- Try the Hierarchical Risk Parity model (see :ref:`other-optimizers`) – which seems
+  to robustly outperform mean-variance optimization out of sample.
 - Use the Black-Litterman model to construct a more stable model of expected returns.
   Alternatively, just drop the expected returns altogether! There is a large body of research
   that suggests that minimum variance portfolios (``ef.min_volatility()``) consistently outperform
@@ -299,7 +299,7 @@ in the sidebar to learn more about the parameters and theoretical details of the
 different models offered by PyPortfolioOpt. If you have any questions, please
 raise an issue on GitHub and I will try to respond promptly.
 
-If you'd like even more examples, check out the cookbook `recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/2-Mean-Variance-Optimisation.ipynb>`_.
+If you'd like even more examples, check out the cookbook `recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/2-Mean-Variance-Optimization.ipynb>`_.
 
 
 References

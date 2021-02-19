@@ -13,7 +13,7 @@ from .efficient_frontier import EfficientFrontier
 
 class EfficientSemivariance(EfficientFrontier):
     """
-    EfficientSemivariance objects allow for optimisation along the mean-semivariance frontier.
+    EfficientSemivariance objects allow for optimization along the mean-semivariance frontier.
     This may be relevant for users who are more concerned about downside deviation.
 
     Instance variables:
@@ -37,12 +37,12 @@ class EfficientSemivariance(EfficientFrontier):
     - ``max_quadratic_utility()`` maximises the "downside quadratic utility", given some risk aversion.
     - ``efficient_risk()`` maximises return for a given target semideviation
     - ``efficient_return()`` minimises semideviation for a given target return
-    - ``add_objective()`` adds a (convex) objective to the optimisation problem
-    - ``add_constraint()`` adds a constraint to the optimisation problem
+    - ``add_objective()`` adds a (convex) objective to the optimization problem
+    - ``add_constraint()`` adds a constraint to the optimization problem
     - ``convex_objective()`` solves for a generic convex objective with linear constraints
 
     - ``portfolio_performance()`` calculates the expected return, semideviation and Sortino ratio for
-      the optimised portfolio.
+      the optimized portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
     - ``clean_weights()`` rounds the weights and clips near-zeros.
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.

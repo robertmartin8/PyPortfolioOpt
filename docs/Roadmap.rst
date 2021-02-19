@@ -18,13 +18,13 @@ discuss. If you have any other feature requests, please raise them using GitHub
 - Risk parity
 - Optimising for higher moments (i.e skew and kurtosis)
 - Factor modelling - this is conceptually doable, but a lot of thought needs to be put into the API.
-- Monte Carlo optimisation with custom distributions
+- Monte Carlo optimization with custom distributions
 - Further support for different risk/return models
 
 1.4.0
 =====
 
-- Finally implemented CVaR optimisation! This has been one of the most requested features. Many thanks
+- Finally implemented CVaR optimization! This has been one of the most requested features. Many thanks
   to `Nicolas Knudde <https://github.com/nknudde>`_ for the initial draft. 
 - Re-architected plotting so users can pass an ax, allowing for complex plots (see cookbook).
 - Helper method to compute the max-return portfolio (thanks to `Philipp Schiele <https://github.com/phschiele>`_)
@@ -145,7 +145,7 @@ Matplotlib now required dependency; support for pandas 1.0.
   
   - Replaced ``BaseScipyOptimizer`` with ``BaseConvexOptimizer``
   - ``hierarchical_risk_parity`` was replaced by ``hierarchical_portfolios`` to leave the door open for other hierarchical methods.
-  - Sadly, removed CVaR optimisation for the time being until I can properly fix it.
+  - Sadly, removed CVaR optimization for the time being until I can properly fix it.
 
 1.0.1
 -----
@@ -156,7 +156,7 @@ Fixed minor issues in CLA: weight bound bug, ``efficient_frontier`` needed weigh
 -----
 
 Fixed small but important bug where passing ``expected_returns=None`` fails. According to the docs, users
-should be able to only pass covariance if they want to only optimise min volatility.
+should be able to only pass covariance if they want to only optimize min volatility.
 
 
 0.5.0
@@ -166,7 +166,7 @@ should be able to only pass covariance if they want to only optimise min volatil
 - Custom bounds per asset
 - Improved ``BaseOptimizer``, adding a method that writes weights
   to text and fixing a bug in ``set_weights``.
-- Unconstrained quadratic utility optimisation (analytic)
+- Unconstrained quadratic utility optimization (analytic)
 - Revamped docs, with information on types of attributes and
   more examples.
 
@@ -184,9 +184,9 @@ experience.
 0.5.3
 -----
 
-- Fixed an optimisation bug in ``EfficientFrontier.efficient_risk``. An error is now
-  thrown if optimisation fails.
-- Added a hidden API to change the scipy optimiser method. 
+- Fixed an optimization bug in ``EfficientFrontier.efficient_risk``. An error is now
+  thrown if optimization fails.
+- Added a hidden API to change the scipy optimizer method. 
 
 0.5.4
 -----
@@ -209,7 +209,7 @@ Began migration to cvxpy by changing the discrete allocation backend from PuLP t
   modified the linear programming method suggested by `Dingyuan Wang <https://github.com/gumblex>`_;
   added postprocessing section to User Guide.
 - Further refactoring and docs for ``HRPOpt``.
-- Major documentation update, e.g to support custom optimisers
+- Major documentation update, e.g to support custom optimizers
 
 0.4.1
 -----
@@ -265,13 +265,13 @@ Refactored shrinkage models, including single factor and constant correlation.
 0.2.0
 =====
 
-- Hierarchical Risk Parity optimisation
+- Hierarchical Risk Parity optimization
 - Semicovariance matrix
 - Exponential covariance matrix
-- CVaR optimisation
+- CVaR optimization
 - Better support for custom objective functions
 - Multiple bug fixes (including minimum volatility vs minimum variance)
-- Refactored so all optimisers inherit from a ``BaseOptimizer``.
+- Refactored so all optimizers inherit from a ``BaseOptimizer``.
 
 0.2.1
 -----

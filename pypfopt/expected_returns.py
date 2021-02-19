@@ -1,6 +1,6 @@
 """
 The ``expected_returns`` module provides functions for estimating the expected returns of
-the assets, which is a required input in mean-variance optimisation.
+the assets, which is a required input in mean-variance optimization.
 
 By convention, the output of these methods is expected *annual* returns. It is assumed that
 *daily* prices are provided, though in reality the functions are agnostic

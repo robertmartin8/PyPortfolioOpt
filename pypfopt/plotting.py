@@ -213,7 +213,7 @@ def plot_efficient_frontier(
     """
     Plot the efficient frontier based on either a CLA or EfficientFrontier object.
 
-    :param opt: an instantiated optimiser object BEFORE optimising an objective
+    :param opt: an instantiated optimizer object BEFORE optimising an objective
     :type opt: EfficientFrontier or CLA
     :param ef_param: [EfficientFrontier] whether to use a range over utility, risk, or return.
                      Defaults to "return".
@@ -257,7 +257,7 @@ def plot_weights(weights, ax=None, **kwargs):
     """
     Plot the portfolio weights as a horizontal bar chart
 
-    :param weights: the weights outputted by any PyPortfolioOpt optimiser
+    :param weights: the weights outputted by any PyPortfolioOpt optimizer
     :type weights: {ticker: weight} dict
     :param ax: ax to plot to, optional
     :type ax: matplotlib.axes

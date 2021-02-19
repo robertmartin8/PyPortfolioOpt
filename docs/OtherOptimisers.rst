@@ -1,16 +1,16 @@
-.. _other-optimisers:
+.. _other-optimizers:
 
 ################
-Other Optimisers
+Other Optimizers
 ################
 
-Efficient frontier methods involve the direct optimisation of an objective subject to constraints.
-However, there are some portfolio optimisation schemes that are completely different in character.
+Efficient frontier methods involve the direct optimization of an objective subject to constraints.
+However, there are some portfolio optimization schemes that are completely different in character.
 PyPortfolioOpt provides support for these alternatives, while still giving you access to the same
 pre and post-processing API.
 
 .. note::
-    As of v0.4, these other optimisers now inherit from ``BaseOptimizer`` or
+    As of v0.4, these other optimizers now inherit from ``BaseOptimizer`` or
     ``BaseConvexOptimizer``, so you no longer have to implement pre-processing and
     post-processing methods on your own. You can thus easily swap out, say,
     ``EfficientFrontier`` for ``HRPOpt``.
@@ -18,7 +18,7 @@ pre and post-processing API.
 Hierarchical Risk Parity (HRP)
 ==============================
 
-Hierarchical Risk Parity is a novel portfolio optimisation method developed by
+Hierarchical Risk Parity is a novel portfolio optimization method developed by
 Marcos Lopez de Prado [1]_. Though a detailed explanation can be found in the
 linked paper, here is a rough overview of how HRP works:
 
@@ -33,7 +33,7 @@ linked paper, here is a rough overview of how HRP works:
 
 
 The advantages of this are that it does not require the inversion of the covariance
-matrix as with traditional mean-variance optimisation, and seems to produce diverse
+matrix as with traditional mean-variance optimization, and seems to produce diverse
 portfolios that perform well out of sample.
 
 .. image:: ../media/dendrogram.png
@@ -57,8 +57,8 @@ The Critical Line Algorithm
 ===========================
 
 This is a robust alternative to the quadratic solver used to find mean-variance optimal portfolios,
-that is especially advantageous when we apply linear inequalities. Unlike generic convex optimisation routines, 
-the CLA is specially designed for portfolio optimisation. It is guaranteed to converge after a certain
+that is especially advantageous when we apply linear inequalities. Unlike generic convex optimization routines, 
+the CLA is specially designed for portfolio optimization. It is guaranteed to converge after a certain
 number of iterations, and can efficiently derive the entire efficient frontier.
 
 .. image:: ../media/cla_plot.png
@@ -69,7 +69,7 @@ number of iterations, and can efficiently derive the entire efficient frontier.
 .. tip:: 
 
     In general, unless you have specific requirements e.g you would like to efficiently compute the entire
-    efficient frontier for plotting, I would go with the standard ``EfficientFrontier`` optimiser.
+    efficient frontier for plotting, I would go with the standard ``EfficientFrontier`` optimizer.
 
 I am most grateful to Marcos López de Prado and David Bailey for providing the implementation [2]_.
 Permission for its distribution has been received by email. It has been modified such that it has
@@ -85,15 +85,15 @@ the same API, though as of v0.5.0 we only support ``max_sharpe()`` and ``min_vol
         .. automethod:: __init__
 
 
-Implementing your own optimiser
+Implementing your own optimizer
 ===============================
 
-Please note that this is quite different to implementing :ref:`custom-optimisation`, because in
-that case we are still using the same convex optimisation structure. However, HRP and CLA optimisation
-have a fundamentally different optimisation method. In general, these are much more difficult
+Please note that this is quite different to implementing :ref:`custom-optimization`, because in
+that case we are still using the same convex optimization structure. However, HRP and CLA optimization
+have a fundamentally different optimization method. In general, these are much more difficult
 to code up compared to custom objective functions.
 
-To implement a custom optimiser that is compatible with the rest of PyPortfolioOpt, just
+To implement a custom optimizer that is compatible with the rest of PyPortfolioOpt, just
 extend ``BaseOptimizer`` (or ``BaseConvexOptimizer`` if you want to use ``cvxpy``),
 both of which can be found in ``base_optimizer.py``. This gives you access to utility
 methods like ``clean_weights()``, as well as making sure that any output is compatible

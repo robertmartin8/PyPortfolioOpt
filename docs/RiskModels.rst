@@ -4,7 +4,7 @@
 Risk Models
 ###########
 
-In addition to the expected returns, mean-variance optimisation requires a
+In addition to the expected returns, mean-variance optimization requires a
 **risk model**, some way of quantifying asset risk. The most commonly-used risk model
 is the covariance matrix, which describes asset volatilities and their co-dependence. This is
 important because one of the principles of diversification is that risk can be
@@ -63,7 +63,7 @@ covariance.
         variances). Although the sample covariance matrix is an unbiased estimator of the
         covariance matrix, i.e :math:`E(S) = \Sigma`, in practice it suffers from
         misspecification error and a lack of robustness. This is particularly problematic
-        in mean-variance optimisation, because the optimiser may give extra credence to
+        in mean-variance optimization, because the optimizer may give extra credence to
         the erroneous values.
 
         .. note::
