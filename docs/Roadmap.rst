@@ -31,6 +31,14 @@ discuss. If you have any other feature requests, please raise them using GitHub
   for the suggestion). 
 - Several bug fixes and test improvements (thanks to `Carl Peasnell <https://github.com/SeaPea1>`_).
 
+1.4.1
+-----
+
+- 100% test coverage
+- Reorganised docs; added FAQ page
+- Reorganised module structure to make it more scalable
+- Python 3.9 support, dockerfile versioning, misc packaging improvements (e.g cvxopt optional)
+
 
 1.3.0
 =====
