@@ -43,22 +43,6 @@ def returns_from_prices(prices, log_returns=False):
         return prices.pct_change().dropna(how="all")
 
 
-def log_returns_from_prices(prices):
-    """
-    Calculate the log returns given prices.
-
-    :param prices: adjusted (daily) closing prices of the asset, each row is a
-                   date and each column is a ticker/id.
-    :type prices: pd.DataFrame
-    :return: (daily) returns
-    :rtype: pd.DataFrame
-    """
-    warnings.warn(
-        "log_returns_from_prices is deprecated. Please use returns_from_prices(prices, log_returns=True)"
-    )
-    return np.log(1 + prices.pct_change()).dropna(how="all")
-
-
 def prices_from_returns(returns, log_returns=False):
     """
     Calculate the pseudo-prices given returns. These are not true prices because

@@ -25,7 +25,7 @@ def test_get_latest_prices_error():
 def test_remove_zero_positions():
     raw = {"MA": 14, "FB": 12, "XOM": 0, "PFE": 51, "BABA": 5, "GOOG": 0}
 
-    da = DiscreteAllocation({}, pd.Series())
+    da = DiscreteAllocation({}, pd.Series(dtype=float))
     assert da._remove_zero_positions(raw) == {"MA": 14, "FB": 12, "PFE": 51, "BABA": 5}
 
 

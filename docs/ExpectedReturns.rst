@@ -50,8 +50,6 @@ superior models and feed them into the optimizer.
 
     .. autofunction:: returns_from_prices
 
-    .. autofunction:: log_returns_from_prices
-
     .. autofunction:: prices_from_returns
 
 
