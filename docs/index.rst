@@ -156,7 +156,8 @@ Contents
     UserGuide
     ExpectedReturns
     RiskModels
-    EfficientFrontier
+    MeanVariance
+    GeneralEfficientFrontier
     BlackLitterman
     OtherOptimisers
     Postprocessing

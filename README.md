@@ -330,8 +330,10 @@ ef.max_sharpe()
 
 ### Other optimisers
 
-The features above mostly pertain to solving efficient frontier optimisation problems via quadratic programming (though this is taken care of by `cvxpy`). However, we offer different optimisers as well:
+The features above mostly pertain to solving mean-variance optimisation problems via quadratic programming (though this is taken care of by `cvxpy`). However, we offer different optimisers as well:
 
+- Mean-semivariance optimisation
+- Mean-CVaR optimisation
 - Hierarchical Risk Parity, using clustering algorithms to choose uncorrelated assets
 - Markowitz's critical line algorithm (CLA)
 

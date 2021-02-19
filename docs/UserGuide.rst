@@ -15,7 +15,7 @@ most people think of when they hear "portfolio optimisation". MVO forms the core
 PyPortfolioOpt's offering, though it should be noted that MVO comes in many flavours,
 which can have very different performance characteristics. Please refer to the sidebar
 to get a feeling for the possibilities, as well as the other optimisation methods
-offered. But for now, we will continue with the Efficient Frontier.
+offered. But for now, we will continue with the standard Efficient Frontier.
 
 PyPortfolioOpt is designed with modularity in mind; the below flowchart sums up the
 current functionality and overall layout of PyPortfolioOpt.
@@ -26,7 +26,7 @@ current functionality and overall layout of PyPortfolioOpt.
 Processing historical prices
 ============================
 
-Efficient frontier optimisation requires two things: the expected returns of the assets,
+Mean-variance optimisation requires two things: the expected returns of the assets,
 and the covariance matrix (or more generally, a *risk model* quantifying asset risk).
 PyPortfolioOpt provides methods for estimating both (located in
 :py:mod:`expected_returns` and :py:mod:`risk_models` respectively), but also supports
@@ -84,10 +84,10 @@ Now that we have expected returns and a risk model, we are ready to move on to t
 actual portfolio optimisation.
 
 
-Efficient Frontier Optimisation
+Mean-variance optimisation
 ===============================
 
-Efficient Frontier Optimisation is based on Harry Markowitz's 1952 classic paper [1]_, which
+Mean-variance optimisation is based on Harry Markowitz's 1952 classic paper [1]_, which
 spearheaded the transformation of portfolio management from an art into a science. The key insight is that by
 combining assets with different expected returns and volatilities, one can decide on a
 mathematically optimal allocation.
@@ -124,7 +124,7 @@ corresponding to 'better' portfolios (in terms of the Sharpe Ratio). The dotted
 black line is the efficient frontier itself. The triangular markers represent the
 best portfolios for different optimisation objectives.
 
-The Sharpe ratio is the portfolio's return less the risk-free rate, per unit risk
+The Sharpe ratio is the portfolio's return in excess of the risk-free rate, per unit risk
 (volatility).
 
 .. math::
@@ -209,7 +209,7 @@ If you want a market neutral portfolio, pass ``market_neutral=True`` as shown be
 Dealing with many negligible weights
 ------------------------------------
 
-From experience, I have found that efficient frontier optimisation often sets many
+From experience, I have found that mean-variance optimisation often sets many
 of the asset weights to be zero. This may not be ideal if you need to have a certain
 number of positions in your portfolio, for diversification purposes or otherwise.
 

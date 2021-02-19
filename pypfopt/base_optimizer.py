@@ -135,7 +135,7 @@ class BaseConvexOptimizer(BaseOptimizer):
     Public methods:
 
     - ``add_objective()`` adds a (convex) objective to the optimisation problem
-    - ``add_constraint()`` adds a (linear) constraint to the optimisation problem
+    - ``add_constraint()`` adds a constraint to the optimisation problem
     - ``convex_objective()`` solves for a generic convex objective with linear constraints
     - ``nonconvex_objective()`` solves for a generic nonconvex objective using the scipy backend.
       This is prone to getting stuck in local minima and is generally *not* recommended.
@@ -266,8 +266,8 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     def add_constraint(self, new_constraint):
         """
-        Add a new constraint to the optimisation problem. This constraint must be linear and
-        must be either an equality or simple inequality.
+        Add a new constraint to the optimisation problem. This constraint must satisfy DCP rules,
+        i.e be either a linear equality constraint or convex inequality constraint.
 
         Examples::
 

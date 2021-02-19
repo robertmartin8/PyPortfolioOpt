@@ -272,23 +272,6 @@ def exp_cov(prices, returns_data=False, span=180, frequency=252, **kwargs):
 def min_cov_determinant(
     prices, returns_data=False, frequency=252, random_state=None, **kwargs
 ):  # pragma: no cover
-    """
-    Calculate the minimum covariance determinant, an estimator of the covariance matrix
-    that is more robust to noise.
-
-    :param prices: adjusted closing prices of the asset, each row is a date
-                   and each column is a ticker/id.
-    :type prices: pd.DataFrame
-    :param returns_data: if true, the first argument is returns instead of prices.
-    :type returns_data: bool, defaults to False.
-    :param frequency: number of time periods in a year, defaults to 252 (the number
-                      of trading days in a year)
-    :type frequency: int, optional
-    :param random_state: random seed to make results reproducible, defaults to None
-    :type random_state: int, optional
-    :return: annualised estimate of covariance matrix
-    :rtype: pd.DataFrame
-    """
     warnings.warn("min_cov_determinant is deprecated and will be removed in v1.5")
 
     if not isinstance(prices, pd.DataFrame):

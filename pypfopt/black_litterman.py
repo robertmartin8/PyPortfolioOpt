@@ -430,7 +430,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         Compute the weights implied by the posterior returns, given the
         market price of risk. Technically this can be applied to any
         estimate of the expected returns, and is in fact a special case
-        of efficient frontier optimisation.
+        of mean-variance optimisation
 
         .. math::
 

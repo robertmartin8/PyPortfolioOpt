@@ -85,9 +85,7 @@ The optimisation problem is then given by:
     \end{aligned}
     \end{equation*}
 
-This is straightforward to translate into ``cvxpy``. The initial implementation used 
-`PuLP <https://pythonhosted.org/PuLP/>`_, but this caused numerous packaging issues and
-the code was a lot more verbose.
+This is straightforward to translate into ``cvxpy``.
 
 .. caution::
 
@@ -107,8 +105,8 @@ Practically, this means that you would go long $10,000 of some stocks, short $30
 stocks, then use the proceeds from the shorts to go long another $3000.
 Thus the total value of the resulting portfolio would be $13,000. 
 
-Usage
-=====
+Documentation reference
+========================
 
 .. automodule:: pypfopt.discrete_allocation
 

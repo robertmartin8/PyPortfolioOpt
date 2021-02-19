@@ -1,10 +1,11 @@
 import numpy as np
 import cvxpy as cp
 import pytest
-from pypfopt import EfficientFrontier
+from pypfopt import EfficientFrontier, expected_returns, risk_models
+from pypfopt.base_optimizer import BaseConvexOptimizer
 from pypfopt import objective_functions
 from pypfopt import exceptions
-from tests.utilities_for_tests import setup_efficient_frontier
+from tests.utilities_for_tests import setup_efficient_frontier, get_data
 
 
 def test_custom_convex_equal_weights():
@@ -89,6 +90,37 @@ def test_convex_sharpe_raises_error():
             expected_returns=ef.expected_returns,
             cov_matrix=ef.cov_matrix,
         )
+
+
+def test_custom_tracking_error():
+    df = get_data()
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
+    benchmark_rets = historical_rets["AAPL"]
+    historical_rets = historical_rets.drop("AAPL", axis=1)
+    S = risk_models.sample_cov(historical_rets, returns_data=True)
+
+    opt = BaseConvexOptimizer(
+        n_assets=len(historical_rets.columns),
+        tickers=list(historical_rets.columns),
+        weight_bounds=(0, 1),
+    )
+
+    opt.convex_objective(
+        objective_functions.ex_post_tracking_error,
+        historic_returns=historical_rets,
+        benchmark_returns=benchmark_rets,
+    )
+    w = opt.clean_weights()
+
+    ef = EfficientFrontier(None, S)
+    ef.convex_objective(
+        objective_functions.ex_post_tracking_error,
+        historic_returns=historical_rets,
+        benchmark_returns=benchmark_rets,
+    )
+    w2 = ef.clean_weights()
+
+    assert w == w2
 
 
 def test_custom_convex_logarithmic_barrier():

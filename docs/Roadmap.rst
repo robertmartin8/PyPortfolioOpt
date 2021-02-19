@@ -15,6 +15,7 @@ discuss. If you have any other feature requests, please raise them using GitHub
 
 - Open-source backtests using either `Backtrader <https://www.backtrader.com/>`_ or
   `Zipline <https://github.com/quantopian/zipline>`_.
+- Risk parity
 - Optimising for higher moments (i.e skew and kurtosis)
 - Factor modelling - this is conceptually doable, but a lot of thought needs to be put into the API.
 - Monte Carlo optimisation with custom distributions

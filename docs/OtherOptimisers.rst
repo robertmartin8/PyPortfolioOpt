@@ -4,10 +4,10 @@
 Other Optimisers
 ################
 
-In addition to optimisers that rely on the covariance matrix in the style of
-Markowitz, recent developments in portfolio optimisation have seen a number
-of alternative optimisation schemes. PyPortfolioOpt implements some of these,
-though please note that the implementations may be slightly unstable.
+Efficient frontier methods involve the direct optimisation of an objective subject to constraints.
+However, there are some portfolio optimisation schemes that are completely different in character.
+PyPortfolioOpt provides support for these alternatives, while still giving you access to the same
+pre and post-processing API.
 
 .. note::
     As of v0.4, these other optimisers now inherit from ``BaseOptimizer`` or
@@ -33,7 +33,7 @@ linked paper, here is a rough overview of how HRP works:
 
 
 The advantages of this are that it does not require the inversion of the covariance
-matrix as with traditional quadratic optimisers, and seems to produce diverse
+matrix as with traditional mean-variance optimisation, and seems to produce diverse
 portfolios that perform well out of sample.
 
 .. image:: ../media/dendrogram.png
@@ -57,7 +57,7 @@ The Critical Line Algorithm
 ===========================
 
 This is a robust alternative to the quadratic solver used to find mean-variance optimal portfolios,
-that is especially advantageous when we apply linear inequalities. Unlike generic quadratic optimisers, 
+that is especially advantageous when we apply linear inequalities. Unlike generic convex optimisation routines, 
 the CLA is specially designed for portfolio optimisation. It is guaranteed to converge after a certain
 number of iterations, and can efficiently derive the entire efficient frontier.
 
@@ -84,11 +84,12 @@ the same API, though as of v0.5.0 we only support ``max_sharpe()`` and ``min_vol
 
         .. automethod:: __init__
 
+
 Implementing your own optimiser
 ===============================
 
 Please note that this is quite different to implementing :ref:`custom-optimisation`, because in
-that case we are still using the same quadratic optimiser. However, HRP and CLA optimisation
+that case we are still using the same convex optimisation structure. However, HRP and CLA optimisation
 have a fundamentally different optimisation method. In general, these are much more difficult
 to code up compared to custom objective functions.
 
@@ -110,53 +111,6 @@ with ``portfolio_performance()`` and post-processing methods.
         :private-members:
 
         .. automethod:: __init__
-
-.. Value-at-Risk
-.. =============
-
-.. .. warning::
-..     Caveat emptor: this functionality is still experimental. Although I have
-..     used the CVaR optimisation, I've noticed that it is very inconsistent
-..     (which to some extent is expected because of its stochastic nature).
-..     However, the optimiser doesn't always find a minimum, and it fails
-..     silently. Additionally, the weight bounds are not treated as hard bounds.
-
-
-.. The value-at-risk is a measure of tail risk that estimates how much a portfolio
-.. will lose in a day with a given probability. Alternatively, it is the maximum
-.. loss with a confidence of beta. In fact, a more useful measure is the
-.. **expected shortfall**, or **conditional value-at-risk** (CVaR), which is the
-.. mean of all losses so severe that they only occur with a probability
-.. :math:`1-\beta`.
-
-.. .. math::
-..     CVaR_\beta = \frac{1}{1-\beta} \int_0^{1-\beta} VaR_\gamma(X) d\gamma
-
-.. To approximate the CVaR for a portfolio, we will follow these steps:
-
-.. 1. Generate the portfolio returns, i.e the weighted sum of individual asset returns.
-.. 2. Fit a Gaussian KDE to these returns, then resample.
-.. 3. Compute the value-at-risk as the :math:`1-\beta` quantile of sampled returns.
-.. 4. Calculate the mean of all the sample returns that are below the value-at-risk.
-
-.. Though CVaR optimisation can be transformed into a linear programming problem [3]_, I
-.. have opted to keep things simple using the `NoisyOpt <https://noisyopt.readthedocs.io/en/latest/>`_
-.. library, which is suited for optimising noisy functions.
-
-
-.. .. automodule:: pypfopt.value_at_risk
-
-..     .. autoclass:: CVAROpt
-..         :members:
-
-..         .. automethod:: __init__
-
-..     .. caution::
-..         Currently, we have not implemented any performance function. If you
-..         would like to calculate the actual CVaR of the resulting portfolio,
-..         please import the function from `objective_functions`.
-
-
 
 
 References
