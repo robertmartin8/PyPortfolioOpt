@@ -4,7 +4,7 @@
 Plotting
 ########
 
-All of the optimisation functions in :py:class:`EfficientFrontier` produce a single optimal portfolio.
+All of the optimization functions in :py:class:`EfficientFrontier` produce a single optimal portfolio.
 However, you may want to plot the entire efficient frontier. This efficient frontier can be thought
 of in several different ways:
 
@@ -14,7 +14,7 @@ of in several different ways:
 
 The :py:mod:`plotting` module provides support for all three of these approaches. To produce
 a plot of the efficient frontier, you should instantiate your :py:class:`EfficientFrontier` object
-and add constraints like you normally would, but *before* calling an optimisation function (e.g with
+and add constraints like you normally would, but *before* calling an optimization function (e.g with
 :py:func:`ef.max_sharpe`), you should pass this the instantiated object into :py:func:`plot.plot_efficient_frontier`:: 
 
     ef = EfficientFrontier(mu, S, weight_bounds=(None, None))

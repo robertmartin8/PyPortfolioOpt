@@ -6,8 +6,18 @@ import pytest
 import cvxpy as cp
 from pypfopt import EfficientFrontier
 from pypfopt import exceptions
-from pypfopt.base_optimizer import portfolio_performance
+from pypfopt.base_optimizer import portfolio_performance, BaseOptimizer
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
+
+
+def test_base_optimizer():
+    """ Cover code not covered elsewhere."""
+    # Test tickers not provided
+    bo = BaseOptimizer(2)
+    assert bo.tickers == [0, 1]
+    w = {0: 0.4, 1: 0.6}
+    bo.set_weights(w)
+    assert dict(bo.clean_weights()) == w
 
 
 def test_custom_bounds():
@@ -83,7 +93,7 @@ def test_bound_input_types():
 
 
 def test_bound_failure():
-    # Ensure optimisation fails when lower bound is too high or upper bound is too low
+    # Ensure optimization fails when lower bound is too high or upper bound is too low
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(0.06, 0.13)
     )
@@ -233,7 +243,12 @@ def test_portfolio_performance():
         portfolio_performance(ef.weights, ef.expected_returns, ef.cov_matrix, True)
         == expected
     )
-
+    # including when used without expected returns too.
+    assert portfolio_performance(ef.weights, None, ef.cov_matrix, True) == (
+        None,
+        expected[1],
+        None,
+    )
     # Internal ticker creations when weights param is a dict and ...
     w_dict = dict(zip(ef.tickers, ef.weights))
     # ... expected_returns is a Series

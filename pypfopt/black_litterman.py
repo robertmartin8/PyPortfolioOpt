@@ -168,7 +168,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param risk_free_rate: (kwarg) risk_free_rate is needed in some methods
         :type risk_free_rate: float, defaults to 0.02
         """
-        if sys.version_info[1] == 5:  # if python 3.5
+        if sys.version_info[1] == 5:  # pragma: no cover
             warnings.warn(
                 "When using python 3.5 you must explicitly construct the Black-Litterman inputs"
             )
@@ -176,7 +176,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         # Keep raw dataframes
         self._raw_cov_matrix = cov_matrix
 
-        #  Initialise base optimiser
+        #  Initialise base optimizer
         if isinstance(cov_matrix, np.ndarray):
             self.cov_matrix = cov_matrix
             super().__init__(len(cov_matrix), list(range(len(cov_matrix))))
@@ -430,7 +430,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         Compute the weights implied by the posterior returns, given the
         market price of risk. Technically this can be applied to any
         estimate of the expected returns, and is in fact a special case
-        of efficient frontier optimisation.
+        of mean-variance optimization
 
         .. math::
 

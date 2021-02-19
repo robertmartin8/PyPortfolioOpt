@@ -434,6 +434,9 @@ def test_cvar_errors():
         # Beta must be between 0 and 1
         cv = EfficientCVaR(mu, historical_rets, 1)
 
+    with pytest.warns(UserWarning):
+        cv = EfficientCVaR(mu, historical_rets, 0.1)
+
     with pytest.raises(OptimizationError):
         # Must be <= max expected return
         cv = EfficientCVaR(mu, historical_rets)

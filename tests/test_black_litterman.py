@@ -29,12 +29,32 @@ def test_input_errors():
         # Because default_omega uses matrix mult on P
         BlackLittermanModel(S, Q=views, P=P)
 
+    # P not an DataFrame or ndarray
+    with pytest.raises(TypeError):
+        BlackLittermanModel(S, Q=views[:-1], P=1.0)
+
     with pytest.raises(AssertionError):
         BlackLittermanModel(S, Q=views, P=P, omega=np.eye(len(views)))
 
     # pi and S don't match dimensions
     with pytest.raises(AssertionError):
         BlackLittermanModel(S, Q=views, pi=df.pct_change().mean()[:-1])
+
+    # If pi=="market" then market_caps must be supplied
+    with pytest.raises(ValueError):
+        BlackLittermanModel(S, Q=views, pi="market")
+
+    # pi's valid numerical types are Series, DataFrame and ndarray
+    with pytest.raises(TypeError):
+        BlackLittermanModel(S, Q=views, pi=[0.1] * len(S))
+
+    # risk_aversion cannot be negative
+    with pytest.raises(ValueError):
+        BlackLittermanModel(S, Q=views, risk_aversion=-0.01)
+
+    # omega must be ndarray, DataFrame and string
+    with pytest.raises(TypeError):
+        BlackLittermanModel(S, Q=views, omega=1.0)
 
 
 def test_parse_views():
@@ -73,13 +93,27 @@ def test_dataframe_input():
 
     # views on the first 10 assets
     view_df = pd.DataFrame(pd.Series(0.1, index=S.columns)[:10])
-    picking = np.eye(len(S))[:10, :]
+    # P's index and columns labels are ignored when a DataFrame is used:
+    picking = pd.DataFrame(np.eye(len(S))[:10, :])
     assert BlackLittermanModel(S, Q=view_df, P=picking)
 
     prior_df = df.pct_change().mean()
     assert BlackLittermanModel(S, pi=prior_df, Q=view_df, P=picking)
     omega_df = S.iloc[:10, :10]
     assert BlackLittermanModel(S, pi=prior_df, Q=view_df, P=picking, omega=omega_df)
+
+
+def test_cov_ndarray():
+    df = get_data()
+    prior_df = df.pct_change().mean()
+    S = risk_models.sample_cov(df)
+    views = pd.Series(0.1, index=S.columns)
+    bl = BlackLittermanModel(S, pi=prior_df, Q=views)
+    bl_nd = BlackLittermanModel(S.to_numpy(), pi=prior_df.to_numpy(), Q=views)
+    #  Compare without missing ticker index values.
+    np.testing.assert_equal(bl_nd.bl_returns().to_numpy(), bl.bl_returns().to_numpy())
+    np.testing.assert_equal(bl_nd.bl_cov().to_numpy(), bl.bl_cov().to_numpy())
+    assert list(bl_nd.bl_weights().values()) == list(bl.bl_weights().values())
 
 
 def test_default_omega():
@@ -214,6 +248,11 @@ def test_market_risk_aversion():
     prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0)
     delta = black_litterman.market_implied_risk_aversion(prices)
     assert np.round(delta.iloc[0], 5) == 2.68549
+
+    # Check it raises for other types.
+    list_invalid = [100.0, 110.0, 120.0, 130.0]
+    with pytest.raises(TypeError):
+        delta = black_litterman.market_implied_risk_aversion(list_invalid)
 
 
 def test_bl_weights():

@@ -45,7 +45,7 @@ Similarly, we can calculate a posterior estimate of the covariance matrix:
 Though the algorithm is relatively simple, BL proved to be a challenge from a software
 engineering perspective because it's not quite clear how best to fit it into PyPortfolioOpt's
 API. The full discussion can be found on a `Github issue thread <https://github.com/robertmartin8/PyPortfolioOpt/issues/48>`_,
-but I ultimately decided that though BL is not technically an optimiser, it didn't make sense to
+but I ultimately decided that though BL is not technically an optimizer, it didn't make sense to
 split up its methods into `expected_returns` or `risk_models`. I have thus made it an independent
 module and owing to the comparatively extensive theory, have given it a dedicated documentation page.
 I'd like to thank  `Felipe Schneider <https://github.com/schneiderfelipe>`_ for his multiple
@@ -55,7 +55,7 @@ of market cap data for free, please refer to the `cookbook recipe <https://githu
 .. tip:: 
 
     Thomas Kirschenmann has built a neat interactive `Black-Litterman tool <https://github.com/thk3421-models/cardiel>`_
-    on top of PyPortfolioOpt, which allows you to visualise BL outputs and compare optimisation objectives.
+    on top of PyPortfolioOpt, which allows you to visualise BL outputs and compare optimization objectives.
 
 Priors
 ======
@@ -192,7 +192,7 @@ Output of the BL model
 ======================
 
 The BL model outputs posterior estimates of the returns and covariance matrix. The default suggestion in the literature is to
-then input these into an optimiser (see :ref:`efficient-frontier`). A quick alternative, which is quite useful for debugging, is
+then input these into an optimizer (see :ref:`efficient-frontier`). A quick alternative, which is quite useful for debugging, is
 to calculate the weights implied by the returns vector [4]_. It is actually the reverse of the procedure we used to calculate the
 returns implied by the market weights. 
 

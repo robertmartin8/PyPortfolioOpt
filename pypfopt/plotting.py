@@ -13,12 +13,13 @@ import numpy as np
 from . import risk_models, exceptions
 from . import EfficientFrontier, CLA
 import scipy.cluster.hierarchy as sch
+import warnings
 
 try:
     import matplotlib.pyplot as plt
 
     plt.style.use("seaborn-deep")
-except (ModuleNotFoundError, ImportError):
+except (ModuleNotFoundError, ImportError):  # pragma: no cover
     raise ImportError("Please install matplotlib via pip or poetry")
 
 
@@ -40,7 +41,7 @@ def _plot_io(**kwargs):
     plt.tight_layout()
     if filename:
         plt.savefig(fname=filename, dpi=dpi)
-    if showfig:
+    if showfig:  # pragma: no cover
         plt.show()
 
 
@@ -100,6 +101,10 @@ def plot_dendrogram(hrp, ax=None, show_tickers=True, **kwargs):
     ax = ax or plt.gca()
 
     if hrp.clusters is None:
+        warnings.warn(
+            "hrp param has not been optimized.  Attempting optimization.",
+            RuntimeWarning,
+        )
         hrp.optimize()
 
     if show_tickers:
@@ -152,7 +157,7 @@ def _ef_default_returns_range(ef, points):
     ef_minvol.min_volatility()
     min_ret = ef_minvol.portfolio_performance()[0]
     max_ret = ef_maxret._max_return()
-    return np.linspace(min_ret, max_ret, points)
+    return np.linspace(min_ret, max_ret - 0.0001, points)
 
 
 def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets):
@@ -208,7 +213,7 @@ def plot_efficient_frontier(
     """
     Plot the efficient frontier based on either a CLA or EfficientFrontier object.
 
-    :param opt: an instantiated optimiser object BEFORE optimising an objective
+    :param opt: an instantiated optimizer object BEFORE optimising an objective
     :type opt: EfficientFrontier or CLA
     :param ef_param: [EfficientFrontier] whether to use a range over utility, risk, or return.
                      Defaults to "return".
@@ -252,7 +257,7 @@ def plot_weights(weights, ax=None, **kwargs):
     """
     Plot the portfolio weights as a horizontal bar chart
 
-    :param weights: the weights outputted by any PyPortfolioOpt optimiser
+    :param weights: the weights outputted by any PyPortfolioOpt optimizer
     :type weights: {ticker: weight} dict
     :param ax: ax to plot to, optional
     :type ax: matplotlib.axes

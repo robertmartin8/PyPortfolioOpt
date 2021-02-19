@@ -57,9 +57,6 @@ def test_log_returns_from_prices():
     new_nan = log_rets.isnull().sum(axis=1).sum()
     assert new_nan == old_nan
     np.testing.assert_almost_equal(log_rets.iloc[-1, -1], 0.0001682740081102576)
-    # Test the deprecated function, until it is removed.
-    deprecated_log_rets = expected_returns.log_returns_from_prices(df)
-    np.testing.assert_allclose(deprecated_log_rets, log_rets)
 
 
 def test_mean_historical_returns_dummy():
@@ -74,11 +71,11 @@ def test_mean_historical_returns_dummy():
     )
     mean = expected_returns.mean_historical_return(data, frequency=1)
     test_answer = pd.Series([0.0061922, 0.0241137, 0.0122722, -0.0421775])
-    pd.testing.assert_series_equal(mean, test_answer, check_less_precise=4)
+    pd.testing.assert_series_equal(mean, test_answer, rtol=1e-3)
 
     mean = expected_returns.mean_historical_return(data, compounding=False, frequency=1)
     test_answer = pd.Series([0.0086560, 0.0250000, 0.0128697, -0.03632333])
-    pd.testing.assert_series_equal(mean, test_answer, check_less_precise=4)
+    pd.testing.assert_series_equal(mean, test_answer, rtol=1e-3)
 
 
 def test_mean_historical_returns():
@@ -142,10 +139,11 @@ def test_ema_historical_return():
     assert mean.notnull().all()
     assert mean.dtype == "float64"
     # Test the (warning triggering) case that input is not a dataFrame
-    mean_np = expected_returns.ema_historical_return(df.to_numpy())
-    mean_np.name = mean.name  # These will differ.
-    reset_mean = mean.reset_index(drop=True)  # Index labels would be tickers.
-    pd.testing.assert_series_equal(mean_np, reset_mean)
+    with pytest.warns(RuntimeWarning):
+        mean_np = expected_returns.ema_historical_return(df.to_numpy())
+        mean_np.name = mean.name  # These will differ.
+        reset_mean = mean.reset_index(drop=True)  # Index labels would be tickers.
+        pd.testing.assert_series_equal(mean_np, reset_mean)
 
 
 def test_ema_historical_return_frequency():
@@ -195,10 +193,11 @@ def test_capm_no_benchmark():
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
     # Test the (warning triggering) case that input is not a dataFrame
-    mu_np = expected_returns.capm_return(df.to_numpy())
-    mu_np.name = mu.name  # These will differ.
-    mu_np.index = mu.index  # Index labels would be tickers.
-    pd.testing.assert_series_equal(mu_np, mu)
+    with pytest.warns(RuntimeWarning):
+        mu_np = expected_returns.capm_return(df.to_numpy())
+        mu_np.name = mu.name  # These will differ.
+        mu_np.index = mu.index  # Index labels would be tickers.
+        pd.testing.assert_series_equal(mu_np, mu)
 
 
 def test_capm_with_benchmark():
@@ -236,6 +235,9 @@ def test_capm_with_benchmark():
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
 
+    mu2 = expected_returns.capm_return(df, market_prices=mkt_df, compounding=False)
+    assert (mu2 >= mu).all()
+
 
 def test_risk_matrix_and_returns_data():
     # Test the switcher method for simple calls
@@ -272,3 +274,9 @@ def test_return_model_not_implemented():
     df = get_data()
     with pytest.raises(NotImplementedError):
         expected_returns.return_model(df, method="fancy_new!")
+
+
+def test_james_stein_shrinkage():
+    df = get_data()
+    with pytest.raises(NotImplementedError):
+        expected_returns.james_stein_shrinkage(df)

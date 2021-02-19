@@ -1,10 +1,11 @@
 import numpy as np
 import cvxpy as cp
 import pytest
-from pypfopt import EfficientFrontier
+from pypfopt import EfficientFrontier, expected_returns, risk_models
+from pypfopt.base_optimizer import BaseConvexOptimizer
 from pypfopt import objective_functions
 from pypfopt import exceptions
-from tests.utilities_for_tests import setup_efficient_frontier
+from tests.utilities_for_tests import setup_efficient_frontier, get_data
 
 
 def test_custom_convex_equal_weights():
@@ -15,6 +16,22 @@ def test_custom_convex_equal_weights():
 
     ef.convex_objective(new_objective)
     np.testing.assert_allclose(ef.weights, np.array([1 / 20] * 20))
+
+
+def test_custom_convex_additional():
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=1)
+    w_co = ef.convex_objective(
+        objective_functions.portfolio_variance, cov_matrix=ef.cov_matrix
+    )
+
+    # Same as test_min_volatility_L2_reg:
+    ef = setup_efficient_frontier()
+    ef.add_objective(objective_functions.L2_reg, gamma=1)
+    w_mv = ef.min_volatility()
+    # Weights from custom convex objective match those from min_volatility where
+    # an additional objective is applied to both.
+    assert dict(w_co) == dict(w_mv)
 
 
 def test_custom_convex_abs_exposure():
@@ -53,7 +70,7 @@ def test_custom_convex_objective_market_neutral_efficient_risk():
     ef.efficient_risk(target_risk, market_neutral=True)
     built_in = ef.weights
 
-    # Recreate the market-neutral efficient_risk optimiser using this API
+    # Recreate the market-neutral efficient_risk optimizer using this API
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
     )
@@ -75,8 +92,39 @@ def test_convex_sharpe_raises_error():
         )
 
 
+def test_custom_tracking_error():
+    df = get_data()
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
+    benchmark_rets = historical_rets["AAPL"]
+    historical_rets = historical_rets.drop("AAPL", axis=1)
+    S = risk_models.sample_cov(historical_rets, returns_data=True)
+
+    opt = BaseConvexOptimizer(
+        n_assets=len(historical_rets.columns),
+        tickers=list(historical_rets.columns),
+        weight_bounds=(0, 1),
+    )
+
+    opt.convex_objective(
+        objective_functions.ex_post_tracking_error,
+        historic_returns=historical_rets,
+        benchmark_returns=benchmark_rets,
+    )
+    w = opt.clean_weights()
+
+    ef = EfficientFrontier(None, S)
+    ef.convex_objective(
+        objective_functions.ex_post_tracking_error,
+        historic_returns=historical_rets,
+        benchmark_returns=benchmark_rets,
+    )
+    w2 = ef.clean_weights()
+
+    assert w == w2
+
+
 def test_custom_convex_logarithmic_barrier():
-    # 60 Years of Portfolio Optimisation, Kolm et al (2014)
+    # 60 Years of Portfolio Optimization, Kolm et al (2014)
     ef = setup_efficient_frontier()
 
     def logarithmic_barrier(w, cov_matrix, k=0.1):
@@ -96,7 +144,7 @@ def test_custom_convex_logarithmic_barrier():
 
 
 def test_custom_convex_deviation_risk_parity_error():
-    # 60 Years of Portfolio Optimisation, Kolm et al (2014)
+    # 60 Years of Portfolio Optimization, Kolm et al (2014)
     ef = setup_efficient_frontier()
 
     def deviation_risk_parity(w, cov_matrix):
@@ -147,7 +195,7 @@ def test_custom_nonconvex_min_var():
 
 
 def test_custom_nonconvex_logarithmic_barrier():
-    # 60 Years of Portfolio Optimisation, Kolm et al (2014)
+    # 60 Years of Portfolio Optimization, Kolm et al (2014)
     ef = setup_efficient_frontier()
 
     def logarithmic_barrier(weights, cov_matrix, k=0.1):
@@ -162,7 +210,7 @@ def test_custom_nonconvex_logarithmic_barrier():
 
 
 def test_custom_nonconvex_deviation_risk_parity_1():
-    # 60 Years of Portfolio Optimisation, Kolm et al (2014) - first definition
+    # 60 Years of Portfolio Optimization, Kolm et al (2014) - first definition
     ef = setup_efficient_frontier()
 
     def deviation_risk_parity(w, cov_matrix):
@@ -176,7 +224,7 @@ def test_custom_nonconvex_deviation_risk_parity_1():
 
 
 def test_custom_nonconvex_deviation_risk_parity_2():
-    # 60 Years of Portfolio Optimisation, Kolm et al (2014) - second definition
+    # 60 Years of Portfolio Optimization, Kolm et al (2014) - second definition
     ef = setup_efficient_frontier()
 
     def deviation_risk_parity(w, cov_matrix):
@@ -266,7 +314,7 @@ def test_custom_nonconvex_utility_objective():
 
 
 def test_custom_nonconvex_objective_market_neutral_efficient_risk():
-    # Recreate the market-neutral efficient_risk optimiser using this API
+    # Recreate the market-neutral efficient_risk optimizer using this API
     target_risk = 0.19
     ef = EfficientFrontier(
         *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)

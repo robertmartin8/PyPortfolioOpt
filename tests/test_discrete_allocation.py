@@ -25,7 +25,7 @@ def test_get_latest_prices_error():
 def test_remove_zero_positions():
     raw = {"MA": 14, "FB": 12, "XOM": 0, "PFE": 51, "BABA": 5, "GOOG": 0}
 
-    da = DiscreteAllocation({}, pd.Series())
+    da = DiscreteAllocation({}, pd.Series(dtype=float))
     assert da._remove_zero_positions(raw) == {"MA": 14, "FB": 12, "PFE": 51, "BABA": 5}
 
 
@@ -40,14 +40,14 @@ def test_greedy_portfolio_allocation():
     da = DiscreteAllocation(w, latest_prices, short_ratio=0.3)
     allocation, leftover = da.greedy_portfolio()
 
-    assert {
-        "MA": 14,
+    assert allocation == {
+        "MA": 20,
         "FB": 12,
-        "PFE": 51,
-        "BABA": 5,
-        "AAPL": 5,
-        "BBY": 9,
-        "SBUX": 6,
+        "PFE": 54,
+        "BABA": 4,
+        "AAPL": 4,
+        "BBY": 2,
+        "SBUX": 1,
         "GOOG": 1,
     }
 
@@ -55,6 +55,11 @@ def test_greedy_portfolio_allocation():
     for ticker, num in allocation.items():
         total += num * latest_prices[ticker]
     np.testing.assert_almost_equal(total + leftover, 10000, decimal=4)
+
+    # Cover the verbose parameter,
+    allocation_verbose, leftover_verbose = da.greedy_portfolio(verbose=True)
+    assert allocation_verbose == allocation
+    assert leftover_verbose == leftover
 
 
 def test_greedy_allocation_rmse_error():
@@ -113,6 +118,11 @@ def test_greedy_portfolio_allocation_short():
     np.testing.assert_almost_equal(
         long_total + short_total + leftover, 13000, decimal=4
     )
+
+    # Cover the verbose parameter,
+    allocation_verbose, leftover_verbose = da.greedy_portfolio(verbose=True)
+    assert allocation_verbose == allocation
+    assert leftover_verbose == leftover
 
 
 def test_greedy_allocation_rmse_error_short():
@@ -257,6 +267,11 @@ def test_lp_portfolio_allocation():
         total += num * latest_prices[ticker]
     np.testing.assert_almost_equal(total + leftover, 10000, decimal=4)
 
+    # Cover the verbose parameter,
+    allocation_verbose, leftover_verbose = da.lp_portfolio(verbose=True)
+    assert allocation_verbose == allocation
+    assert leftover_verbose == leftover
+
 
 def test_lp_allocation_rmse_error():
     df = get_data()
@@ -314,6 +329,11 @@ def test_lp_portfolio_allocation_short():
     np.testing.assert_almost_equal(
         long_total + short_total + leftover, 13000, decimal=5
     )
+
+    # Cover the verbose parameter,
+    allocation_verbose, leftover_verbose = da.lp_portfolio(verbose=True)
+    assert allocation_verbose == allocation
+    assert leftover_verbose == leftover
 
 
 def test_lp_portfolio_allocation_short_reinvest():

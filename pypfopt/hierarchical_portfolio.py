@@ -1,6 +1,6 @@
 """
 The ``hierarchical_portfolio`` module seeks to implement one of the recent advances in
-portfolio optimisation – the application of hierarchical clustering models in allocation.
+portfolio optimization – the application of hierarchical clustering models in allocation.
 
 All of the hierarchical classes have a similar API to ``EfficientFrontier``, though since
 many hierarchical models currently don't support different objectives, the actual allocation
@@ -43,7 +43,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
 
     - ``optimize()`` calculates weights using HRP
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
-      the optimised portfolio.
+      the optimized portfolio.
     - ``set_weights()`` creates self.weights (np.ndarray) from a weights dict
     - ``clean_weights()`` rounds the weights and clips near-zeros.
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
@@ -126,7 +126,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
                 for j, k in ((0, len(i) // 2), (len(i) // 2, len(i)))
                 if len(i) > 1
             ]  # bi-section
-            # For each pair, optimise locally.
+            # For each pair, optimize locally.
             for i in range(0, len(cluster_items), 2):
                 first_cluster = cluster_items[i]
                 second_cluster = cluster_items[i + 1]

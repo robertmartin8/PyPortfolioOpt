@@ -1,6 +1,6 @@
 """
 The ``expected_returns`` module provides functions for estimating the expected returns of
-the assets, which is a required input in mean-variance optimisation.
+the assets, which is a required input in mean-variance optimization.
 
 By convention, the output of these methods is expected *annual* returns. It is assumed that
 *daily* prices are provided, though in reality the functions are agnostic
@@ -41,22 +41,6 @@ def returns_from_prices(prices, log_returns=False):
         return np.log(1 + prices.pct_change()).dropna(how="all")
     else:
         return prices.pct_change().dropna(how="all")
-
-
-def log_returns_from_prices(prices):
-    """
-    Calculate the log returns given prices.
-
-    :param prices: adjusted (daily) closing prices of the asset, each row is a
-                   date and each column is a ticker/id.
-    :type prices: pd.DataFrame
-    :return: (daily) returns
-    :rtype: pd.DataFrame
-    """
-    warnings.warn(
-        "log_returns_from_prices is deprecated. Please use returns_from_prices(prices, log_returns=True)"
-    )
-    return np.log(1 + prices.pct_change()).dropna(how="all")
 
 
 def prices_from_returns(returns, log_returns=False):

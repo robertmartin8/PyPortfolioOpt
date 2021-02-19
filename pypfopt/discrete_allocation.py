@@ -162,9 +162,7 @@ class DiscreteAllocation:
             if verbose:
                 print("\nAllocating long sub-portfolio...")
             da1 = DiscreteAllocation(
-                longs,
-                self.latest_prices[longs.keys()],
-                total_portfolio_value=long_val,
+                longs, self.latest_prices[longs.keys()], total_portfolio_value=long_val
             )
             long_alloc, long_leftover = da1.greedy_portfolio()
 
@@ -193,14 +191,13 @@ class DiscreteAllocation:
         # First round
         for ticker, weight in self.weights:
             price = self.latest_prices[ticker]
-            # Attempt to buy the lower integer number of shares
+            # Attempt to buy the lower integer number of shares, which could be zero.
             n_shares = int(weight * self.total_portfolio_value / price)
             cost = n_shares * price
-            if cost > available_funds:
-                # Buy as many as possible
-                n_shares = available_funds // price
-                if n_shares == 0:
-                    print("Insufficient funds")
+            # As weights are all > 0 (long only) we always round down n_shares
+            # so the cost is always <= simple weighted share of portfolio value,
+            # so we can not run out of funds just here.
+            assert cost <= available_funds, "Unexpectedly insufficient funds."
             available_funds -= cost
             shares_bought.append(n_shares)
             buy_prices.append(price)
@@ -235,7 +232,7 @@ class DiscreteAllocation:
                 price = self.latest_prices[ticker]
                 counter += 1
 
-            if deficit[idx] <= 0 or counter == 10:
+            if deficit[idx] <= 0 or counter == 10:  # pragma: no cover
                 # Dirty solution to break out of both loops
                 break
 
@@ -286,9 +283,7 @@ class DiscreteAllocation:
             if verbose:
                 print("\nAllocating long sub-portfolio:")
             da1 = DiscreteAllocation(
-                longs,
-                self.latest_prices[longs.keys()],
-                total_portfolio_value=long_val,
+                longs, self.latest_prices[longs.keys()], total_portfolio_value=long_val
             )
             long_alloc, long_leftover = da1.lp_portfolio()
 
@@ -325,11 +320,11 @@ class DiscreteAllocation:
 
         opt = cp.Problem(cp.Minimize(objective), constraints)
 
-        if solver not in cp.installed_solvers():
+        if solver is not None and solver not in cp.installed_solvers():
             raise NameError("Solver {} is not installed. ".format(solver))
         opt.solve(solver=solver)
 
-        if opt.status not in {"optimal", "optimal_inaccurate"}:
+        if opt.status not in {"optimal", "optimal_inaccurate"}:  # pragma: no cover
             raise exceptions.OptimizationError("Please try greedy_portfolio")
 
         vals = np.rint(x.value).astype(int)

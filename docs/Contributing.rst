@@ -5,8 +5,8 @@ Contributing
 Some of the things that I'd love for people to help with:
 
 - Improve performance of existing code (but not at the cost of readability)
-- Add new optimisation objectives. For example, if you would like to use something other
-  than the Sharpe ratio, write an optimiser! (or suggest it in
+- Add new optimization objectives. For example, if you would like to use something other
+  than the Sharpe ratio, write an optimizer! (or suggest it in
   `Issues <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_ and I will have a go).
 - Help me write more tests! If you are someone learning about quant finance and/or unit
   testing in python, what better way to practice than to write some tests on an
@@ -71,7 +71,7 @@ details can be found on my `website <https://reasonabledeviations.com/about/>`_.
 Bugs/issues
 ===========
 
-If you find any bugs or the portfolio optimisation is not working as expected,
+If you find any bugs or the portfolio optimization is not working as expected,
 feel free to `raise an issue <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_.
 I would ask that you provide the following information in the issue:
 

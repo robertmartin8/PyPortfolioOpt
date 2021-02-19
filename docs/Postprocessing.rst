@@ -6,12 +6,12 @@ Post-processing weights
 
 After optimal weights have been generated, it is often necessary to do some
 post-processing before they can be used practically. In particular, you are
-likely using portfolio optimisation techniques to generate a
+likely using portfolio optimization techniques to generate a
 **portfolio allocation** – a list of tickers and corresponding integer quantities
 that you could go and purchase at a broker.
 
 However, it is not trivial to convert the continuous weights (output by any of our
-optimisation methods) into an actionable allocation. For example, let us say that we
+optimization methods) into an actionable allocation. For example, let us say that we
 have $10,000 that we would like to allocate. If we multiply the weights by this total
 portfolio value, the result will be dollar amounts of each asset. So if the optimal weight
 for Apple is 0.15, we need $1500 worth of Apple stock. However, Apple shares come
@@ -74,7 +74,7 @@ closest to our desired weights. We will use the following notation:
 - :math:`x \in \mathbb{Z}^n` is the integer allocation (i.e the result)
 - :math:`r \in \mathbb{R}` is the remaining unallocated value, i.e :math:`r = T - x \cdot p`.
 
-The optimisation problem is then given by:
+The optimization problem is then given by:
 
 .. math::
 
@@ -85,9 +85,7 @@ The optimisation problem is then given by:
     \end{aligned}
     \end{equation*}
 
-This is straightforward to translate into ``cvxpy``. The initial implementation used 
-`PuLP <https://pythonhosted.org/PuLP/>`_, but this caused numerous packaging issues and
-the code was a lot more verbose.
+This is straightforward to translate into ``cvxpy``.
 
 .. caution::
 
@@ -107,8 +105,8 @@ Practically, this means that you would go long $10,000 of some stocks, short $30
 stocks, then use the proceeds from the shorts to go long another $3000.
 Thus the total value of the resulting portfolio would be $13,000. 
 
-Usage
-=====
+Documentation reference
+========================
 
 .. automodule:: pypfopt.discrete_allocation
 

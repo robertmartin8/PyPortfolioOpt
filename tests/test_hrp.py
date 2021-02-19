@@ -6,6 +6,21 @@ from pypfopt import HRPOpt, CovarianceShrinkage
 from tests.utilities_for_tests import get_data, resource
 
 
+def test_hrp_errors():
+    with pytest.raises(ValueError):
+        hrp = HRPOpt()
+
+    df = get_data()
+    returns = df.pct_change().dropna(how="all")
+    returns_np = returns.to_numpy()
+    with pytest.raises(TypeError):
+        hrp = HRPOpt(returns_np)
+
+    hrp = HRPOpt(returns)
+    with pytest.raises(ValueError):
+        hrp.optimize(linkage_method="blah")
+
+
 def test_hrp_portfolio():
     df = get_data()
     returns = df.pct_change().dropna(how="all")
@@ -16,9 +31,7 @@ def test_hrp_portfolio():
     # pd.Series(w).to_csv(resource("weights_hrp.csv"))
 
     x = pd.read_csv(resource("weights_hrp.csv"), squeeze=True, index_col=0)
-    pd.testing.assert_series_equal(
-        x, pd.Series(w), check_names=False, check_less_precise=True
-    )
+    pd.testing.assert_series_equal(x, pd.Series(w), check_names=False, rtol=1e-2)
 
     assert isinstance(w, dict)
     assert set(w.keys()) == set(df.columns)

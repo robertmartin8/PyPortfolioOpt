@@ -1,14 +1,14 @@
 """
-The ``objective_functions`` module provides optimisation objectives, including the actual
-objective functions called by the ``EfficientFrontier`` object's optimisation methods.
-These methods are primarily designed for internal use during optimisation and each requires
+The ``objective_functions`` module provides optimization objectives, including the actual
+objective functions called by the ``EfficientFrontier`` object's optimization methods.
+These methods are primarily designed for internal use during optimization and each requires
 a different signature (which is why they have not been factored into a class).
 For obvious reasons, any objective function must accept ``weights``
 as an argument, and must also have at least one of ``expected_returns`` or ``cov_matrix``.
 
 The objective functions either compute the objective given a numpy array of weights, or they
 return a cvxpy *expression* when weights are a ``cp.Variable``. In this way, the same objective
-function can be used both internally for optimisation and externally for computing the objective
+function can be used both internally for optimization and externally for computing the objective
 given weights. ``_objective_value()`` automatically chooses between the two behaviours.
 
 ``objective_functions`` defaults to objectives for minimisation. In the cases of objectives

@@ -24,7 +24,7 @@ class CLA(base_optimizer.BaseOptimizer):
         - ``lb`` - np.ndarray
         - ``ub`` - np.ndarray
 
-    - Optimisation parameters:
+    - Optimization parameters:
 
         - ``w`` - np.ndarray list
         - ``ls`` - float list
@@ -38,11 +38,11 @@ class CLA(base_optimizer.BaseOptimizer):
 
     Public methods:
 
-    - ``max_sharpe()`` optimises for maximal Sharpe ratio (a.k.a the tangency portfolio)
-    - ``min_volatility()`` optimises for minimum volatility
+    - ``max_sharpe()`` optimizes for maximal Sharpe ratio (a.k.a the tangency portfolio)
+    - ``min_volatility()`` optimizes for minimum volatility
     - ``efficient_frontier()`` computes the entire efficient frontier
     - ``portfolio_performance()`` calculates the expected return, volatility and Sharpe ratio for
-      the optimised portfolio.
+      the optimized portfolio.
     - ``clean_weights()`` rounds the weights and clips near-zeros.
     - ``save_weights_to_file()`` saves the weights to csv, json, or txt.
     """
@@ -56,14 +56,14 @@ class CLA(base_optimizer.BaseOptimizer):
         :type cov_matrix: pd.DataFrame or np.array
         :param weight_bounds: minimum and maximum weight of an asset, defaults to (0, 1).
                               Must be changed to (-1, 1) for portfolios with shorting.
-        :type weight_bounds: tuple (float, float) or (list/ndarray, list/ndarray)
+        :type weight_bounds: tuple (float, float) or (list/ndarray, list/ndarray) or list(tuple(float, float))
         :raises TypeError: if ``expected_returns`` is not a series, list or array
         :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
         # Initialize the class
         self.mean = np.array(expected_returns).reshape((len(expected_returns), 1))
-        if (self.mean == np.ones(self.mean.shape) * self.mean.mean()).all():
-            self.mean[-1, 0] += 1e-5
+        # if (self.mean == np.ones(self.mean.shape) * self.mean.mean()).all():
+        #     self.mean[-1, 0] += 1e-5
         self.expected_returns = self.mean.reshape((len(self.mean),))
         self.cov_matrix = np.asarray(cov_matrix)
 
@@ -159,7 +159,7 @@ class CLA(base_optimizer.BaseOptimizer):
         c3 = np.dot(np.dot(onesF.T, covarF_inv), meanF)
         c4 = np.dot(covarF_inv, onesF)
         c = -c1 * c2[i] + c3 * c4[i]
-        if c == 0:
+        if c == 0:  # pragma: no cover
             return None, None
         # 2) bi
         if type(bi) == list:
@@ -221,7 +221,7 @@ class CLA(base_optimizer.BaseOptimizer):
                     if (
                         self.w[i][j] - self.lB[j] < -tol
                         or self.w[i][j] - self.uB[j] > tol
-                    ):
+                    ):  #  pragma: no cover
                         flag = True
                         break
             if flag is True:

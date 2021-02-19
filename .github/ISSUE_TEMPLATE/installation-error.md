@@ -16,5 +16,5 @@ pip install pyportfolioopt
 **Error message**
 
 ```
-Copy paste the terminal message here
+Copy paste the terminal message inside the backticks.
 ```
