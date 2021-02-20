@@ -19,7 +19,7 @@
     <a href="https://pyportfolioopt.readthedocs.io/en/latest/">
         <img src="https://img.shields.io/badge/docs-passing-brightgreen.svg"
             alt="docs"></a> &nbsp;
-    <a href="https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master">
+    <a href="https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master/?filepath=cookbook">
         <img src="https://mybinder.org/badge_logo.svg"
             alt="binder"></a> &nbsp;
 </p>
