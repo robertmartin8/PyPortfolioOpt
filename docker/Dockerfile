@@ -12,6 +12,8 @@ RUN buildDeps='gcc g++' && \
 
 COPY . .
 
+RUN cd cookbooks
+
 # Usage examples:
 #
 # Build
