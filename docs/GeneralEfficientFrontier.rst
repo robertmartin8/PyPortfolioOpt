@@ -169,19 +169,19 @@ particular index, in otherwords, to minimise the **tracking error**. This does n
 a mean-variance optimization paradigm, but we can still implement it in PyPortfolioOpt::
 
     from pypfopt.base_optimizer import BaseConvexOptimizer
-    from pypfopt.objective_functions import ex_post_tracking error
+    from pypfopt.objective_functions import ex_post_tracking_error
 
-    historic_returns = ... # dataframe of historic asset returns
-    S = risk_models.sample_cov(historic_returns, returns_data=True)
+    historic_rets = ... # dataframe of historic asset returns
+    benchmark_rets = ... # pd.Series of historic benchmark returns (same index as historic)
 
     opt = BaseConvexOptimizer(
         n_assets=len(historic_returns.columns), 
-        tickers=historic_returns.index,
+        tickers=historic_returns.columns,
         weight_bounds=(0, 1)
     )
     opt.convex_objective(
-        objective_functions.ex_post_tracking_error,
-        historic_returns=historical_rets,
+        ex_post_tracking_error,
+        historic_returns=historic_rets,
         benchmark_returns=benchmark_rets,
     ) 
     weights = opt.clean_weights()
