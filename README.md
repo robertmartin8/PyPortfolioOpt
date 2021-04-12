@@ -136,11 +136,11 @@ ef.portfolio_performance(verbose=True)
 This outputs the following weights:
 
 ```txt
-{'GOOG': 0.01269,
- 'AAPL': 0.09202,
- 'FB': 0.19856,
- 'BABA': 0.09642,
- 'AMZN': 0.07158,
+{'GOOG': 0.03835,
+ 'AAPL': 0.0689,
+ 'FB': 0.20603,
+ 'BABA': 0.07315,
+ 'AMZN': 0.04033,
  'GE': 0.0,
  'AMD': 0.0,
  'WMT': 0.0,
@@ -151,15 +151,15 @@ This outputs the following weights:
  'SHLD': 0.0,
  'XOM': 0.0,
  'RRC': 0.0,
- 'BBY': 0.06129,
- 'MA': 0.24562,
- 'PFE': 0.18413,
+ 'BBY': 0.01324,
+ 'MA': 0.35349,
+ 'PFE': 0.1957,
  'JPM': 0.0,
- 'SBUX': 0.03769}
+ 'SBUX': 0.01082}
 
-Expected annual return: 33.0%
-Annual volatility: 21.7%
-Sharpe Ratio: 1.43
+Expected annual return: 30.5%
+Annual volatility: 22.2%
+Sharpe Ratio: 1.28
 ```
 
 This is interesting but not useful in itself. However, PyPortfolioOpt provides a method which allows you to convert the above continuous weights to an actual allocation that you could buy. Just enter the most recent prices, and the desired portfolio size ($10,000 in this example):
@@ -177,10 +177,10 @@ print("Funds remaining: ${:.2f}".format(leftover))
 ```
 
 ```txt
-11 out of 20 tickers were removed
-Discrete allocation: {'GOOG': 0, 'AAPL': 5, 'FB': 11, 'BABA': 5, 'AMZN': 1,
-                      'BBY': 7, 'MA': 14, 'PFE': 50, 'SBUX': 5}
-Funds remaining: $8.42
+12 out of 20 tickers were removed
+Discrete allocation: {'GOOG': 1, 'AAPL': 4, 'FB': 12, 'BABA': 4, 'BBY': 2,
+                      'MA': 20, 'PFE': 54, 'SBUX': 1}
+Funds remaining: $11.89
 ```
 
 *Disclaimer: nothing about this project constitues investment advice, and the author bears no responsibiltiy for your subsequent investment decisions. Please refer to the [license](https://github.com/robertmartin8/PyPortfolioOpt/blob/master/LICENSE.txt) for more information.*
