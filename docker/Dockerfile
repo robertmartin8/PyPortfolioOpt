@@ -1,15 +1,12 @@
-FROM python:3.8-slim-buster
+FROM python:3.8-buster
 
 WORKDIR pypfopt
 COPY pyproject.toml poetry.lock ./
 
-RUN buildDeps='gcc g++' && \
-    apt-get update && apt-get install -y $buildDeps --no-install-recommends && \
-    pip install --upgrade pip==21.0.1 && \
+RUN pip install --upgrade pip==21.0.1 && \
     pip install "poetry==1.1.4" && \
     pip install yfinance && \
-    poetry install -E optionals --no-root && \
-    apt-get purge -y --auto-remove $buildDeps
+    poetry install -E optionals --no-root 
 
 COPY . .
 
