@@ -91,7 +91,7 @@ Otherwise, clone/download the project and in the project directory run:
 python setup.py install
 ```
 
-PyPortfolioOpt supports Docker. Build your first container with `docker build -f docker/Dockerfile . -t pypfopt`. You can use the image to run tests or even launch a Jupyter server. 
+PyPortfolioOpt supports Docker. Build your first container with `docker build -f docker/Dockerfile . -t pypfopt`. You can use the image to run tests or even launch a Jupyter server.
 
 ```bash
 # iPython interpreter:
@@ -107,6 +107,7 @@ docker run -t pypfopt poetry run pytest
 # Bash
 docker run -it pypfopt bash
 ```
+
 For more information, please read [this guide](https://docker-curriculum.com/#introduction).
 
 ### For development
@@ -187,7 +188,7 @@ from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
 latest_prices = get_latest_prices(df)
 
 da = DiscreteAllocation(weights, latest_prices, total_portfolio_value=10000)
-allocation, leftover = da.lp_portfolio()
+allocation, leftover = da.greedy_portfolio()
 print("Discrete allocation:", allocation)
 print("Funds remaining: ${:.2f}".format(leftover))
 ```
