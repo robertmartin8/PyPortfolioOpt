@@ -10,7 +10,7 @@ Constraining the number of assets
 Unfortunately, cardinality constraints are not convex, making them difficult to implement.
 
 However, we can treat it as a mixed-integer program and solve (provided you have access to a solver). 
-or small problems with less than 1000 variables and constraints, you can use the community version of CPLEX:
+for small problems with less than 1000 variables and constraints, you can use the community version of CPLEX:
 ``pip install cplex``. In the below example, we limit the portfolio to at most 10 assets::
 
     ef = EfficientFrontier(mu, S, solver=cp.CPLEX)

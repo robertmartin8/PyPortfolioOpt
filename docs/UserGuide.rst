@@ -217,8 +217,10 @@ To combat this, I have introduced an objective function which borrows the idea o
 regularisation from machine learning. Essentially, by adding an additional cost
 function to the objective, you can 'encourage' the optimizer to choose different
 weights (mathematical details are provided in the :ref:`L2-Regularisation` section).
-To use this feature, change the ``gamma`` parameter::
+To use this feature, change the ``gamma`` parameter::   
 
+    from pypfopt import objective_functions
+    
     ef = EfficientFrontier(mu, S)
     ef.add_objective(objective_functions.L2_reg, gamma=0.1)
     w = ef.max_sharpe()
