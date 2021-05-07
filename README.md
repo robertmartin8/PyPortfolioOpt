@@ -16,9 +16,6 @@
     <a href="https://github.com/robertmartin8/PyPortfolioOpt/actions">
         <img src="https://github.com/robertmartin8/PyPortfolioOpt/workflows/pytest/badge.svg?event=push"
             alt="build"></a> &nbsp;
-    <a href="https://github.com/robertmartin8/PyPortfolioOpt/actions">
-        <img src="https://github.com/robertmartin8/PyPortfolioOpt/workflows/pytest/badge.svg?event=push"
-            alt="build"></a> &nbsp;
     <a href="https://pepy.tech/project/pyportfolioopt">
         <img src="https://static.pepy.tech/personalized-badge/pyportfolioopt?period=total&units=international_system&left_color=black&right_color=blue&left_text=Downloads"
             alt="build"></a> &nbsp;
