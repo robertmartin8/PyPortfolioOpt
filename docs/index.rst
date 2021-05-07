@@ -23,6 +23,9 @@
             <a href="https://github.com/robertmartin8/PyPortfolioOpt/graphs/commit-activity">
                 <img src="https://img.shields.io/badge/Maintained%3F-yes-brightgreen.svg"
                     alt="MIT license"></a> &nbsp;
+            <a style="border-width:0" href="https://doi.org/10.21105/joss.03066">
+                <img src="https://joss.theoj.org/papers/10.21105/joss.03066/status.svg"
+                    alt="DOI badge" ></a> &nbsp;
         </p>
     </embed>
 
@@ -169,6 +172,7 @@ Contents
     
     FAQ
     Roadmap
+    Citing
     Contributing
     About
 
