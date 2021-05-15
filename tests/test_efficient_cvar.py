@@ -341,15 +341,14 @@ def test_efficient_risk_L2_reg():
         atol=1e-4,
     )
 
-    ef2 = setup_efficient_cvar()
-    cv.add_objective(objective_functions.L2_reg, gamma=1)
-    ef2.efficient_risk(0.19)
+    cv2 = setup_efficient_cvar()
+    cv2.efficient_risk(0.19)
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cv.n_assets,), 1 / cv.n_assets)
     assert (
         np.abs(equal_weight - cv.weights).sum()
-        < np.abs(equal_weight - ef2.weights).sum()
+        < np.abs(equal_weight - cv2.weights).sum()
     )
 
 

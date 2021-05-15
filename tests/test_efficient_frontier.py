@@ -203,8 +203,9 @@ def test_min_volatility_L2_reg_many_values():
     ef.min_volatility()
     # Count the number of weights more 1%
     initial_number = sum(ef.weights > 0.01)
-    for _ in range(10):
-        ef.add_objective(objective_functions.L2_reg, gamma=0.05)
+    for gamma_multiplier in range(1, 10):
+        ef = setup_efficient_frontier()
+        ef.add_objective(objective_functions.L2_reg, gamma=0.05*gamma_multiplier)
         ef.min_volatility()
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         new_number = sum(ef.weights > 0.01)

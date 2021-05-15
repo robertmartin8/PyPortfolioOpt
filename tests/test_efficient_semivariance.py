@@ -457,7 +457,6 @@ def test_efficient_risk_L2_reg():
     )
 
     ef2 = setup_efficient_semivariance()
-    es.add_objective(objective_functions.L2_reg, gamma=1)
     ef2.efficient_risk(0.19)
 
     # L2_reg should pull close to equal weight
