@@ -221,6 +221,25 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._constraints.append(self._w >= self._lower_bounds)
         self._constraints.append(self._w <= self._upper_bounds)
 
+    def is_parameter_defined(self, parameter_name: str) -> bool:
+        is_defined = False
+        for const in self._constraints:
+            for arg in const.args:
+                if isinstance(arg, cp.Parameter):
+                    if arg.name() == parameter_name and not is_defined:
+                        is_defined = True
+                    elif arg.name() == parameter_name and is_defined:
+                        raise Exception('Parameter name defined multiple times')
+        return is_defined
+
+    def update_parameter_value(self, parameter_name: str, new_value: float) -> None:
+        assert self.is_parameter_defined(parameter_name)
+        for const in self._constraints:
+            for arg in const.args:
+                if isinstance(arg, cp.Parameter):
+                    if arg.name() == parameter_name:
+                        arg.value = new_value
+
     def _solve_cvxpy_opt_problem(self):
         """
         Helper method to solve the cvxpy problem and check output,
@@ -262,6 +281,9 @@ class BaseConvexOptimizer(BaseOptimizer):
         :param new_objective: the objective to be added
         :type new_objective: cp.Expression (i.e function of cp.Variable)
         """
+        if self._opt is not None:
+            warnings.warn('Adding further objectives to an already solved problem might have unintended consequences.'
+                          'Add some further explanation... ')
         self._additional_objectives.append(new_objective(self._w, **kwargs))
 
     def add_constraint(self, new_constraint):
@@ -280,6 +302,9 @@ class BaseConvexOptimizer(BaseOptimizer):
         """
         if not callable(new_constraint):
             raise TypeError("New constraint must be provided as a lambda function")
+        if self._opt is not None:
+            warnings.warn('Adding further constraints to an already solved problem might have unintended consequences.'
+                          'Add some further explanation... ')
         self._constraints.append(new_constraint(self._w))
 
     def add_sector_constraints(self, sector_mapper, sector_lower, sector_upper):
