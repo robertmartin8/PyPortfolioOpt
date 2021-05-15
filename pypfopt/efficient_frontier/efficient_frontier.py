@@ -5,7 +5,6 @@ classical mean-variance optimal portfolios for a variety of objectives and const
 
 import warnings
 
-import cvxpy
 import numpy as np
 import pandas as pd
 import cvxpy as cp
@@ -351,7 +350,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             for obj in self._additional_objectives:
                 self._objective += obj
 
-            target_variance = cvxpy.Parameter(name="target_variance", value=target_volatility ** 2)
+            target_variance = cp.Parameter(name="target_variance", value=target_volatility ** 2)
             self.add_constraint(lambda w: variance <= target_variance)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
