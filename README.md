@@ -17,12 +17,11 @@
         <img src="https://github.com/robertmartin8/PyPortfolioOpt/workflows/pytest/badge.svg?event=push"
             alt="build"></a> &nbsp;
     <a href="https://pepy.tech/project/pyportfolioopt">
-        <img src="https://static.pepy.tech/personalized-badge/pyportfolioopt?period=total&units=international_system&left_color=black&right_color=blue&left_text=Downloads"
-            alt="build"></a> &nbsp;
+        <img src="https://pepy.tech/badge/pyportfolioopt"
+            alt="downloads"></a> &nbsp;
     <a href="https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master/?filepath=cookbook">
       <img src="https://mybinder.org/badge_logo.svg"
             alt="binder"></a> &nbsp;
-
 </p>
 
 <!-- content -->
@@ -51,7 +50,6 @@ Head over to the **[documentation on ReadTheDocs](https://pyportfolioopt.readthe
 - [Getting started](#getting-started)
   - [For development](#for-development)
 - [A quick example](#a-quick-example)
-- [What's new](#whats-new)
 - [An overview of classical portfolio optimization methods](#an-overview-of-classical-portfolio-optimization-methods)
 - [Features](#features)
   - [Expected returns](#expected-returns)
@@ -205,27 +203,6 @@ Funds remaining: $11.89
 ```
 
 _Disclaimer: nothing about this project constitues investment advice, and the author bears no responsibiltiy for your subsequent investment decisions. Please refer to the [license](https://github.com/robertmartin8/PyPortfolioOpt/blob/master/LICENSE.txt) for more information._
-
-## What's new
-
-As of v1.2.0:
-
--   Docker support
--   Idzorek's method for specifying Black-Litterman views using percentage confidences.
--   Industry constraints: limit your sector exposure.
--   Multiple additions and improvements to `risk_models`:
-    -   Introduced a new API, in which the function `risk_models.risk_matrix(method="...")` allows
-        all the different risk models to be called. This should make testing easier.
-    -   All methods now accept returns data instead of prices, if you set the flag `returns_data=True`.
--   Automatically fix non-positive semidefinite covariance matrices!
--   Additions and improvements to `expected_returns`:
-    -   Introduced a new API, in which the function `expected_returns.return_model(method="...")` allows
-        all the different return models to be called. This should make testing easier.
-    -   Added option to 'properly' compound returns.
-    -   CAPM return model.
--   `from pypfopt import plotting`: moved all plotting functionality into a new class and added
-    new plots. All other plotting functions (scattered in different classes) have been retained,
-    but are now deprecated.
 
 ## An overview of classical portfolio optimization methods
 
