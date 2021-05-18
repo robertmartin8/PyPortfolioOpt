@@ -1,5 +1,5 @@
 <p align="center">
-    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v1.png">
+    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v1.png?raw=true">
 </p>
 
 <!-- buttons -->
@@ -42,7 +42,7 @@ in a risk-efficient way.
 Head over to the **[documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/)** to get an in-depth look at the project, or check out the [cookbook](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook) to see some examples showing the full process from downloading data to building a portfolio.
 
 <center>
-<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v2.png" style="width:70%;"/>
+<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v2.png?raw=true" style="width:70%;"/>
 </center>
 
 ## Table of contents
@@ -232,7 +232,7 @@ As of v1.2.0:
 Harry Markowitz's 1952 paper is the undeniable classic, which turned portfolio optimization from an art into a science. The key insight is that by combining assets with different expected returns and volatilities, one can decide on a mathematically optimal allocation which minimises the risk for a target return – the set of all such optimal portfolios is referred to as the **efficient frontier**.
 
 <center>
-<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/efficient_frontier_white.png" style="width:60%;"/>
+<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/efficient_frontier_white.png?raw=true" style="width:60%;"/>
 </center>
 
 Although much development has been made in the subject, more than half a century later, Markowitz's core ideas are still fundamentally important and see daily use in many portfolio management firms.
@@ -286,7 +286,7 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
     -   implemented in `sklearn.covariance`
 
 <p align="center">
-    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/corrplot_white.png">
+    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/corrplot_white.png?raw=true">
 </p>
 
 (This plot was generated using `plotting.plot_covariance`)
@@ -454,5 +454,5 @@ Special shout-outs to:
 If you are having a problem with PyPortfolioOpt, please raise a GitHub issue. For anything else, you can reach me at:
 
 <center>
-<img src="https://github.com/robertmartin8/ReasonableDeviations/blob/gh-pages/assets/images/contact.png" style="width:75%;"/>
+<img src="https://github.com/robertmartin8/ReasonableDeviations/blob/gh-pages/assets/images/contact.png?raw=true" style="width:60%;"/>
 </center>
