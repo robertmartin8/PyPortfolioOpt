@@ -175,9 +175,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 del self._constraints[0]
                 del self._constraints[0]
 
-            self._constraints.append(cp.sum(self._w) == 0)
+            self.add_constraint(lambda x: cp.sum(x) == 0)
         else:
-            self._constraints.append(cp.sum(self._w) == 1)
+            self.add_constraint(lambda x: cp.sum(x) == 1)
 
     def min_volatility(self):
         """
@@ -192,7 +192,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        self._constraints.append(cp.sum(self._w) == 1)
+        self.add_constraint(lambda x: cp.sum(x) == 1)
         return self._solve_cvxpy_opt_problem()
 
     def _max_return(self, return_value=True):
@@ -206,7 +206,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._w, self.expected_returns
         )
 
-        self._constraints.append(cp.sum(self._w) == 1)
+        self.add_constraint(lambda x: cp.sum(x) == 1)
 
         res = self._solve_cvxpy_opt_problem()
 
@@ -353,7 +353,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 self._objective += obj
 
             target_variance = cp.Parameter(name="target_variance", value=target_volatility ** 2)
-            self.add_constraint(lambda w: variance <= target_variance)
+            self.add_constraint(lambda _: variance <= target_variance)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
@@ -395,7 +395,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 self._objective += obj
 
             target_return_par = cp.Parameter(name='target_return', value=target_return)
-            self._constraints.append(ret >= target_return_par)
+            self.add_constraint(lambda _: ret >= target_return_par)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
