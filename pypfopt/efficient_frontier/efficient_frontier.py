@@ -175,9 +175,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 del self._constraints[0]
                 del self._constraints[0]
 
-            self.add_constraint(lambda x: cp.sum(x) == 0)
+            self.add_constraint(lambda w: cp.sum(w) == 0)
         else:
-            self.add_constraint(lambda x: cp.sum(x) == 1)
+            self.add_constraint(lambda w: cp.sum(w) == 1)
 
     def min_volatility(self):
         """
@@ -192,7 +192,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        self.add_constraint(lambda x: cp.sum(x) == 1)
+        self.add_constraint(lambda w: cp.sum(w) == 1)
         return self._solve_cvxpy_opt_problem()
 
     def _max_return(self, return_value=True):
@@ -206,7 +206,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._w, self.expected_returns
         )
 
-        self.add_constraint(lambda x: cp.sum(x) == 1)
+        self.add_constraint(lambda w: cp.sum(w) == 1)
 
         res = self._solve_cvxpy_opt_problem()
 

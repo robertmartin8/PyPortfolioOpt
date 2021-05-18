@@ -126,10 +126,8 @@ class EfficientCVaR(EfficientFrontier):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        self._constraints += [
-            self._u >= 0.0,
-            self.returns.values @ self._w + self._alpha + self._u >= 0.0,
-        ]
+        self.add_constraint(lambda _: self._u >= 0.0)
+        self.add_constraint(lambda w: self.returns.values @ w + self._alpha + self._u >= 0.0)
 
         self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
@@ -159,14 +157,12 @@ class EfficientCVaR(EfficientFrontier):
             for obj in self._additional_objectives:
                 self._objective += obj
 
-            self._constraints += [
-                self._u >= 0.0,
-                self.returns.values @ self._w + self._alpha + self._u >= 0.0,
-            ]
+            self.add_constraint(lambda _: self._u >= 0.0)
+            self.add_constraint(lambda w: self.returns.values @ w + self._alpha + self._u >= 0.0)
 
             ret = self.expected_returns.T @ self._w
             target_return_par = cp.Parameter(name='target_return', value=target_return)
-            self._constraints.append(ret >= target_return_par)
+            self.add_constraint(lambda _: ret >= target_return_par)
 
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
@@ -199,11 +195,10 @@ class EfficientCVaR(EfficientFrontier):
                 self._u
             )
             target_cvar_par = cp.Parameter(value=target_cvar, name='target_cvar', nonneg=True)
-            self._constraints += [
-                cvar <= target_cvar_par,
-                self._u >= 0.0,
-                self.returns.values @ self._w + self._alpha + self._u >= 0.0,
-            ]
+
+            self.add_constraint(lambda _: cvar <= target_cvar_par)
+            self.add_constraint(lambda _: self._u >= 0.0)
+            self.add_constraint(lambda w: self.returns.values @ w + self._alpha + self._u >= 0.0)
 
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()

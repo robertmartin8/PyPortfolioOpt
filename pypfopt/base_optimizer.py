@@ -221,8 +221,8 @@ class BaseConvexOptimizer(BaseOptimizer):
                 self._lower_bounds = np.nan_to_num(lower, nan=-1)
                 self._upper_bounds = np.nan_to_num(upper, nan=1)
 
-        self.add_constraint(lambda x: x >= self._lower_bounds)
-        self.add_constraint(lambda x: x <= self._upper_bounds)
+        self.add_constraint(lambda w: w >= self._lower_bounds)
+        self.add_constraint(lambda w: w <= self._upper_bounds)
 
     def is_parameter_defined(self, parameter_name: str) -> bool:
         is_defined = False
@@ -354,10 +354,10 @@ class BaseConvexOptimizer(BaseOptimizer):
             )
         for sector in sector_upper:
             is_sector = [sector_mapper[t] == sector for t in self.tickers]
-            self.add_constraint(lambda x: cp.sum(x[is_sector]) <= sector_upper[sector])
+            self.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
         for sector in sector_lower:
             is_sector = [sector_mapper[t] == sector for t in self.tickers]
-            self.add_constraint(lambda x: cp.sum(x[is_sector]) >= sector_lower[sector])
+            self.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
 
     def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
         """
@@ -387,7 +387,7 @@ class BaseConvexOptimizer(BaseOptimizer):
             self._objective += obj
 
         if weights_sum_to_one:
-            self.add_constraint(lambda x: cp.sum(x) == 1)
+            self.add_constraint(lambda w: cp.sum(w) == 1)
 
         return self._solve_cvxpy_opt_problem()
 
@@ -451,7 +451,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         # Construct constraints
         final_constraints = []
         if weights_sum_to_one:
-            final_constraints.append({"type": "eq", "fun": lambda x: np.sum(x) - 1})
+            final_constraints.append({"type": "eq", "fun": lambda w: np.sum(w) - 1})
         if constraints is not None:
             final_constraints += constraints
 

@@ -125,7 +125,7 @@ class EfficientSemivariance(EfficientFrontier):
             self._objective += obj
 
         B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
-        self._constraints.append(B @ self._w - p + n == 0)
+        self.add_constraint(lambda w: B @ w - p + n == 0)
         self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
@@ -160,7 +160,7 @@ class EfficientSemivariance(EfficientFrontier):
                 self._objective += obj
 
             B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
-            self._constraints.append(B @ self._w - p + n == 0)
+            self.add_constraint(lambda w: B @ w - p + n == 0)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
@@ -192,11 +192,9 @@ class EfficientSemivariance(EfficientFrontier):
             n = cp.Variable(self._T, nonneg=True)
 
             target_semivariance = cp.Parameter(value=target_semideviation**2, name='target_semivariance', nonneg=True)
-            self._constraints.append(
-                self.frequency * cp.sum(cp.square(n)) <= target_semivariance
-            )
+            self.add_constraint(lambda _: self.frequency * cp.sum(cp.square(n)) <= target_semivariance)
             B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
-            self._constraints.append(B @ self._w - p + n == 0)
+            self.add_constraint(lambda w: B @ w - p + n == 0)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
@@ -233,11 +231,9 @@ class EfficientSemivariance(EfficientFrontier):
                 self._objective += obj
 
             target_return_par = cp.Parameter(name='target_return', value=target_return)
-            self._constraints.append(
-                cp.sum(self._w @ self.expected_returns) >= target_return_par
-            )
+            self.add_constraint(lambda w: cp.sum(w @ self.expected_returns) >= target_return_par)
             B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
-            self._constraints.append(B @ self._w - p + n == 0)
+            self.add_constraint(lambda w: B @ w - p + n == 0)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
