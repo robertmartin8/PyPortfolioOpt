@@ -168,15 +168,13 @@ def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets):
 
     # Create a portfolio for each value of ef_param_range
     for param_value in ef_param_range:
-        ef_i = copy.deepcopy(ef)
-
         try:
             if ef_param == "utility":
-                ef_i.max_quadratic_utility(param_value)
+                ef.max_quadratic_utility(param_value)
             elif ef_param == "risk":
-                ef_i.efficient_risk(param_value)
+                ef.efficient_risk(param_value)
             elif ef_param == "return":
-                ef_i.efficient_return(param_value)
+                ef.efficient_return(param_value)
             else:
                 raise NotImplementedError(
                     "ef_param should be one of {'utility', 'risk', 'return'}"
@@ -184,7 +182,7 @@ def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets):
         except exceptions.OptimizationError:
             continue
 
-        ret, sigma, _ = ef_i.portfolio_performance()
+        ret, sigma, _ = ef.portfolio_performance()
         mus.append(ret)
         sigmas.append(sigma)
 

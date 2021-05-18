@@ -299,13 +299,17 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
 
-        self._objective = objective_functions.quadratic_utility(
-            self._w, self.expected_returns, self.cov_matrix, risk_aversion=risk_aversion
-        )
-        for obj in self._additional_objectives:
-            self._objective += obj
+        update_existing_parameter = self.is_parameter_defined('risk_aversion')
+        if update_existing_parameter:
+            self.update_parameter_value('risk_aversion', risk_aversion)
+        else:
+            self._objective = objective_functions.quadratic_utility(
+                self._w, self.expected_returns, self.cov_matrix, risk_aversion=risk_aversion
+            )
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        self._make_weight_sum_constraint(market_neutral)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_risk(self, target_volatility, market_neutral=False):
@@ -376,9 +380,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 "target_return must be lower than the maximum possible return"
             )
 
-        update_existing_parameter = self.is_parameter_defined('target_return_par')
+        update_existing_parameter = self.is_parameter_defined('target_return')
         if update_existing_parameter:
-            self.update_parameter_value('target_return_par', target_return)
+            self.update_parameter_value('target_return', target_return)
         else:
             self._objective = objective_functions.portfolio_variance(
                 self._w, self.cov_matrix
@@ -390,7 +394,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             for obj in self._additional_objectives:
                 self._objective += obj
 
-            target_return_par = cp.Parameter(name='target_return_par', value=target_return)
+            target_return_par = cp.Parameter(name='target_return', value=target_return)
             self._constraints.append(ret >= target_return_par)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()

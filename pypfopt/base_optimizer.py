@@ -7,13 +7,16 @@ Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
 """
 import collections
-import copy
 import json
 import warnings
+from collections.abc import Iterable
+from typing import List
+
 import numpy as np
 import pandas as pd
 import cvxpy as cp
 import scipy.optimize as sco
+
 from . import objective_functions
 from . import exceptions
 
@@ -223,24 +226,26 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     def is_parameter_defined(self, parameter_name: str) -> bool:
         is_defined = False
-        for const in self._constraints:
-            for arg in const.args:
-                if isinstance(arg, cp.Parameter):
-                    if arg.name() == parameter_name and not is_defined:
-                        is_defined = True
-                    elif arg.name() == parameter_name and is_defined:
-                        raise Exception('Parameter name defined multiple times')
+        objective_and_constraints = self._constraints + [self._objective] if self._objective is not None else self._constraints
+        for expr in objective_and_constraints:
+            params = [arg for arg in get_all_args(expr) if isinstance(arg, cp.Parameter)]
+            for param in params:
+                if param.name() == parameter_name and not is_defined:
+                    is_defined = True
+                elif param.name() == parameter_name and is_defined:
+                    raise Exception('Parameter name defined multiple times')
         return is_defined
 
     def update_parameter_value(self, parameter_name: str, new_value: float) -> None:
         assert self.is_parameter_defined(parameter_name)
         was_updated = False
-        for const in self._constraints:
-            for arg in const.args:
-                if isinstance(arg, cp.Parameter):
-                    if arg.name() == parameter_name:
-                        arg.value = new_value
-                        was_updated = True
+        objective_and_constraints = self._constraints + [self._objective] if self._objective is not None else self._constraints
+        for expr in objective_and_constraints:
+            params = [arg for arg in get_all_args(expr) if isinstance(arg, cp.Parameter)]
+            for param in params:
+                if param.name() == parameter_name:
+                    param.value = new_value
+                    was_updated = True
         assert was_updated
 
     def _solve_cvxpy_opt_problem(self):
@@ -526,3 +531,18 @@ def portfolio_performance(
         if verbose:
             print("Annual volatility: {:.1f}%".format(100 * sigma))
         return None, sigma, None
+
+
+def get_all_args(expression: cp.Expression) -> List[cp.Expression]:
+    if expression.args == []:
+        return [expression]
+    else:
+        return list(flatten([get_all_args(arg) for arg in expression.args]))
+
+
+def flatten(l: Iterable) -> Iterable:
+    for el in l:
+        if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
+            yield from flatten(el)
+        else:
+            yield el
