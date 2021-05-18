@@ -2,7 +2,7 @@
 The ``efficient_frontier`` submodule houses the EfficientFrontier class, which generates
 classical mean-variance optimal portfolios for a variety of objectives and constraints
 """
-
+import copy
 import warnings
 
 import numpy as np
@@ -87,6 +87,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         self.expected_returns = EfficientFrontier._validate_expected_returns(
             expected_returns
         )
+        self._max_return_value = None
 
         # Labels
         if isinstance(expected_returns, pd.Series):
@@ -208,9 +209,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         self._constraints.append(cp.sum(self._w) == 1)
 
         res = self._solve_cvxpy_opt_problem()
-
-        #  Cleanup constraints since this is a helper method
-        del self._constraints[-1]
 
         if return_value:
             return -self._opt.value
@@ -371,23 +369,30 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
-        if target_return > self._max_return():
+        if not self._max_return_value:
+            self._max_return_value = copy.deepcopy(self)._max_return()
+        if target_return > self._max_return_value:
             raise ValueError(
                 "target_return must be lower than the maximum possible return"
             )
 
-        self._objective = objective_functions.portfolio_variance(
-            self._w, self.cov_matrix
-        )
-        ret = objective_functions.portfolio_return(
-            self._w, self.expected_returns, negative=False
-        )
+        update_existing_parameter = self.is_parameter_defined('target_return_par')
+        if update_existing_parameter:
+            self.update_parameter_value('target_return_par', target_return)
+        else:
+            self._objective = objective_functions.portfolio_variance(
+                self._w, self.cov_matrix
+            )
+            ret = objective_functions.portfolio_return(
+                self._w, self.expected_returns, negative=False
+            )
 
-        for obj in self._additional_objectives:
-            self._objective += obj
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        self._constraints.append(ret >= target_return)
-        self._make_weight_sum_constraint(market_neutral)
+            target_return_par = cp.Parameter(name='target_return_par', value=target_return)
+            self._constraints.append(ret >= target_return_par)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
