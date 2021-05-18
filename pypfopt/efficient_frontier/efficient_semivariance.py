@@ -146,17 +146,22 @@ class EfficientSemivariance(EfficientFrontier):
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
 
-        p = cp.Variable(self._T, nonneg=True)
-        n = cp.Variable(self._T, nonneg=True)
-        mu = objective_functions.portfolio_return(self._w, self.expected_returns)
-        mu /= self.frequency
-        self._objective = mu + 0.5 * risk_aversion * cp.sum(cp.square(n))
-        for obj in self._additional_objectives:
-            self._objective += obj
+        update_existing_parameter = self.is_parameter_defined('risk_aversion')
+        if update_existing_parameter:
+            self.update_parameter_value('risk_aversion', risk_aversion)
+        else:
+            p = cp.Variable(self._T, nonneg=True)
+            n = cp.Variable(self._T, nonneg=True)
+            mu = objective_functions.portfolio_return(self._w, self.expected_returns)
+            mu /= self.frequency
+            risk_aversion_par = cp.Parameter(value=risk_aversion, name='risk_aversion', nonneg=True)
+            self._objective = mu + 0.5 * risk_aversion_par * cp.sum(cp.square(n))
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
-        self._constraints.append(B @ self._w - p + n == 0)
-        self._make_weight_sum_constraint(market_neutral)
+            B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
+            self._constraints.append(B @ self._w - p + n == 0)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_risk(self, target_semideviation, market_neutral=False):
@@ -173,21 +178,26 @@ class EfficientSemivariance(EfficientFrontier):
         :return: asset weights for the efficient risk portfolio
         :rtype: OrderedDict
         """
-        self._objective = objective_functions.portfolio_return(
-            self._w, self.expected_returns
-        )
-        for obj in self._additional_objectives:
-            self._objective += obj
+        update_existing_parameter = self.is_parameter_defined('target_semivariance')
+        if update_existing_parameter:
+            self.update_parameter_value('target_semivariance', target_semideviation ** 2)
+        else:
+            self._objective = objective_functions.portfolio_return(
+                self._w, self.expected_returns
+            )
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        p = cp.Variable(self._T, nonneg=True)
-        n = cp.Variable(self._T, nonneg=True)
+            p = cp.Variable(self._T, nonneg=True)
+            n = cp.Variable(self._T, nonneg=True)
 
-        self._constraints.append(
-            self.frequency * cp.sum(cp.square(n)) <= (target_semideviation ** 2)
-        )
-        B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
-        self._constraints.append(B @ self._w - p + n == 0)
-        self._make_weight_sum_constraint(market_neutral)
+            target_semivariance = cp.Parameter(value=target_semideviation**2, name='target_semivariance', nonneg=True)
+            self._constraints.append(
+                self.frequency * cp.sum(cp.square(n)) <= target_semivariance
+            )
+            B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
+            self._constraints.append(B @ self._w - p + n == 0)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_return(self, target_return, market_neutral=False):
@@ -210,18 +220,25 @@ class EfficientSemivariance(EfficientFrontier):
             raise ValueError(
                 "target_return must be lower than the largest expected return"
             )
-        p = cp.Variable(self._T, nonneg=True)
-        n = cp.Variable(self._T, nonneg=True)
-        self._objective = cp.sum(cp.square(n))
-        for obj in self._additional_objectives:
-            self._objective += obj
 
-        self._constraints.append(
-            cp.sum(self._w @ self.expected_returns) >= target_return
-        )
-        B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
-        self._constraints.append(B @ self._w - p + n == 0)
-        self._make_weight_sum_constraint(market_neutral)
+        update_existing_parameter = self.is_parameter_defined('target_return')
+        if update_existing_parameter:
+            self.update_parameter_value('target_return', target_return)
+        else:
+
+            p = cp.Variable(self._T, nonneg=True)
+            n = cp.Variable(self._T, nonneg=True)
+            self._objective = cp.sum(cp.square(n))
+            for obj in self._additional_objectives:
+                self._objective += obj
+
+            target_return_par = cp.Parameter(name='target_return', value=target_return)
+            self._constraints.append(
+                cp.sum(self._w @ self.expected_returns) >= target_return_par
+            )
+            B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
+            self._constraints.append(B @ self._w - p + n == 0)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):

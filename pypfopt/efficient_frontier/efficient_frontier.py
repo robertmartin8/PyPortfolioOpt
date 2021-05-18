@@ -352,7 +352,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             for obj in self._additional_objectives:
                 self._objective += obj
 
-            target_variance = cp.Parameter(name="target_variance", value=target_volatility ** 2)
+            target_variance = cp.Parameter(name="target_variance", value=target_volatility ** 2, nonneg=True)
             self.add_constraint(lambda _: variance <= target_variance)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
