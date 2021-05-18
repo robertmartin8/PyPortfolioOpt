@@ -825,8 +825,9 @@ def test_max_quadratic_utility():
 
     ret1, var1, _ = ef.portfolio_performance()
     # increasing risk_aversion should lower both vol and return
-    ef.max_quadratic_utility(10)
-    ret2, var2, _ = ef.portfolio_performance()
+    ef2 = setup_efficient_frontier()
+    ef2.max_quadratic_utility(10)
+    ret2, var2, _ = ef2.portfolio_performance()
     assert ret2 < ret1 and var2 < var1
 
 

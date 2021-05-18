@@ -54,7 +54,10 @@ def test_weight_bounds_minus_one_to_one():
         *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
     )
     assert ef.max_sharpe()
-    assert ef.min_volatility()
+    ef2 = EfficientFrontier(
+        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
+    )
+    assert ef2.min_volatility()
 
 
 def test_none_bounds():
@@ -187,12 +190,13 @@ def test_efficient_frontier_init_errors():
 
 
 def test_set_weights():
-    ef = setup_efficient_frontier()
-    w1 = ef.min_volatility()
-    test_weights = ef.weights
-    ef.min_volatility()
-    ef.set_weights(w1)
-    np.testing.assert_array_almost_equal(test_weights, ef.weights)
+    ef1 = setup_efficient_frontier()
+    w1 = ef1.min_volatility()
+    test_weights = ef1.weights
+    ef2 = setup_efficient_frontier()
+    ef2.min_volatility()
+    ef2.set_weights(w1)
+    np.testing.assert_array_almost_equal(test_weights, ef2.weights)
 
 
 def test_save_weights_to_file():
