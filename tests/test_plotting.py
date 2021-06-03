@@ -1,8 +1,11 @@
+import os
+import tempfile
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import os
 import pytest
+
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 from pypfopt import plotting, risk_models, expected_returns
 from pypfopt import HRPOpt, CLA, EfficientFrontier
@@ -27,12 +30,14 @@ def test_correlation_plot():
     assert len(ax.findobj()) == 136
     plt.clf()
 
-    plot_filename = "tests/plot.png"
+    temp_folder = tempfile.TemporaryDirectory()
+    temp_folder_path = temp_folder.name
+    plot_filename = os.path.join(temp_folder_path, "plot.png")
     ax = plotting.plot_covariance(S, filename=plot_filename, showfig=False)
     assert len(ax.findobj()) == 256
     assert os.path.exists(plot_filename)
     assert os.path.getsize(plot_filename) > 0
-    os.remove(plot_filename)
+    temp_folder.cleanup()
     plt.clf()
     plt.close()
 
