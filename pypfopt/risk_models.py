@@ -474,7 +474,7 @@ class CovarianceShrinkage:
         # De-mean returns
         t, n = np.shape(X)
         Xm = X - X.mean(axis=0)
-        xmkt = X.mean(axis=1).reshape(t, 1)
+        xmkt = Xm.mean(axis=1).reshape(t, 1)
 
         # compute sample covariance matrix
         sample = np.cov(np.append(Xm, xmkt, axis=1), rowvar=False) * (t - 1) / t
