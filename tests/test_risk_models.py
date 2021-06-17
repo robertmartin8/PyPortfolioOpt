@@ -26,6 +26,27 @@ def test_sample_cov_dummy():
     pd.testing.assert_frame_equal(S, test_answer)
 
 
+def test_sample_cov_log_dummy():
+    data = pd.DataFrame(
+        [
+            [4.0, 2.0, 0.6],
+            [4.2, 2.1, 0.59],
+            [3.9, 2.0, 0.58],
+            [4.3, 2.1, 0.62],
+            [4.1, 2.2, 0.63],
+        ]
+    )
+    test_answer = pd.DataFrame(
+        [
+            [0.006507, 0.002652, 0.001965],
+            [0.002652, 0.002345, 0.000950],
+            [0.001965, 0.000950, 0.001561],
+        ]
+    )
+    S = risk_models.sample_cov(data, log_returns=True) / 252
+    pd.testing.assert_frame_equal(S, test_answer, atol=1e-5)
+
+
 def test_is_positive_semidefinite():
     a = np.zeros((100, 100))
     assert risk_models._is_positive_semidefinite(a)
@@ -153,22 +174,6 @@ def test_exp_cov_limits():
     # As span gets larger, it should tend towards sample covariance
     S2 = risk_models.exp_cov(df, span=1e20)
     assert np.abs(S2 - sample_cov).max().max() < 1e-3
-
-
-# def test_min_cov_det():
-#     df = get_data()
-#     S = risk_models.CovarianceShrinkage(df).ledoit_wolf()
-#     S = risk_models.min_cov_determinant(df, random_state=8)
-#     assert S.shape == (20, 20)
-#     assert S.index.equals(df.columns)
-#     assert S.index.equals(S.columns)
-#     assert S.notnull().all().all()
-#     # assert risk_models._is_positive_semidefinite(S)
-#     # Cover that it works on np.ndarray, with a warning
-#     with pytest.warns(RuntimeWarning):
-#         S2 = risk_models.min_cov_determinant(df.to_numpy(), random_state=8)
-#         assert isinstance(S2, pd.DataFrame)
-#         np.testing.assert_equal(S.to_numpy(), S2.to_numpy())
 
 
 def test_cov_to_corr():

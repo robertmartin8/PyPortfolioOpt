@@ -37,6 +37,14 @@ def test_es_example():
     )
 
 
+def test_es_no_returns():
+    # Issue 324
+    df = get_data()
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
+
+    assert EfficientSemivariance(None, historical_rets)
+
+
 def test_es_return_sample():
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
@@ -99,7 +107,7 @@ def test_es_errors():
         # Must be <= max expected return
         es.efficient_return(target_return=np.abs(mu).max() + 0.01)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         # list not supported.
         EfficientSemivariance(mu, historical_rets.to_numpy().tolist())
 

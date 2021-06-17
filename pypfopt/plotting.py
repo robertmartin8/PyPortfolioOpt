@@ -183,6 +183,12 @@ def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets):
                 )
         except exceptions.OptimizationError:
             continue
+        except ValueError:
+            warnings.warn(
+                "Could not construct portfolio for paramter value {:.3f}".format(
+                    param_value
+                )
+            )
 
         ret, sigma, _ = ef_i.portfolio_performance()
         mus.append(ret)

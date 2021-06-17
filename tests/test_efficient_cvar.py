@@ -40,6 +40,13 @@ def test_cvar_example():
     np.testing.assert_almost_equal(cvar_hist, cvar, decimal=3)
 
 
+def test_cvar_no_returns():
+    # Issue 324
+    df = get_data()
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
+    assert EfficientCVaR(None, historical_rets)
+
+
 def test_es_return_sample():
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
@@ -343,7 +350,7 @@ def test_efficient_risk_L2_reg():
 
     ef2 = setup_efficient_cvar()
     cv.add_objective(objective_functions.L2_reg, gamma=1)
-    ef2.efficient_risk(0.19)
+    ef2.efficient_risk(0.03)
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cv.n_assets,), 1 / cv.n_assets)
@@ -442,7 +449,7 @@ def test_cvar_errors():
         cv = EfficientCVaR(mu, historical_rets)
         cv.efficient_return(target_return=np.abs(mu).max() + 0.01)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         # list not supported.
         EfficientCVaR(mu, historical_rets.to_numpy().tolist())
 

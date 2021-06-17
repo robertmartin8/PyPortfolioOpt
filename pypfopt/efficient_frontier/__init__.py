@@ -6,6 +6,12 @@ which generate optimal portfolios for various possible objective functions and p
 from .efficient_frontier import EfficientFrontier
 from .efficient_cvar import EfficientCVaR
 from .efficient_semivariance import EfficientSemivariance
+from .efficient_cdar import EfficientCDaR
 
 
-__all__ = ["EfficientFrontier", "EfficientCVaR", "EfficientSemivariance"]
+__all__ = [
+    "EfficientFrontier",
+    "EfficientCVaR",
+    "EfficientSemivariance",
+    "EfficientCDaR",
+]

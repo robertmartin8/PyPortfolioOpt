@@ -8,6 +8,7 @@ from pypfopt.efficient_frontier import (
     EfficientFrontier,
     EfficientSemivariance,
     EfficientCVaR,
+    EfficientCDaR,
 )
 from pypfopt.cla import CLA
 from pypfopt.expected_returns import returns_from_prices
@@ -52,7 +53,7 @@ def get_market_caps():
 
 
 def setup_efficient_frontier(
-    data_only=False, solver=None, verbose=False, solver_options=None
+        data_only=False, solver=None, verbose=False, solver_options=None
 ):
     df = get_data()
     mean_return = expected_returns.mean_historical_return(df)
@@ -80,7 +81,7 @@ def setup_efficient_semivariance(data_only=False, solver=None, verbose=False):
 
 
 def setup_efficient_cvar(
-    data_only=False, solver=None, verbose=False, solver_options=None
+        data_only=False, solver=None, verbose=False, solver_options=None
 ):
     df = get_data().dropna(axis=0, how="any")
     mean_return = expected_returns.mean_historical_return(df)
@@ -88,6 +89,23 @@ def setup_efficient_cvar(
     if data_only:
         return mean_return, historic_returns
     return EfficientCVaR(
+        mean_return,
+        historic_returns,
+        verbose=verbose,
+        solver=solver,
+        solver_options=solver_options,
+    )
+
+
+def setup_efficient_cdar(
+        data_only=False, solver=None, verbose=False, solver_options=None
+):
+    df = get_data().dropna(axis=0, how="any")
+    mean_return = expected_returns.mean_historical_return(df)
+    historic_returns = returns_from_prices(df)
+    if data_only:
+        return mean_return, historic_returns
+    return EfficientCDaR(
         mean_return,
         historic_returns,
         verbose=verbose,
