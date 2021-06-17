@@ -39,6 +39,12 @@ discuss. If you have any other feature requests, please raise them using GitHub
 - Reorganised module structure to make it more scalable
 - Python 3.9 support, dockerfile versioning, misc packaging improvements (e.g cvxopt optional)
 
+1.4.2
+-----
+
+- Implemented CDaR optimization – full credit to `Nicolas Knudde <https://github.com/nknudde>`_.
+- Misc bug fixes
+
 
 1.3.0
 =====

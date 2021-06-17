@@ -10,7 +10,7 @@ from .hierarchical_portfolio import HRPOpt
 from .risk_models import CovarianceShrinkage
 
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 
 __all__ = [
     "market_implied_prior_returns",
