@@ -77,7 +77,7 @@ class EfficientCVaR(EfficientFrontier):
         """
         super().__init__(
             expected_returns=expected_returns,
-            cov_matrix=np.zeros((len(expected_returns),) * 2),  # dummy
+            cov_matrix=np.zeros((returns.shape[1],) * 2),  # dummy
             weight_bounds=weight_bounds,
             solver=solver,
             verbose=verbose,

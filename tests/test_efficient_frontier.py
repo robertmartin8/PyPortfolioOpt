@@ -1285,7 +1285,7 @@ def test_efficient_return_shrunk():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
-        ef.portfolio_performance(), (0.22, 0.08892192396903059, 2.2491641101878916)
+        ef.portfolio_performance(), (0.22, 0.08892163937693882, 2.2491713085967766)
     )
 
 

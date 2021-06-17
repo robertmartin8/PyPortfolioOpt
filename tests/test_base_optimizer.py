@@ -14,7 +14,6 @@ from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
 def test_base_optimizer():
-    """ Cover code not covered elsewhere."""
     # Test tickers not provided
     bo = BaseOptimizer(2)
     assert bo.tickers == [0, 1]
@@ -249,8 +248,8 @@ def test_portfolio_performance():
 
     # Cover verbose logic
     assert (
-            portfolio_performance(ef.weights, ef.expected_returns, ef.cov_matrix, True)
-            == expected
+        portfolio_performance(ef.weights, ef.expected_returns, ef.cov_matrix, True)
+        == expected
     )
     # including when used without expected returns too.
     assert portfolio_performance(ef.weights, None, ef.cov_matrix, True) == (

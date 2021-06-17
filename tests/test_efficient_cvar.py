@@ -40,6 +40,13 @@ def test_cvar_example():
     np.testing.assert_almost_equal(cvar_hist, cvar, decimal=3)
 
 
+def test_cvar_no_returns():
+    # Issue 324
+    df = get_data()
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
+    assert EfficientCVaR(None, historical_rets)
+
+
 def test_es_return_sample():
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
@@ -442,7 +449,7 @@ def test_cvar_errors():
         cv = EfficientCVaR(mu, historical_rets)
         cv.efficient_return(target_return=np.abs(mu).max() + 0.01)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(AttributeError):
         # list not supported.
         EfficientCVaR(mu, historical_rets.to_numpy().tolist())
 
