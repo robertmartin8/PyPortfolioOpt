@@ -153,7 +153,7 @@ The implementation is based on Rockafellar and Uryasev (2001) [3]_.
     :members:
     :exclude-members: max_sharpe, min_volatility, max_quadratic_utility
 
-Efficient CVaR
+EfficientCDaR
 ==============
 
 The **conditional drawdown at risk** (CDaR) is a more exotic measure of tail risk. It tries to alleviate the problems
