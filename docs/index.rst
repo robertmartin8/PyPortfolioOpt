@@ -54,7 +54,7 @@ Prior to installing PyPortfolioOpt, you need to install C++. On macOS, this mean
 to install XCode Command Line Tools (see `here <https://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/>`__).
 
 For Windows users, download Visual Studio `here <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`__,
-with additional instructions `here <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view>`__.
+with additional instructions `here <https://docs.google.com/presentation/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/edit?usp=sharing&ouid=117107708911390632479&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&rtpof=true&sd=true>`__.
 
 Installation can then be done via pip::
 
