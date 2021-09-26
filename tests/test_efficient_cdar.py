@@ -350,15 +350,14 @@ def test_efficient_risk_L2_reg():
         atol=1e-4,
     )
 
-    ef2 = setup_efficient_cdar()
-    cd.add_objective(objective_functions.L2_reg, gamma=1)
-    ef2.efficient_risk(0.18)
+    cd2 = setup_efficient_cdar()
+    cd2.efficient_risk(0.18)
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cd.n_assets,), 1 / cd.n_assets)
     assert (
             np.abs(equal_weight - cd.weights).sum()
-            < np.abs(equal_weight - ef2.weights).sum()
+            < np.abs(equal_weight - cd2.weights).sum()
     )
 
 
