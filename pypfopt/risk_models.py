@@ -144,7 +144,7 @@ def risk_matrix(prices, method="sample_cov", **kwargs):
         raise NotImplementedError("Risk model {} not implemented".format(method))
 
 
-def sample_cov(prices, returns_data=False, frequency=252, **kwargs):
+def sample_cov(prices, returns_data=False, frequency=252, log_returns=False, **kwargs):
     """
     Calculate the annualised sample covariance matrix of (daily) asset returns.
 
@@ -156,6 +156,8 @@ def sample_cov(prices, returns_data=False, frequency=252, **kwargs):
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
+    :param log_returns: whether to compute using log returns
+    :type log_returns: bool, defaults to False
     :return: annualised sample covariance matrix
     :rtype: pd.DataFrame
     """
@@ -165,14 +167,19 @@ def sample_cov(prices, returns_data=False, frequency=252, **kwargs):
     if returns_data:
         returns = prices
     else:
-        returns = returns_from_prices(prices)
+        returns = returns_from_prices(prices, log_returns)
     return fix_nonpositive_semidefinite(
         returns.cov() * frequency, kwargs.get("fix_method", "spectral")
     )
 
 
 def semicovariance(
-    prices, returns_data=False, benchmark=0.000079, frequency=252, **kwargs
+    prices,
+    returns_data=False,
+    benchmark=0.000079,
+    frequency=252,
+    log_returns=False,
+    **kwargs
 ):
     """
     Estimate the semicovariance matrix, i.e the covariance given that
@@ -192,6 +199,8 @@ def semicovariance(
                       of trading days in a year). Ensure that you use the appropriate
                       benchmark, e.g if ``frequency=12`` use the monthly risk-free rate.
     :type frequency: int, optional
+    :param log_returns: whether to compute using log returns
+    :type log_returns: bool, defaults to False
     :return: semicovariance matrix
     :rtype: pd.DataFrame
     """
@@ -201,7 +210,7 @@ def semicovariance(
     if returns_data:
         returns = prices
     else:
-        returns = returns_from_prices(prices)
+        returns = returns_from_prices(prices, log_returns)
     drops = np.fmin(returns - benchmark, 0)
     T = drops.shape[0]
     return fix_nonpositive_semidefinite(
@@ -229,7 +238,9 @@ def _pair_exp_cov(X, Y, span=180):
     return covariation.ewm(span=span).mean().iloc[-1]
 
 
-def exp_cov(prices, returns_data=False, span=180, frequency=252, **kwargs):
+def exp_cov(
+    prices, returns_data=False, span=180, frequency=252, log_returns=False, **kwargs
+):
     """
     Estimate the exponentially-weighted covariance matrix, which gives
     greater weight to more recent data.
@@ -244,6 +255,8 @@ def exp_cov(prices, returns_data=False, span=180, frequency=252, **kwargs):
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
+    :param log_returns: whether to compute using log returns
+    :type log_returns: bool, defaults to False
     :return: annualised estimate of exponential covariance matrix
     :rtype: pd.DataFrame
     """
@@ -254,7 +267,7 @@ def exp_cov(prices, returns_data=False, span=180, frequency=252, **kwargs):
     if returns_data:
         returns = prices
     else:
-        returns = returns_from_prices(prices)
+        returns = returns_from_prices(prices, log_returns)
     N = len(assets)
 
     # Loop over matrix, filling entries with the pairwise exp cov
@@ -270,7 +283,12 @@ def exp_cov(prices, returns_data=False, span=180, frequency=252, **kwargs):
 
 
 def min_cov_determinant(
-    prices, returns_data=False, frequency=252, random_state=None, **kwargs
+    prices,
+    returns_data=False,
+    frequency=252,
+    random_state=None,
+    log_returns=False,
+    **kwargs
 ):  # pragma: no cover
     warnings.warn("min_cov_determinant is deprecated and will be removed in v1.5")
 
@@ -289,7 +307,7 @@ def min_cov_determinant(
     if returns_data:
         X = prices
     else:
-        X = returns_from_prices(prices)
+        X = returns_from_prices(prices, log_returns)
     # X = np.nan_to_num(X.values)
     X = X.dropna().values
     raw_cov_array = sklearn.covariance.fast_mcd(X, random_state=random_state)[1]
@@ -348,7 +366,7 @@ class CovarianceShrinkage:
     - ``frequency`` - int
     """
 
-    def __init__(self, prices, returns_data=False, frequency=252):
+    def __init__(self, prices, returns_data=False, frequency=252, log_returns=False):
         """
         :param prices: adjusted closing prices of the asset, each row is a date and each column is a ticker/id.
         :type prices: pd.DataFrame
@@ -356,6 +374,8 @@ class CovarianceShrinkage:
         :type returns_data: bool, defaults to False.
         :param frequency: number of time periods in a year, defaults to 252 (the number of trading days in a year)
         :type frequency: int, optional
+        :param log_returns: whether to compute using log returns
+        :type log_returns: bool, defaults to False
         """
         # Optional import
         try:
@@ -374,7 +394,7 @@ class CovarianceShrinkage:
         if returns_data:
             self.X = prices.dropna(how="all")
         else:
-            self.X = prices.pct_change().dropna(how="all")
+            self.X = returns_from_prices(prices, log_returns).dropna(how="all")
 
         self.S = self.X.cov().values
         self.delta = None  # shrinkage constant
@@ -454,7 +474,7 @@ class CovarianceShrinkage:
         # De-mean returns
         t, n = np.shape(X)
         Xm = X - X.mean(axis=0)
-        xmkt = X.mean(axis=1).reshape(t, 1)
+        xmkt = Xm.mean(axis=1).reshape(t, 1)
 
         # compute sample covariance matrix
         sample = np.cov(np.append(Xm, xmkt, axis=1), rowvar=False) * (t - 1) / t

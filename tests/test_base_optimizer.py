@@ -1,9 +1,12 @@
 import json
 import os
+import tempfile
+
 import numpy as np
 import pandas as pd
 import pytest
 import cvxpy as cp
+
 from pypfopt import EfficientFrontier
 from pypfopt import exceptions
 from pypfopt.base_optimizer import portfolio_performance, BaseOptimizer
@@ -11,7 +14,6 @@ from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
 def test_base_optimizer():
-    """ Cover code not covered elsewhere."""
     # Test tickers not provided
     bo = BaseOptimizer(2)
     assert bo.tickers == [0, 1]
@@ -203,19 +205,27 @@ def test_save_weights_to_file():
     ef = setup_efficient_frontier()
     ef.min_volatility()
 
-    ef.save_weights_to_file("tests/test.txt")
-    with open("tests/test.txt", "r") as f:
+    temp_folder = tempfile.TemporaryDirectory()
+    temp_folder_path = temp_folder.name
+
+    test_file_path_txt = os.path.join(temp_folder_path, "test.txt")
+    test_file_path_json = os.path.join(temp_folder_path, "test.json")
+    test_file_path_csv = os.path.join(temp_folder_path, "test.csv")
+    test_file_path_xml = os.path.join(temp_folder_path, "test.xml")
+
+    ef.save_weights_to_file(test_file_path_txt)
+    with open(test_file_path_txt, "r") as f:
         file = f.read()
     parsed = json.loads(file.replace("'", '"'))
     assert ef.clean_weights() == parsed
 
-    ef.save_weights_to_file("tests/test.json")
-    with open("tests/test.json", "r") as f:
+    ef.save_weights_to_file(test_file_path_json)
+    with open(test_file_path_json, "r") as f:
         parsed = json.load(f)
     assert ef.clean_weights() == parsed
 
-    ef.save_weights_to_file("tests/test.csv")
-    with open("tests/test.csv", "r") as f:
+    ef.save_weights_to_file(test_file_path_csv)
+    with open(test_file_path_csv, "r") as f:
         df = pd.read_csv(
             f,
             header=None,
@@ -226,12 +236,10 @@ def test_save_weights_to_file():
     parsed = df["weight"].to_dict()
     assert ef.clean_weights() == parsed
 
-    os.remove("tests/test.txt")
-    os.remove("tests/test.json")
-    os.remove("tests/test.csv")
-
     with pytest.raises(NotImplementedError):
-        ef.save_weights_to_file("tests/test.xml")
+        ef.save_weights_to_file(test_file_path_xml)
+
+    temp_folder.cleanup()
 
 
 def test_portfolio_performance():

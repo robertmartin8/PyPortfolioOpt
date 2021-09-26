@@ -89,16 +89,21 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         )
         self._max_return_value = None
 
+        if self.expected_returns is None:
+            num_assets = len(cov_matrix)
+        else:
+            num_assets = len(expected_returns)
+
         # Labels
         if isinstance(expected_returns, pd.Series):
             tickers = list(expected_returns.index)
         elif isinstance(cov_matrix, pd.DataFrame):
             tickers = list(cov_matrix.columns)
         else:  # use integer labels
-            tickers = list(range(len(expected_returns)))
+            tickers = list(range(num_assets))
 
         if expected_returns is not None and cov_matrix is not None:
-            if cov_matrix.shape != (len(expected_returns), len(expected_returns)):
+            if cov_matrix.shape != (num_assets, num_assets):
                 raise ValueError("Covariance matrix does not match expected returns")
 
         super().__init__(

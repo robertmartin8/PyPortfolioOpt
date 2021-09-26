@@ -1,5 +1,5 @@
 <p align="center">
-    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v1.png">
+    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/logo_v1.png?raw=true">
 </p>
 
 <!-- buttons -->
@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.4.1-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.4.2-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -17,12 +17,11 @@
         <img src="https://github.com/robertmartin8/PyPortfolioOpt/workflows/pytest/badge.svg?event=push"
             alt="build"></a> &nbsp;
     <a href="https://pepy.tech/project/pyportfolioopt">
-        <img src="https://static.pepy.tech/personalized-badge/pyportfolioopt?period=total&units=international_system&left_color=black&right_color=blue&left_text=Downloads"
-            alt="build"></a> &nbsp;
+        <img src="https://pepy.tech/badge/pyportfolioopt"
+            alt="downloads"></a> &nbsp;
     <a href="https://mybinder.org/v2/gh/robertmartin8/pyportfolioopt/master/?filepath=cookbook">
       <img src="https://mybinder.org/badge_logo.svg"
             alt="binder"></a> &nbsp;
-
 </p>
 
 <!-- content -->
@@ -42,7 +41,7 @@ in a risk-efficient way.
 Head over to the **[documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/)** to get an in-depth look at the project, or check out the [cookbook](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook) to see some examples showing the full process from downloading data to building a portfolio.
 
 <center>
-<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v2.png" style="width:70%;"/>
+<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/conceptual_flowchart_v2.png?raw=true" style="width:70%;"/>
 </center>
 
 ## Table of contents
@@ -51,7 +50,6 @@ Head over to the **[documentation on ReadTheDocs](https://pyportfolioopt.readthe
 - [Getting started](#getting-started)
   - [For development](#for-development)
 - [A quick example](#a-quick-example)
-- [What's new](#whats-new)
 - [An overview of classical portfolio optimization methods](#an-overview-of-classical-portfolio-optimization-methods)
 - [Features](#features)
   - [Expected returns](#expected-returns)
@@ -206,33 +204,12 @@ Funds remaining: $11.89
 
 _Disclaimer: nothing about this project constitues investment advice, and the author bears no responsibiltiy for your subsequent investment decisions. Please refer to the [license](https://github.com/robertmartin8/PyPortfolioOpt/blob/master/LICENSE.txt) for more information._
 
-## What's new
-
-As of v1.2.0:
-
--   Docker support
--   Idzorek's method for specifying Black-Litterman views using percentage confidences.
--   Industry constraints: limit your sector exposure.
--   Multiple additions and improvements to `risk_models`:
-    -   Introduced a new API, in which the function `risk_models.risk_matrix(method="...")` allows
-        all the different risk models to be called. This should make testing easier.
-    -   All methods now accept returns data instead of prices, if you set the flag `returns_data=True`.
--   Automatically fix non-positive semidefinite covariance matrices!
--   Additions and improvements to `expected_returns`:
-    -   Introduced a new API, in which the function `expected_returns.return_model(method="...")` allows
-        all the different return models to be called. This should make testing easier.
-    -   Added option to 'properly' compound returns.
-    -   CAPM return model.
--   `from pypfopt import plotting`: moved all plotting functionality into a new class and added
-    new plots. All other plotting functions (scattered in different classes) have been retained,
-    but are now deprecated.
-
 ## An overview of classical portfolio optimization methods
 
 Harry Markowitz's 1952 paper is the undeniable classic, which turned portfolio optimization from an art into a science. The key insight is that by combining assets with different expected returns and volatilities, one can decide on a mathematically optimal allocation which minimises the risk for a target return – the set of all such optimal portfolios is referred to as the **efficient frontier**.
 
 <center>
-<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/efficient_frontier_white.png" style="width:60%;"/>
+<img src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/efficient_frontier_white.png?raw=true" style="width:60%;"/>
 </center>
 
 Although much development has been made in the subject, more than half a century later, Markowitz's core ideas are still fundamentally important and see daily use in many portfolio management firms.
@@ -286,7 +263,7 @@ The covariance matrix encodes not just the volatility of an asset, but also how 
     -   implemented in `sklearn.covariance`
 
 <p align="center">
-    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/corrplot_white.png">
+    <img width=60% src="https://github.com/robertmartin8/PyPortfolioOpt/blob/master/media/corrplot_white.png?raw=true">
 </p>
 
 (This plot was generated using `plotting.plot_covariance`)
@@ -454,5 +431,5 @@ Special shout-outs to:
 If you are having a problem with PyPortfolioOpt, please raise a GitHub issue. For anything else, you can reach me at:
 
 <center>
-<img src="https://github.com/robertmartin8/ReasonableDeviations/blob/gh-pages/assets/images/contact.png" style="width:75%;"/>
+<img src="https://github.com/robertmartin8/ReasonableDeviations/blob/gh-pages/assets/images/contact.png?raw=true" style="width:60%;"/>
 </center>

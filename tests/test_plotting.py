@@ -1,8 +1,12 @@
+import os
+import tempfile
+
 import numpy as np
+import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
-import os
 import pytest
+
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 from pypfopt import plotting, risk_models, expected_returns
 from pypfopt import HRPOpt, CLA, EfficientFrontier
@@ -27,12 +31,14 @@ def test_correlation_plot():
     assert len(ax.findobj()) == 136
     plt.clf()
 
-    plot_filename = "tests/plot.png"
+    temp_folder = tempfile.TemporaryDirectory()
+    temp_folder_path = temp_folder.name
+    plot_filename = os.path.join(temp_folder_path, "plot.png")
     ax = plotting.plot_covariance(S, filename=plot_filename, showfig=False)
     assert len(ax.findobj()) == 256
     assert os.path.exists(plot_filename)
     assert os.path.getsize(plot_filename) > 0
-    os.remove(plot_filename)
+    temp_folder.cleanup()
     plt.clf()
     plt.close()
 
@@ -267,3 +273,20 @@ def test_weight_plot_add_attribute():
     ax.set_title("Test")
     assert len(ax.findobj()) == 209
     plt.close()
+
+
+def test_plotting_edge_case():
+    # raised in issue #333
+    mu = pd.Series([0.043389, 0.036194])
+    S = pd.DataFrame([[0.000562, 0.002273], [0.002273, 0.027710]])
+    ef = EfficientFrontier(mu, S)
+    fig, ax = plt.subplots()
+
+    with pytest.warns(UserWarning):
+        plotting.plot_efficient_frontier(
+            ef,
+            ef_param="return",
+            ef_param_range=np.linspace(0.036194, 0.043389, 10),
+            ax=ax,
+            show_assets=False,
+        )
