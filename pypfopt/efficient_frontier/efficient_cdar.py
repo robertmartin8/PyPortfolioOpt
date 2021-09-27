@@ -125,14 +125,7 @@ class EfficientCDaR(EfficientFrontier):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        self._constraints += [
-            self._z >= self._u[1:] - self._alpha,
-            self._u[1:] >= self._u[:-1] - self.returns.values @ self._w,
-            self._u[0] == 0,
-            self._z >= 0,
-            self._u[1:] >= 0,
-        ]
-
+        self._add_cdar_constraints()
         self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
@@ -150,26 +143,9 @@ class EfficientCDaR(EfficientFrontier):
         :return: asset weights for the optimal portfolio
         :rtype: OrderedDict
         """
-        self._objective = self._alpha + 1.0 / (
-            len(self.returns) * (1 - self._beta)
-        ) * cp.sum(self._z)
-
-        for obj in self._additional_objectives:
-            self._objective += obj
-
-        self._constraints += [
-            self._z >= self._u[1:] - self._alpha,
-            self._u[1:] >= self._u[:-1] - self.returns.values @ self._w,
-            self._u[0] == 0,
-            self._z >= 0,
-            self._u[1:] >= 0,
-        ]
-
         ret = self.expected_returns.T @ self._w
         self._constraints.append(ret >= target_return)
-
-        self._make_weight_sum_constraint(market_neutral)
-        return self._solve_cvxpy_opt_problem()
+        return self.min_cdar(market_neutral)
 
     def efficient_risk(self, target_cdar, market_neutral=False):
         """
@@ -194,17 +170,19 @@ class EfficientCDaR(EfficientFrontier):
         cdar = self._alpha + 1.0 / (len(self.returns) * (1 - self._beta)) * cp.sum(
             self._z
         )
-        self._constraints += [
-            cdar <= target_cdar,
-            self._z >= self._u[1:] - self._alpha,
-            self._u[1:] >= self._u[:-1] - self.returns.values @ self._w,
-            self._u[0] == 0,
-            self._z >= 0,
-            self._u[1:] >= 0,
-        ]
+        self.add_constraint(lambda _: cdar <= target_cdar)
+
+        self._add_cdar_constraints()
 
         self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
+
+    def _add_cdar_constraints(self) -> None:
+        self.add_constraint(lambda _: self._z >= self._u[1:] - self._alpha)
+        self.add_constraint(lambda w: self._u[1:] >= self._u[:-1] - self.returns.values @ w)
+        self.add_constraint(lambda _: self._u[0] == 0)
+        self.add_constraint(lambda _: self._z >= 0)
+        self.add_constraint(lambda _: self._u[1:] >= 0)
 
     def portfolio_performance(self, verbose=False):
         """
