@@ -455,3 +455,13 @@ def test_cvar_errors():
     historical_rets = historical_rets.iloc[:, :-1]
     with pytest.raises(ValueError):
         EfficientCVaR(mu, historical_rets)
+
+
+def test_parametrization():
+    cv = setup_efficient_cvar()
+    cv.efficient_risk(0.19)
+    cv.efficient_risk(0.19)
+
+    cv = setup_efficient_cvar()
+    cv.efficient_return(0.25)
+    cv.efficient_return(0.25)

@@ -581,3 +581,17 @@ def test_efficient_semivariance_vs_heuristic_weekly():
 
     assert semi_deviation < semi_deviation_ef
     assert mu_es / semi_deviation > mu_ef / semi_deviation_ef
+
+
+def test_parametrization():
+    es = setup_efficient_semivariance()
+    es.efficient_risk(0.19)
+    es.efficient_risk(0.19)
+
+    es = setup_efficient_semivariance()
+    es.efficient_return(0.25)
+    es.efficient_return(0.25)
+
+    es = setup_efficient_semivariance()
+    es.max_quadratic_utility(1)
+    es.max_quadratic_utility(1)
