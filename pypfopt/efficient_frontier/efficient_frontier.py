@@ -88,6 +88,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             expected_returns
         )
         self._max_return_value = None
+        self._market_neutral = None
 
         if self.expected_returns is None:
             num_assets = len(cov_matrix)
@@ -184,6 +185,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self.add_constraint(lambda w: cp.sum(w) == 0)
         else:
             self.add_constraint(lambda w: cp.sum(w) == 1)
+        self._market_neutral = is_market_neutral
 
     def min_volatility(self):
         """
@@ -441,9 +443,4 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         )
 
     def _validate_market_neutral(self, market_neutral: bool) -> None:
-        if market_neutral:
-            assert self._constraints[-1].args[
-                       1].value == 0, 'A new instance must be created when changing market_neutral'
-        else:
-            assert self._constraints[-1].args[
-                       1].value == 1, 'A new instance must be created when changing market_neutral'
+        assert self._market_neutral == market_neutral, 'A new instance must be created when changing market_neutral'

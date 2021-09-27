@@ -293,7 +293,7 @@ def test_problem_access():
     assert isinstance(ef._opt, cp.Problem)
 
 
-def test_exception_two_optimizations():
+def test_exception_immutability():
     ef = setup_efficient_frontier()
     ef.efficient_return(0.2)
 
@@ -320,3 +320,9 @@ def test_exception_two_optimizations():
     with pytest.raises(Exception,
                        match='The constraints were changed after the initial optimization'):
         ef.efficient_return(0.2)
+
+    ef = setup_efficient_frontier()
+    ef.efficient_return(0.2, market_neutral=True)
+    with pytest.raises(Exception,
+                       match='A new instance must be created when changing market_neutral'):
+        ef.efficient_return(0.2, market_neutral=False)
