@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import cvxpy as cp
 
-from pypfopt import EfficientFrontier
+from pypfopt import EfficientFrontier, objective_functions
 from pypfopt import exceptions
 from pypfopt.base_optimizer import portfolio_performance, BaseOptimizer
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
@@ -291,3 +291,32 @@ def test_problem_access():
     ef = setup_efficient_frontier()
     ef.max_sharpe()
     assert isinstance(ef._opt, cp.Problem)
+
+
+def test_exception_two_optimizations():
+    ef = setup_efficient_frontier()
+    ef.efficient_return(0.2)
+
+    with pytest.raises(Exception,
+                       match='Adding constraints to an already solved problem might have unintended consequences'):
+        ef.min_volatility()
+
+    ef = setup_efficient_frontier()
+    ef.efficient_return(0.2)
+    with pytest.raises(Exception,
+                       match='Adding constraints to an already solved problem might have unintended consequences'):
+        ef.add_constraint(lambda w: w >= 0.1)
+
+    ef = setup_efficient_frontier()
+    ef.efficient_return(0.2)
+    prev_w = np.array([1 / ef.n_assets] * ef.n_assets)
+    with pytest.raises(Exception,
+                       match='Adding objectives to an already solved problem might have unintended consequences'):
+        ef.add_objective(objective_functions.transaction_cost, w_prev=prev_w)
+
+    ef = setup_efficient_frontier()
+    ef.efficient_return(0.2)
+    ef._constraints += [ef._w >= 0.1]
+    with pytest.raises(Exception,
+                       match='The constraints were changed after the initial optimization'):
+        ef.efficient_return(0.2)
