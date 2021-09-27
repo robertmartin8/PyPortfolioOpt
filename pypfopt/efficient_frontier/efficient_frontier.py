@@ -180,6 +180,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 del self._constraints[0]
                 del self._constraints[0]
 
+
             self.add_constraint(lambda w: cp.sum(w) == 0)
         else:
             self.add_constraint(lambda w: cp.sum(w) == 1)
@@ -306,6 +307,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         update_existing_parameter = self.is_parameter_defined('risk_aversion')
         if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
             self.update_parameter_value('risk_aversion', risk_aversion)
         else:
             self._objective = objective_functions.quadratic_utility(
@@ -347,6 +349,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         update_existing_parameter = self.is_parameter_defined('target_variance')
         if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
             self.update_parameter_value('target_variance', target_volatility ** 2)
         else:
             self._objective = objective_functions.portfolio_return(
@@ -387,6 +390,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         update_existing_parameter = self.is_parameter_defined('target_return')
         if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
             self.update_parameter_value('target_return', target_return)
         else:
             self._objective = objective_functions.portfolio_variance(
@@ -435,3 +439,11 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             verbose,
             risk_free_rate,
         )
+
+    def _validate_market_neutral(self, market_neutral: bool) -> None:
+        if market_neutral:
+            assert self._constraints[-1].args[
+                       1].value == 0, 'A new instance must be created when changing market_neutral'
+        else:
+            assert self._constraints[-1].args[
+                       1].value == 1, 'A new instance must be created when changing market_neutral'

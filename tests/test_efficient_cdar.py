@@ -454,3 +454,13 @@ def test_cdar_errors():
     historical_rets = historical_rets.iloc[:, :-1]
     with pytest.raises(ValueError):
         EfficientCDaR(mu, historical_rets)
+
+
+def test_parametrization():
+    cd = setup_efficient_cdar()
+    cd.efficient_risk(0.08)
+    cd.efficient_risk(0.07)
+
+    cd = setup_efficient_cdar()
+    cd.efficient_return(0.08)
+    cd.efficient_return(0.07)

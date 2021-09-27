@@ -148,6 +148,7 @@ class EfficientSemivariance(EfficientFrontier):
 
         update_existing_parameter = self.is_parameter_defined('risk_aversion')
         if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
             self.update_parameter_value('risk_aversion', risk_aversion)
         else:
             p = cp.Variable(self._T, nonneg=True)
@@ -180,6 +181,7 @@ class EfficientSemivariance(EfficientFrontier):
         """
         update_existing_parameter = self.is_parameter_defined('target_semivariance')
         if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
             self.update_parameter_value('target_semivariance', target_semideviation ** 2)
         else:
             self._objective = objective_functions.portfolio_return(
@@ -221,6 +223,7 @@ class EfficientSemivariance(EfficientFrontier):
 
         update_existing_parameter = self.is_parameter_defined('target_return')
         if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
             self.update_parameter_value('target_return', target_return)
         else:
 

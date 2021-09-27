@@ -148,6 +148,7 @@ class EfficientCVaR(EfficientFrontier):
         """
         update_existing_parameter = self.is_parameter_defined('target_return')
         if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
             self.update_parameter_value('target_return', target_return)
         else:
             self._objective = self._alpha + 1.0 / (
@@ -183,6 +184,7 @@ class EfficientCVaR(EfficientFrontier):
         """
         update_existing_parameter = self.is_parameter_defined('target_cvar')
         if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
             self.update_parameter_value('target_cvar', target_cvar)
         else:
             self._objective = objective_functions.portfolio_return(

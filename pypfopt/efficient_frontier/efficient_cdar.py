@@ -143,9 +143,17 @@ class EfficientCDaR(EfficientFrontier):
         :return: asset weights for the optimal portfolio
         :rtype: OrderedDict
         """
-        ret = self.expected_returns.T @ self._w
-        self._constraints.append(ret >= target_return)
-        return self.min_cdar(market_neutral)
+
+        update_existing_parameter = self.is_parameter_defined('target_return')
+        if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
+            self.update_parameter_value('target_return', target_return)
+            return self._solve_cvxpy_opt_problem()
+        else:
+            ret = self.expected_returns.T @ self._w
+            target_return_par = cp.Parameter(value=target_return, name='target_return', nonneg=True)
+            self._constraints.append(ret >= target_return_par)
+            return self.min_cdar(market_neutral)
 
     def efficient_risk(self, target_cdar, market_neutral=False):
         """
@@ -161,20 +169,27 @@ class EfficientCDaR(EfficientFrontier):
         :return: asset weights for the efficient risk portfolio
         :rtype: OrderedDict
         """
-        self._objective = objective_functions.portfolio_return(
-            self._w, self.expected_returns
-        )
-        for obj in self._additional_objectives:
-            self._objective += obj
 
-        cdar = self._alpha + 1.0 / (len(self.returns) * (1 - self._beta)) * cp.sum(
-            self._z
-        )
-        self.add_constraint(lambda _: cdar <= target_cdar)
+        update_existing_parameter = self.is_parameter_defined('target_cdar')
+        if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
+            self.update_parameter_value('target_cdar', target_cdar)
+        else:
+            self._objective = objective_functions.portfolio_return(
+                self._w, self.expected_returns
+            )
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        self._add_cdar_constraints()
+            cdar = self._alpha + 1.0 / (len(self.returns) * (1 - self._beta)) * cp.sum(
+                self._z
+            )
+            target_cdar_par = cp.Parameter(value=target_cdar, name='target_cdar', nonneg=True)
+            self.add_constraint(lambda _: cdar <= target_cdar_par)
 
-        self._make_weight_sum_constraint(market_neutral)
+            self._add_cdar_constraints()
+
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def _add_cdar_constraints(self) -> None:
