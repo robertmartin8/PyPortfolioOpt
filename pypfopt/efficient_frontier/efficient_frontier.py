@@ -205,6 +205,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :return: asset weights for the return-minimising portfolio
         :rtype: OrderedDict
         """
+        if self.expected_returns is None:
+            raise ValueError("no expected returns provided")
+
         self._objective = objective_functions.portfolio_return(
             self._w, self.expected_returns
         )
