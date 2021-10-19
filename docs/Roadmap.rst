@@ -26,6 +26,11 @@ discuss. If you have any other feature requests, please raise them using GitHub
   - This leads to a significant improvement in plotting performance as we no longer have to repeatedly re-instantiate ``EfficientFrontier``.
 - Several misc bug fixes (thanks to `Eric Armbruster <https://github.com/armbruer>`_ and `Ayoub Ennassiri <https://github.com/samatix>`_)
 
+1.5.1
+-----
+
+Mucked up the versioning on the 1.5.0 launch. Sorry!
+
 1.4.0
 =====
 
