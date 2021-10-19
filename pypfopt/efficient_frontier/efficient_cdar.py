@@ -144,15 +144,17 @@ class EfficientCDaR(EfficientFrontier):
         :rtype: OrderedDict
         """
 
-        update_existing_parameter = self.is_parameter_defined('target_return')
+        update_existing_parameter = self.is_parameter_defined("target_return")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value('target_return', target_return)
+            self.update_parameter_value("target_return", target_return)
             return self._solve_cvxpy_opt_problem()
         else:
             ret = self.expected_returns.T @ self._w
-            target_return_par = cp.Parameter(value=target_return, name='target_return', nonneg=True)
-            self._constraints.append(ret >= target_return_par)
+            target_return_par = cp.Parameter(
+                value=target_return, name="target_return", nonneg=True
+            )
+            self.add_constraint(lambda _: ret >= target_return_par)
             return self.min_cdar(market_neutral)
 
     def efficient_risk(self, target_cdar, market_neutral=False):
@@ -170,10 +172,10 @@ class EfficientCDaR(EfficientFrontier):
         :rtype: OrderedDict
         """
 
-        update_existing_parameter = self.is_parameter_defined('target_cdar')
+        update_existing_parameter = self.is_parameter_defined("target_cdar")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value('target_cdar', target_cdar)
+            self.update_parameter_value("target_cdar", target_cdar)
         else:
             self._objective = objective_functions.portfolio_return(
                 self._w, self.expected_returns
@@ -184,7 +186,9 @@ class EfficientCDaR(EfficientFrontier):
             cdar = self._alpha + 1.0 / (len(self.returns) * (1 - self._beta)) * cp.sum(
                 self._z
             )
-            target_cdar_par = cp.Parameter(value=target_cdar, name='target_cdar', nonneg=True)
+            target_cdar_par = cp.Parameter(
+                value=target_cdar, name="target_cdar", nonneg=True
+            )
             self.add_constraint(lambda _: cdar <= target_cdar_par)
 
             self._add_cdar_constraints()
@@ -194,7 +198,9 @@ class EfficientCDaR(EfficientFrontier):
 
     def _add_cdar_constraints(self) -> None:
         self.add_constraint(lambda _: self._z >= self._u[1:] - self._alpha)
-        self.add_constraint(lambda w: self._u[1:] >= self._u[:-1] - self.returns.values @ w)
+        self.add_constraint(
+            lambda w: self._u[1:] >= self._u[:-1] - self.returns.values @ w
+        )
         self.add_constraint(lambda _: self._u[0] == 0)
         self.add_constraint(lambda _: self._z >= 0)
         self.add_constraint(lambda _: self._u[1:] >= 0)

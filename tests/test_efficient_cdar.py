@@ -7,7 +7,10 @@ from pypfopt import (
     EfficientCDaR,
     objective_functions,
 )
-from tests.utilities_for_tests import setup_efficient_cdar, get_data, setup_efficient_cdar
+from tests.utilities_for_tests import (
+    setup_efficient_cdar,
+    get_data,
+)
 from pypfopt.exceptions import OptimizationError
 
 
@@ -223,8 +226,8 @@ def test_min_cdar_L2_reg():
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cd.n_assets,), 1 / cd.n_assets)
     assert (
-            np.abs(equal_weight - cd.weights).sum()
-            < np.abs(equal_weight - cd2.weights).sum()
+        np.abs(equal_weight - cd.weights).sum()
+        < np.abs(equal_weight - cd2.weights).sum()
     )
 
     np.testing.assert_allclose(
@@ -293,7 +296,7 @@ def test_efficient_risk():
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
-        (0.261922, 0.08 ),
+        (0.261922, 0.08),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -356,8 +359,8 @@ def test_efficient_risk_L2_reg():
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cd.n_assets,), 1 / cd.n_assets)
     assert (
-            np.abs(equal_weight - cd.weights).sum()
-            < np.abs(equal_weight - cd2.weights).sum()
+        np.abs(equal_weight - cd.weights).sum()
+        < np.abs(equal_weight - cd2.weights).sum()
     )
 
 
@@ -385,7 +388,7 @@ def test_efficient_return_short():
     np.testing.assert_almost_equal(cd.weights.sum(), 1)
     np.testing.assert_allclose(
         cd.portfolio_performance(),
-        (0.28,  0.045999),
+        (0.28, 0.045999),
         rtol=1e-4,
         atol=1e-4,
     )

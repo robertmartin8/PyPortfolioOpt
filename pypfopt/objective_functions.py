@@ -158,7 +158,9 @@ def quadratic_utility(w, expected_returns, cov_matrix, risk_aversion, negative=T
     mu = w @ expected_returns
     variance = cp.quad_form(w, cov_matrix)
 
-    risk_aversion_par = cp.Parameter(value=risk_aversion, name='risk_aversion', nonneg=True)
+    risk_aversion_par = cp.Parameter(
+        value=risk_aversion, name="risk_aversion", nonneg=True
+    )
     utility = mu - 0.5 * risk_aversion_par * variance
     return _objective_value(w, sign * utility)
 

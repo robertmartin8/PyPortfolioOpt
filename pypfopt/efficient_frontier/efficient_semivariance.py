@@ -146,16 +146,18 @@ class EfficientSemivariance(EfficientFrontier):
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
 
-        update_existing_parameter = self.is_parameter_defined('risk_aversion')
+        update_existing_parameter = self.is_parameter_defined("risk_aversion")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value('risk_aversion', risk_aversion)
+            self.update_parameter_value("risk_aversion", risk_aversion)
         else:
             p = cp.Variable(self._T, nonneg=True)
             n = cp.Variable(self._T, nonneg=True)
             mu = objective_functions.portfolio_return(self._w, self.expected_returns)
             mu /= self.frequency
-            risk_aversion_par = cp.Parameter(value=risk_aversion, name='risk_aversion', nonneg=True)
+            risk_aversion_par = cp.Parameter(
+                value=risk_aversion, name="risk_aversion", nonneg=True
+            )
             self._objective = mu + 0.5 * risk_aversion_par * cp.sum(cp.square(n))
             for obj in self._additional_objectives:
                 self._objective += obj
@@ -179,10 +181,12 @@ class EfficientSemivariance(EfficientFrontier):
         :return: asset weights for the efficient risk portfolio
         :rtype: OrderedDict
         """
-        update_existing_parameter = self.is_parameter_defined('target_semivariance')
+        update_existing_parameter = self.is_parameter_defined("target_semivariance")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value('target_semivariance', target_semideviation ** 2)
+            self.update_parameter_value(
+                "target_semivariance", target_semideviation ** 2
+            )
         else:
             self._objective = objective_functions.portfolio_return(
                 self._w, self.expected_returns
@@ -193,8 +197,12 @@ class EfficientSemivariance(EfficientFrontier):
             p = cp.Variable(self._T, nonneg=True)
             n = cp.Variable(self._T, nonneg=True)
 
-            target_semivariance = cp.Parameter(value=target_semideviation**2, name='target_semivariance', nonneg=True)
-            self.add_constraint(lambda _: self.frequency * cp.sum(cp.square(n)) <= target_semivariance)
+            target_semivariance = cp.Parameter(
+                value=target_semideviation ** 2, name="target_semivariance", nonneg=True
+            )
+            self.add_constraint(
+                lambda _: self.frequency * cp.sum(cp.square(n)) <= target_semivariance
+            )
             B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
             self.add_constraint(lambda w: B @ w - p + n == 0)
             self._make_weight_sum_constraint(market_neutral)
@@ -221,10 +229,10 @@ class EfficientSemivariance(EfficientFrontier):
                 "target_return must be lower than the largest expected return"
             )
 
-        update_existing_parameter = self.is_parameter_defined('target_return')
+        update_existing_parameter = self.is_parameter_defined("target_return")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value('target_return', target_return)
+            self.update_parameter_value("target_return", target_return)
         else:
 
             p = cp.Variable(self._T, nonneg=True)
@@ -233,8 +241,10 @@ class EfficientSemivariance(EfficientFrontier):
             for obj in self._additional_objectives:
                 self._objective += obj
 
-            target_return_par = cp.Parameter(name='target_return', value=target_return)
-            self.add_constraint(lambda w: cp.sum(w @ self.expected_returns) >= target_return_par)
+            target_return_par = cp.Parameter(name="target_return", value=target_return)
+            self.add_constraint(
+                lambda w: cp.sum(w @ self.expected_returns) >= target_return_par
+            )
             B = (self.returns.values - self.benchmark) / np.sqrt(self._T)
             self.add_constraint(lambda w: B @ w - p + n == 0)
             self._make_weight_sum_constraint(market_neutral)

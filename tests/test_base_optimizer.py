@@ -297,32 +297,40 @@ def test_exception_immutability():
     ef = setup_efficient_frontier()
     ef.efficient_return(0.2)
 
-    with pytest.raises(Exception,
-                       match='Adding constraints to an already solved problem might have unintended consequences'):
+    with pytest.raises(
+        Exception,
+        match="Adding constraints to an already solved problem might have unintended consequences",
+    ):
         ef.min_volatility()
 
     ef = setup_efficient_frontier()
     ef.efficient_return(0.2)
-    with pytest.raises(Exception,
-                       match='Adding constraints to an already solved problem might have unintended consequences'):
+    with pytest.raises(
+        Exception,
+        match="Adding constraints to an already solved problem might have unintended consequences",
+    ):
         ef.add_constraint(lambda w: w >= 0.1)
 
     ef = setup_efficient_frontier()
     ef.efficient_return(0.2)
     prev_w = np.array([1 / ef.n_assets] * ef.n_assets)
-    with pytest.raises(Exception,
-                       match='Adding objectives to an already solved problem might have unintended consequences'):
+    with pytest.raises(
+        Exception,
+        match="Adding objectives to an already solved problem might have unintended consequences",
+    ):
         ef.add_objective(objective_functions.transaction_cost, w_prev=prev_w)
 
     ef = setup_efficient_frontier()
     ef.efficient_return(0.2)
     ef._constraints += [ef._w >= 0.1]
-    with pytest.raises(Exception,
-                       match='The constraints were changed after the initial optimization'):
+    with pytest.raises(
+        Exception, match="The constraints were changed after the initial optimization"
+    ):
         ef.efficient_return(0.2)
 
     ef = setup_efficient_frontier()
     ef.efficient_return(0.2, market_neutral=True)
-    with pytest.raises(Exception,
-                       match='A new instance must be created when changing market_neutral'):
+    with pytest.raises(
+        Exception, match="A new instance must be created when changing market_neutral"
+    ):
         ef.efficient_return(0.2, market_neutral=False)
