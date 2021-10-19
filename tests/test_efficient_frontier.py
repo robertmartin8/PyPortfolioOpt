@@ -203,8 +203,9 @@ def test_min_volatility_L2_reg_many_values():
     ef.min_volatility()
     # Count the number of weights more 1%
     initial_number = sum(ef.weights > 0.01)
-    for _ in range(10):
-        ef.add_objective(objective_functions.L2_reg, gamma=0.05)
+    for gamma_multiplier in range(1, 10):
+        ef = setup_efficient_frontier()
+        ef.add_objective(objective_functions.L2_reg, gamma=0.05*gamma_multiplier)
         ef.min_volatility()
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
         new_number = sum(ef.weights > 0.01)
@@ -388,7 +389,7 @@ def test_max_sharpe_error():
 
     # An unsupported constraint type, which is incidentally meaningless.
     v = cp.Variable((2, 2), PSD=True)
-    ef._constraints.append(v >> np.zeros((2, 2)))
+    ef.add_constraint(lambda _: v >> np.zeros((2, 2)))
     with pytest.raises(TypeError):
         ef.max_sharpe()
 
@@ -824,8 +825,9 @@ def test_max_quadratic_utility():
 
     ret1, var1, _ = ef.portfolio_performance()
     # increasing risk_aversion should lower both vol and return
-    ef.max_quadratic_utility(10)
-    ret2, var2, _ = ef.portfolio_performance()
+    ef2 = setup_efficient_frontier()
+    ef2.max_quadratic_utility(10)
+    ret2, var2, _ = ef2.portfolio_performance()
     assert ret2 < ret1 and var2 < var1
 
 
