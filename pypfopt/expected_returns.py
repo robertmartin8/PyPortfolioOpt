@@ -155,6 +155,7 @@ def ema_historical_return(
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
+
     if returns_data:
         returns = prices
     else:
@@ -213,15 +214,17 @@ def capm_return(
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
+
+    market_returns = None
+
     if returns_data:
-        returns = prices
-        market_returns = market_prices
+        returns = prices.copy()
+        if market_prices is not None:
+            market_returns = market_prices
     else:
         returns = returns_from_prices(prices)
         if market_prices is not None:
             market_returns = returns_from_prices(market_prices)
-        else:
-            market_returns = None
     # Use the equally-weighted dataset as a proxy for the market
     if market_returns is None:
         # Append market return to right and compute sample covariance matrix
