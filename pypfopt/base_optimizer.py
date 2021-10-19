@@ -226,27 +226,43 @@ class BaseConvexOptimizer(BaseOptimizer):
 
     def is_parameter_defined(self, parameter_name: str) -> bool:
         is_defined = False
-        objective_and_constraints = self._constraints + [self._objective] if self._objective is not None else self._constraints
+        objective_and_constraints = (
+            self._constraints + [self._objective]
+            if self._objective is not None
+            else self._constraints
+        )
         for expr in objective_and_constraints:
-            params = [arg for arg in get_all_args(expr) if isinstance(arg, cp.Parameter)]
+            params = [
+                arg for arg in _get_all_args(expr) if isinstance(arg, cp.Parameter)
+            ]
             for param in params:
                 if param.name() == parameter_name and not is_defined:
                     is_defined = True
                 elif param.name() == parameter_name and is_defined:
-                    raise Exception('Parameter name defined multiple times')
+                    raise exceptions.InstantiationError(
+                        "Parameter name defined multiple times"
+                    )
         return is_defined
 
     def update_parameter_value(self, parameter_name: str, new_value: float) -> None:
-        assert self.is_parameter_defined(parameter_name)
+        if not self.is_parameter_defined(parameter_name):
+            raise exceptions.InstantiationError("Parameter has not been defined")
         was_updated = False
-        objective_and_constraints = self._constraints + [self._objective] if self._objective is not None else self._constraints
+        objective_and_constraints = (
+            self._constraints + [self._objective]
+            if self._objective is not None
+            else self._constraints
+        )
         for expr in objective_and_constraints:
-            params = [arg for arg in get_all_args(expr) if isinstance(arg, cp.Parameter)]
+            params = [
+                arg for arg in _get_all_args(expr) if isinstance(arg, cp.Parameter)
+            ]
             for param in params:
                 if param.name() == parameter_name:
                     param.value = new_value
                     was_updated = True
-        assert was_updated
+        if not was_updated:
+            raise exceptions.InstantiationError("Parameter was not updated")
 
     def _solve_cvxpy_opt_problem(self):
         """
@@ -261,13 +277,21 @@ class BaseConvexOptimizer(BaseOptimizer):
                 self._initial_objective = self._objective.id
                 self._initial_constraint_ids = {const.id for const in self._constraints}
             else:
-                assert self._objective.id == self._initial_objective, \
-                    "The objective function was changed after the initial optimization. " \
-                    "Please create a new instance instead."
-                assert {const.id for const in self._constraints} == self._initial_constraint_ids, \
-                    "The constraints were changed after the initial optimization. " \
-                    "Please create a new instance instead."
-            self._opt.solve(solver=self._solver, verbose=self._verbose, **self._solver_options)
+                if not self._objective.id == self._initial_objective:
+                    raise exceptions.InstantiationError(
+                        "The objective function was changed after the initial optimization. "
+                        "Please create a new instance instead."
+                    )
+
+                constr_ids = {const.id for const in self._constraints}
+                if not constr_ids == self._initial_constraint_ids:
+                    raise exceptions.InstantiationError(
+                        "The constraints were changed after the initial optimization. "
+                        "Please create a new instance instead."
+                    )
+            self._opt.solve(
+                solver=self._solver, verbose=self._verbose, **self._solver_options
+            )
 
         except (TypeError, cp.DCPError) as e:
             raise exceptions.OptimizationError from e
@@ -295,8 +319,10 @@ class BaseConvexOptimizer(BaseOptimizer):
         :type new_objective: cp.Expression (i.e function of cp.Variable)
         """
         if self._opt is not None:
-            raise Exception('Adding objectives to an already solved problem might have unintended consequences.'
-                            'A new instance should be created for the new set of objectives.')
+            raise exceptions.InstantiationError(
+                "Adding objectives to an already solved problem might have unintended consequences. "
+                "A new instance should be created for the new set of objectives."
+            )
         self._additional_objectives.append(new_objective(self._w, **kwargs))
 
     def add_constraint(self, new_constraint):
@@ -316,8 +342,10 @@ class BaseConvexOptimizer(BaseOptimizer):
         if not callable(new_constraint):
             raise TypeError("New constraint must be provided as a lambda function")
         if self._opt is not None:
-            raise Exception('Adding constraints to an already solved problem might have unintended consequences.'
-                            'A new instance should be created for the new set of constraints.')
+            raise exceptions.InstantiationError(
+                "Adding constraints to an already solved problem might have unintended consequences. "
+                "A new instance should be created for the new set of constraints."
+            )
         self._constraints.append(new_constraint(self._w))
 
     def add_sector_constraints(self, sector_mapper, sector_lower, sector_upper):
@@ -533,16 +561,25 @@ def portfolio_performance(
         return None, sigma, None
 
 
-def get_all_args(expression: cp.Expression) -> List[cp.Expression]:
+def _get_all_args(expression: cp.Expression) -> List[cp.Expression]:
+    """
+    Helper function to recursively get all arguments from a cvxpy expression
+
+    :param expression: input cvxpy expression
+    :type expression: cp.Expression
+    :return: a list of cvxpy arguments
+    :rtype: List[cp.Expression]
+    """
     if expression.args == []:
         return [expression]
     else:
-        return list(flatten([get_all_args(arg) for arg in expression.args]))
+        return list(_flatten([_get_all_args(arg) for arg in expression.args]))
 
 
-def flatten(l: Iterable) -> Iterable:
+def _flatten(l: Iterable) -> Iterable:
+    # Helper method to flatten an iterable
     for el in l:
         if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
-            yield from flatten(el)
+            yield from _flatten(el)
         else:
             yield el

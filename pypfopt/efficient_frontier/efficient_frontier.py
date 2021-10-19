@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import cvxpy as cp
 
+from .. import exceptions
 from .. import objective_functions, base_optimizer
 
 
@@ -181,7 +182,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 del self._constraints[0]
                 del self._constraints[0]
 
-
             self.add_constraint(lambda w: cp.sum(w) == 0)
         else:
             self.add_constraint(lambda w: cp.sum(w) == 1)
@@ -310,13 +310,16 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
 
-        update_existing_parameter = self.is_parameter_defined('risk_aversion')
+        update_existing_parameter = self.is_parameter_defined("risk_aversion")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value('risk_aversion', risk_aversion)
+            self.update_parameter_value("risk_aversion", risk_aversion)
         else:
             self._objective = objective_functions.quadratic_utility(
-                self._w, self.expected_returns, self.cov_matrix, risk_aversion=risk_aversion
+                self._w,
+                self.expected_returns,
+                self.cov_matrix,
+                risk_aversion=risk_aversion,
             )
             for obj in self._additional_objectives:
                 self._objective += obj
@@ -352,10 +355,10 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 )
             )
 
-        update_existing_parameter = self.is_parameter_defined('target_variance')
+        update_existing_parameter = self.is_parameter_defined("target_variance")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value('target_variance', target_volatility ** 2)
+            self.update_parameter_value("target_variance", target_volatility ** 2)
         else:
             self._objective = objective_functions.portfolio_return(
                 self._w, self.expected_returns
@@ -365,7 +368,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             for obj in self._additional_objectives:
                 self._objective += obj
 
-            target_variance = cp.Parameter(name="target_variance", value=target_volatility ** 2, nonneg=True)
+            target_variance = cp.Parameter(
+                name="target_variance", value=target_volatility ** 2, nonneg=True
+            )
             self.add_constraint(lambda _: variance <= target_variance)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
@@ -393,10 +398,10 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 "target_return must be lower than the maximum possible return"
             )
 
-        update_existing_parameter = self.is_parameter_defined('target_return')
+        update_existing_parameter = self.is_parameter_defined("target_return")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value('target_return', target_return)
+            self.update_parameter_value("target_return", target_return)
         else:
             self._objective = objective_functions.portfolio_variance(
                 self._w, self.cov_matrix
@@ -408,7 +413,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             for obj in self._additional_objectives:
                 self._objective += obj
 
-            target_return_par = cp.Parameter(name='target_return', value=target_return)
+            target_return_par = cp.Parameter(name="target_return", value=target_return)
             self.add_constraint(lambda _: ret >= target_return_par)
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
@@ -446,4 +451,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         )
 
     def _validate_market_neutral(self, market_neutral: bool) -> None:
-        assert self._market_neutral == market_neutral, 'A new instance must be created when changing market_neutral'
+        if self._market_neutral != market_neutral:
+            raise exceptions.InstantiationError(
+                "A new instance must be created when changing market_neutral."
+            )
