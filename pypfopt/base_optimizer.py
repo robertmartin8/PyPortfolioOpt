@@ -337,10 +337,12 @@ class BaseConvexOptimizer(BaseOptimizer):
             ef.add_constraint(lambda x: x <= np.array([0.01, 0.08, ..., 0.5]))
 
         :param new_constraint: the constraint to be added
-        :type constraintfunc: lambda function
+        :type new_constraint: callable (e.g lambda function)
         """
         if not callable(new_constraint):
-            raise TypeError("New constraint must be provided as a lambda function")
+            raise TypeError(
+                "New constraint must be provided as a callable (e.g lambda function)"
+            )
         if self._opt is not None:
             raise exceptions.InstantiationError(
                 "Adding constraints to an already solved problem might have unintended consequences. "
