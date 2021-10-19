@@ -13,13 +13,18 @@ are interested in implementing one of these, raise an issue or send me an email 
 discuss. If you have any other feature requests, please raise them using GitHub
 `issues <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_
 
-- Open-source backtests using either `Backtrader <https://www.backtrader.com/>`_ or
-  `Zipline <https://github.com/quantopian/zipline>`_.
 - Risk parity
 - Optimising for higher moments (i.e skew and kurtosis)
 - Factor modelling - this is conceptually doable, but a lot of thought needs to be put into the API.
-- Monte Carlo optimization with custom distributions
 - Further support for different risk/return models
+
+1.5.0
+=====
+
+- Major redesign of the backend, thanks to `Philipp Schiele <https://github.com/phschiele>`_
+  - Becuase we use ``cp.Parameter``, we can efficiently re-run optimisation problems with different constants (e.g risk targets) 
+  - This leads to a significant improvement in plotting performance as we no longer have to repeatedly re-instantiate ``EfficientFrontier``.
+- Several misc bug fixes (thanks to `Eric Armbruster <https://github.com/armbruer>`_ and `Ayoub Ennassiri <https://github.com/samatix>`_)
 
 1.4.0
 =====

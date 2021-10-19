@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.4.2-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.5.0-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -46,24 +46,24 @@ Head over to the **[documentation on ReadTheDocs](https://pyportfolioopt.readthe
 
 ## Table of contents
 
-- [Table of contents](#table-of-contents)
-- [Getting started](#getting-started)
-  - [For development](#for-development)
-- [A quick example](#a-quick-example)
-- [An overview of classical portfolio optimization methods](#an-overview-of-classical-portfolio-optimization-methods)
-- [Features](#features)
-  - [Expected returns](#expected-returns)
-  - [Risk models (covariance)](#risk-models-covariance)
-  - [Objective functions](#objective-functions)
-  - [Adding constraints or different objectives](#adding-constraints-or-different-objectives)
-  - [Black-Litterman allocation](#black-litterman-allocation)
-  - [Other optimizers](#other-optimizers)
-- [Advantages over existing implementations](#advantages-over-existing-implementations)
-- [Project principles and design decisions](#project-principles-and-design-decisions)
-- [Testing](#testing)
-- [Citing PyPortfolioOpt](#citing-pyportfolioopt)
-- [Contributing](#contributing)
-- [Getting in touch](#getting-in-touch)
+-   [Table of contents](#table-of-contents)
+-   [Getting started](#getting-started)
+    -   [For development](#for-development)
+-   [A quick example](#a-quick-example)
+-   [An overview of classical portfolio optimization methods](#an-overview-of-classical-portfolio-optimization-methods)
+-   [Features](#features)
+    -   [Expected returns](#expected-returns)
+    -   [Risk models (covariance)](#risk-models-covariance)
+    -   [Objective functions](#objective-functions)
+    -   [Adding constraints or different objectives](#adding-constraints-or-different-objectives)
+    -   [Black-Litterman allocation](#black-litterman-allocation)
+    -   [Other optimizers](#other-optimizers)
+-   [Advantages over existing implementations](#advantages-over-existing-implementations)
+-   [Project principles and design decisions](#project-principles-and-design-decisions)
+-   [Testing](#testing)
+-   [Citing PyPortfolioOpt](#citing-pyportfolioopt)
+-   [Contributing](#contributing)
+-   [Getting in touch](#getting-in-touch)
 
 ## Getting started
 
