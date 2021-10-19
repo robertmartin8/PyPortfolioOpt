@@ -196,7 +196,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         if len(test_bounds) == self.n_assets and not isinstance(
             test_bounds[0], (float, int)
         ):
-            bounds = np.array(test_bounds, dtype=np.float)
+            bounds = np.array(test_bounds, dtype=float)
             self._lower_bounds = np.nan_to_num(bounds[:, 0], nan=-np.inf)
             self._upper_bounds = np.nan_to_num(bounds[:, 1], nan=np.inf)
         else:
