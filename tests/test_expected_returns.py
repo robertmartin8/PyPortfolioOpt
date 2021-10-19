@@ -276,7 +276,15 @@ def test_return_model_not_implemented():
         expected_returns.return_model(df, method="fancy_new!")
 
 
-def test_james_stein_shrinkage():
+def test_log_return_passthrough():
+    # addresses #343
     df = get_data()
-    with pytest.raises(NotImplementedError):
-        expected_returns.james_stein_shrinkage(df)
+
+    for method in {"mean_historical_return", "ema_historical_return", "capm_return"}:
+        mu1 = expected_returns.return_model(df, method=method, log_returns=False)
+        mu2 = expected_returns.return_model(df, method=method, log_returns=True)
+        try:
+            pd.testing.assert_series_equal(mu1, mu2)
+        except AssertionError:
+            return
+        assert False

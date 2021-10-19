@@ -94,7 +94,9 @@ def return_model(prices, method="mean_historical_return", **kwargs):
         raise NotImplementedError("Return model {} not implemented".format(method))
 
 
-def mean_historical_return(prices, returns_data=False, compounding=True, frequency=252):
+def mean_historical_return(
+    prices, returns_data=False, compounding=True, frequency=252, log_returns=False
+):
     """
     Calculate annualised mean (daily) historical return from input (daily) asset prices.
     Use ``compounding`` to toggle between the default geometric mean (CAGR) and the
@@ -112,6 +114,8 @@ def mean_historical_return(prices, returns_data=False, compounding=True, frequen
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
+    :param log_returns: whether to compute using log returns
+    :type log_returns: bool, defaults to False
     :return: annualised mean (daily) return for each asset
     :rtype: pd.Series
     """
@@ -121,7 +125,7 @@ def mean_historical_return(prices, returns_data=False, compounding=True, frequen
     if returns_data:
         returns = prices
     else:
-        returns = returns_from_prices(prices)
+        returns = returns_from_prices(prices, log_returns)
     if compounding:
         return (1 + returns).prod() ** (frequency / returns.count()) - 1
     else:
@@ -129,7 +133,12 @@ def mean_historical_return(prices, returns_data=False, compounding=True, frequen
 
 
 def ema_historical_return(
-    prices, returns_data=False, compounding=True, span=500, frequency=252
+    prices,
+    returns_data=False,
+    compounding=True,
+    span=500,
+    frequency=252,
+    log_returns=False,
 ):
     """
     Calculate the exponentially-weighted mean of (daily) historical returns, giving
@@ -149,6 +158,8 @@ def ema_historical_return(
     :type frequency: int, optional
     :param span: the time-span for the EMA, defaults to 500-day EMA.
     :type span: int, optional
+    :param log_returns: whether to compute using log returns
+    :type log_returns: bool, defaults to False
     :return: annualised exponentially-weighted mean (daily) return of each asset
     :rtype: pd.Series
     """
@@ -159,18 +170,12 @@ def ema_historical_return(
     if returns_data:
         returns = prices
     else:
-        returns = returns_from_prices(prices)
+        returns = returns_from_prices(prices, log_returns)
 
     if compounding:
         return (1 + returns.ewm(span=span).mean().iloc[-1]) ** frequency - 1
     else:
         return returns.ewm(span=span).mean().iloc[-1] * frequency
-
-
-def james_stein_shrinkage(prices, returns_data=False, compounding=True, frequency=252):
-    raise NotImplementedError(
-        "Deprecated because its implementation here was misguided."
-    )
 
 
 def capm_return(
@@ -180,6 +185,7 @@ def capm_return(
     risk_free_rate=0.02,
     compounding=True,
     frequency=252,
+    log_returns=False,
 ):
     """
     Compute a return estimate using the Capital Asset Pricing Model. Under the CAPM,
@@ -208,6 +214,8 @@ def capm_return(
     :param frequency: number of time periods in a year, defaults to 252 (the number
                         of trading days in a year)
     :type frequency: int, optional
+    :param log_returns: whether to compute using log returns
+    :type log_returns: bool, defaults to False
     :return: annualised return estimate
     :rtype: pd.Series
     """
@@ -222,9 +230,9 @@ def capm_return(
         if market_prices is not None:
             market_returns = market_prices
     else:
-        returns = returns_from_prices(prices)
+        returns = returns_from_prices(prices, log_returns)
         if market_prices is not None:
-            market_returns = returns_from_prices(market_prices)
+            market_returns = returns_from_prices(market_prices, log_returns)
     # Use the equally-weighted dataset as a proxy for the market
     if market_returns is None:
         # Append market return to right and compute sample covariance matrix
