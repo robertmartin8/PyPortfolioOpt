@@ -285,7 +285,7 @@ class DiscreteAllocation:
             da1 = DiscreteAllocation(
                 longs, self.latest_prices[longs.keys()], total_portfolio_value=long_val
             )
-            long_alloc, long_leftover = da1.lp_portfolio()
+            long_alloc, long_leftover = da1.lp_portfolio(solver=solver)
 
             if verbose:
                 print("\nAllocating short sub-portfolio:")
@@ -294,7 +294,7 @@ class DiscreteAllocation:
                 self.latest_prices[shorts.keys()],
                 total_portfolio_value=short_val,
             )
-            short_alloc, short_leftover = da2.lp_portfolio()
+            short_alloc, short_leftover = da2.lp_portfolio(solver=solver)
             short_alloc = {t: -w for t, w in short_alloc.items()}
 
             # Combine and return

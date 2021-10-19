@@ -9,10 +9,14 @@ evaluate return and risk for a given set of portfolio weights.
 import collections
 import json
 import warnings
+from collections.abc import Iterable
+from typing import List
+
 import numpy as np
 import pandas as pd
 import cvxpy as cp
 import scipy.optimize as sco
+
 from . import objective_functions
 from . import exceptions
 
@@ -174,12 +178,11 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._constraints = []
         self._lower_bounds = None
         self._upper_bounds = None
-        self._map_bounds_to_constraints(weight_bounds)
-
         self._opt = None
         self._solver = solver
         self._verbose = verbose
         self._solver_options = solver_options if solver_options else {}
+        self._map_bounds_to_constraints(weight_bounds)
 
     def _map_bounds_to_constraints(self, test_bounds):
         """
@@ -196,7 +199,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         if len(test_bounds) == self.n_assets and not isinstance(
             test_bounds[0], (float, int)
         ):
-            bounds = np.array(test_bounds, dtype=np.float)
+            bounds = np.array(test_bounds, dtype=float)
             self._lower_bounds = np.nan_to_num(bounds[:, 0], nan=-np.inf)
             self._upper_bounds = np.nan_to_num(bounds[:, 1], nan=np.inf)
         else:
@@ -218,8 +221,48 @@ class BaseConvexOptimizer(BaseOptimizer):
                 self._lower_bounds = np.nan_to_num(lower, nan=-1)
                 self._upper_bounds = np.nan_to_num(upper, nan=1)
 
-        self._constraints.append(self._w >= self._lower_bounds)
-        self._constraints.append(self._w <= self._upper_bounds)
+        self.add_constraint(lambda w: w >= self._lower_bounds)
+        self.add_constraint(lambda w: w <= self._upper_bounds)
+
+    def is_parameter_defined(self, parameter_name: str) -> bool:
+        is_defined = False
+        objective_and_constraints = (
+            self._constraints + [self._objective]
+            if self._objective is not None
+            else self._constraints
+        )
+        for expr in objective_and_constraints:
+            params = [
+                arg for arg in _get_all_args(expr) if isinstance(arg, cp.Parameter)
+            ]
+            for param in params:
+                if param.name() == parameter_name and not is_defined:
+                    is_defined = True
+                elif param.name() == parameter_name and is_defined:
+                    raise exceptions.InstantiationError(
+                        "Parameter name defined multiple times"
+                    )
+        return is_defined
+
+    def update_parameter_value(self, parameter_name: str, new_value: float) -> None:
+        if not self.is_parameter_defined(parameter_name):
+            raise exceptions.InstantiationError("Parameter has not been defined")
+        was_updated = False
+        objective_and_constraints = (
+            self._constraints + [self._objective]
+            if self._objective is not None
+            else self._constraints
+        )
+        for expr in objective_and_constraints:
+            params = [
+                arg for arg in _get_all_args(expr) if isinstance(arg, cp.Parameter)
+            ]
+            for param in params:
+                if param.name() == parameter_name:
+                    param.value = new_value
+                    was_updated = True
+        if not was_updated:
+            raise exceptions.InstantiationError("Parameter was not updated")
 
     def _solve_cvxpy_opt_problem(self):
         """
@@ -229,14 +272,27 @@ class BaseConvexOptimizer(BaseOptimizer):
         :raises exceptions.OptimizationError: if problem is not solvable by cvxpy
         """
         try:
-            self._opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
-
-            if self._solver is not None:
-                self._opt.solve(
-                    solver=self._solver, verbose=self._verbose, **self._solver_options
-                )
+            if self._opt is None:
+                self._opt = cp.Problem(cp.Minimize(self._objective), self._constraints)
+                self._initial_objective = self._objective.id
+                self._initial_constraint_ids = {const.id for const in self._constraints}
             else:
-                self._opt.solve(verbose=self._verbose, **self._solver_options)
+                if not self._objective.id == self._initial_objective:
+                    raise exceptions.InstantiationError(
+                        "The objective function was changed after the initial optimization. "
+                        "Please create a new instance instead."
+                    )
+
+                constr_ids = {const.id for const in self._constraints}
+                if not constr_ids == self._initial_constraint_ids:
+                    raise exceptions.InstantiationError(
+                        "The constraints were changed after the initial optimization. "
+                        "Please create a new instance instead."
+                    )
+            self._opt.solve(
+                solver=self._solver, verbose=self._verbose, **self._solver_options
+            )
+
         except (TypeError, cp.DCPError) as e:
             raise exceptions.OptimizationError from e
 
@@ -262,6 +318,11 @@ class BaseConvexOptimizer(BaseOptimizer):
         :param new_objective: the objective to be added
         :type new_objective: cp.Expression (i.e function of cp.Variable)
         """
+        if self._opt is not None:
+            raise exceptions.InstantiationError(
+                "Adding objectives to an already solved problem might have unintended consequences. "
+                "A new instance should be created for the new set of objectives."
+            )
         self._additional_objectives.append(new_objective(self._w, **kwargs))
 
     def add_constraint(self, new_constraint):
@@ -276,10 +337,17 @@ class BaseConvexOptimizer(BaseOptimizer):
             ef.add_constraint(lambda x: x <= np.array([0.01, 0.08, ..., 0.5]))
 
         :param new_constraint: the constraint to be added
-        :type constraintfunc: lambda function
+        :type new_constraint: callable (e.g lambda function)
         """
         if not callable(new_constraint):
-            raise TypeError("New constraint must be provided as a lambda function")
+            raise TypeError(
+                "New constraint must be provided as a callable (e.g lambda function)"
+            )
+        if self._opt is not None:
+            raise exceptions.InstantiationError(
+                "Adding constraints to an already solved problem might have unintended consequences. "
+                "A new instance should be created for the new set of constraints."
+            )
         self._constraints.append(new_constraint(self._w))
 
     def add_sector_constraints(self, sector_mapper, sector_lower, sector_upper):
@@ -316,10 +384,10 @@ class BaseConvexOptimizer(BaseOptimizer):
             )
         for sector in sector_upper:
             is_sector = [sector_mapper[t] == sector for t in self.tickers]
-            self._constraints.append(cp.sum(self._w[is_sector]) <= sector_upper[sector])
+            self.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
         for sector in sector_lower:
             is_sector = [sector_mapper[t] == sector for t in self.tickers]
-            self._constraints.append(cp.sum(self._w[is_sector]) >= sector_lower[sector])
+            self.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
 
     def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
         """
@@ -349,7 +417,7 @@ class BaseConvexOptimizer(BaseOptimizer):
             self._objective += obj
 
         if weights_sum_to_one:
-            self._constraints.append(cp.sum(self._w) == 1)
+            self.add_constraint(lambda w: cp.sum(w) == 1)
 
         return self._solve_cvxpy_opt_problem()
 
@@ -413,7 +481,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         # Construct constraints
         final_constraints = []
         if weights_sum_to_one:
-            final_constraints.append({"type": "eq", "fun": lambda x: np.sum(x) - 1})
+            final_constraints.append({"type": "eq", "fun": lambda w: np.sum(w) - 1})
         if constraints is not None:
             final_constraints += constraints
 
@@ -493,3 +561,27 @@ def portfolio_performance(
         if verbose:
             print("Annual volatility: {:.1f}%".format(100 * sigma))
         return None, sigma, None
+
+
+def _get_all_args(expression: cp.Expression) -> List[cp.Expression]:
+    """
+    Helper function to recursively get all arguments from a cvxpy expression
+
+    :param expression: input cvxpy expression
+    :type expression: cp.Expression
+    :return: a list of cvxpy arguments
+    :rtype: List[cp.Expression]
+    """
+    if expression.args == []:
+        return [expression]
+    else:
+        return list(_flatten([_get_all_args(arg) for arg in expression.args]))
+
+
+def _flatten(l: Iterable) -> Iterable:
+    # Helper method to flatten an iterable
+    for el in l:
+        if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
+            yield from _flatten(el)
+        else:
+            yield el

@@ -465,7 +465,6 @@ def test_efficient_risk_L2_reg():
     )
 
     ef2 = setup_efficient_semivariance()
-    es.add_objective(objective_functions.L2_reg, gamma=1)
     ef2.efficient_risk(0.19)
 
     # L2_reg should pull close to equal weight
@@ -582,3 +581,17 @@ def test_efficient_semivariance_vs_heuristic_weekly():
 
     assert semi_deviation < semi_deviation_ef
     assert mu_es / semi_deviation > mu_ef / semi_deviation_ef
+
+
+def test_parametrization():
+    es = setup_efficient_semivariance()
+    es.efficient_risk(0.19)
+    es.efficient_risk(0.19)
+
+    es = setup_efficient_semivariance()
+    es.efficient_return(0.25)
+    es.efficient_return(0.25)
+
+    es = setup_efficient_semivariance()
+    es.max_quadratic_utility(1)
+    es.max_quadratic_utility(1)

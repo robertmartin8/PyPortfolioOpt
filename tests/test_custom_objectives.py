@@ -40,7 +40,6 @@ def test_custom_convex_abs_exposure():
     )
 
     ef.add_constraint(lambda x: cp.norm(x, 1) <= 2)
-    ef.min_volatility()
     ef.convex_objective(
         objective_functions.portfolio_variance,
         cov_matrix=ef.cov_matrix,
