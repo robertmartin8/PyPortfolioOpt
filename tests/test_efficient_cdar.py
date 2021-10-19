@@ -350,15 +350,14 @@ def test_efficient_risk_L2_reg():
         atol=1e-4,
     )
 
-    ef2 = setup_efficient_cdar()
-    cd.add_objective(objective_functions.L2_reg, gamma=1)
-    ef2.efficient_risk(0.18)
+    cd2 = setup_efficient_cdar()
+    cd2.efficient_risk(0.18)
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cd.n_assets,), 1 / cd.n_assets)
     assert (
             np.abs(equal_weight - cd.weights).sum()
-            < np.abs(equal_weight - ef2.weights).sum()
+            < np.abs(equal_weight - cd2.weights).sum()
     )
 
 
@@ -455,3 +454,13 @@ def test_cdar_errors():
     historical_rets = historical_rets.iloc[:, :-1]
     with pytest.raises(ValueError):
         EfficientCDaR(mu, historical_rets)
+
+
+def test_parametrization():
+    cd = setup_efficient_cdar()
+    cd.efficient_risk(0.08)
+    cd.efficient_risk(0.07)
+
+    cd = setup_efficient_cdar()
+    cd.efficient_return(0.08)
+    cd.efficient_return(0.07)

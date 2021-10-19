@@ -57,7 +57,7 @@ class EfficientCVaR(EfficientFrontier):
     ):
         """
         :param expected_returns: expected returns for each asset. Can be None if
-                                optimising for semideviation only.
+                                optimising for conditional value at risk only.
         :type expected_returns: pd.Series, list, np.ndarray
         :param returns: (historic) returns for all your assets (no NaNs).
                                  See ``expected_returns.returns_from_prices``.
@@ -126,10 +126,8 @@ class EfficientCVaR(EfficientFrontier):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        self._constraints += [
-            self._u >= 0.0,
-            self.returns.values @ self._w + self._alpha + self._u >= 0.0,
-        ]
+        self.add_constraint(lambda _: self._u >= 0.0)
+        self.add_constraint(lambda w: self.returns.values @ w + self._alpha + self._u >= 0.0)
 
         self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
@@ -148,22 +146,26 @@ class EfficientCVaR(EfficientFrontier):
         :return: asset weights for the optimal portfolio
         :rtype: OrderedDict
         """
-        self._objective = self._alpha + 1.0 / (
-            len(self.returns) * (1 - self._beta)
-        ) * cp.sum(self._u)
+        update_existing_parameter = self.is_parameter_defined('target_return')
+        if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
+            self.update_parameter_value('target_return', target_return)
+        else:
+            self._objective = self._alpha + 1.0 / (
+                len(self.returns) * (1 - self._beta)
+            ) * cp.sum(self._u)
 
-        for obj in self._additional_objectives:
-            self._objective += obj
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        self._constraints += [
-            self._u >= 0.0,
-            self.returns.values @ self._w + self._alpha + self._u >= 0.0,
-        ]
+            self.add_constraint(lambda _: self._u >= 0.0)
+            self.add_constraint(lambda w: self.returns.values @ w + self._alpha + self._u >= 0.0)
 
-        ret = self.expected_returns.T @ self._w
-        self._constraints.append(ret >= target_return)
+            ret = self.expected_returns.T @ self._w
+            target_return_par = cp.Parameter(name='target_return', value=target_return)
+            self.add_constraint(lambda _: ret >= target_return_par)
 
-        self._make_weight_sum_constraint(market_neutral)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_risk(self, target_cvar, market_neutral=False):
@@ -172,7 +174,7 @@ class EfficientCVaR(EfficientFrontier):
         The resulting portfolio will have a CVaR less than the target
         (but not guaranteed to be equal).
 
-        :param target_cvar: the desired maximum semideviation of the resulting portfolio.
+        :param target_cvar: the desired conditional value at risk of the resulting portfolio.
         :type target_cvar: float
         :param market_neutral: whether the portfolio should be market neutral (weights sum to zero),
                                defaults to False. Requires negative lower weight bound.
@@ -180,22 +182,27 @@ class EfficientCVaR(EfficientFrontier):
         :return: asset weights for the efficient risk portfolio
         :rtype: OrderedDict
         """
-        self._objective = objective_functions.portfolio_return(
-            self._w, self.expected_returns
-        )
-        for obj in self._additional_objectives:
-            self._objective += obj
+        update_existing_parameter = self.is_parameter_defined('target_cvar')
+        if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
+            self.update_parameter_value('target_cvar', target_cvar)
+        else:
+            self._objective = objective_functions.portfolio_return(
+                self._w, self.expected_returns
+            )
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        cvar = self._alpha + 1.0 / (len(self.returns) * (1 - self._beta)) * cp.sum(
-            self._u
-        )
-        self._constraints += [
-            cvar <= target_cvar,
-            self._u >= 0.0,
-            self.returns.values @ self._w + self._alpha + self._u >= 0.0,
-        ]
+            cvar = self._alpha + 1.0 / (len(self.returns) * (1 - self._beta)) * cp.sum(
+                self._u
+            )
+            target_cvar_par = cp.Parameter(value=target_cvar, name='target_cvar', nonneg=True)
 
-        self._make_weight_sum_constraint(market_neutral)
+            self.add_constraint(lambda _: cvar <= target_cvar_par)
+            self.add_constraint(lambda _: self._u >= 0.0)
+            self.add_constraint(lambda w: self.returns.values @ w + self._alpha + self._u >= 0.0)
+
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def portfolio_performance(self, verbose=False):

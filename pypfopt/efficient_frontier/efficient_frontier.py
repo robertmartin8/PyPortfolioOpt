@@ -2,8 +2,9 @@
 The ``efficient_frontier`` submodule houses the EfficientFrontier class, which generates
 classical mean-variance optimal portfolios for a variety of objectives and constraints
 """
-
+import copy
 import warnings
+
 import numpy as np
 import pandas as pd
 import cvxpy as cp
@@ -86,6 +87,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         self.expected_returns = EfficientFrontier._validate_expected_returns(
             expected_returns
         )
+        self._max_return_value = None
+        self._market_neutral = None
 
         if self.expected_returns is None:
             num_assets = len(cov_matrix)
@@ -178,9 +181,11 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 del self._constraints[0]
                 del self._constraints[0]
 
-            self._constraints.append(cp.sum(self._w) == 0)
+
+            self.add_constraint(lambda w: cp.sum(w) == 0)
         else:
-            self._constraints.append(cp.sum(self._w) == 1)
+            self.add_constraint(lambda w: cp.sum(w) == 1)
+        self._market_neutral = is_market_neutral
 
     def min_volatility(self):
         """
@@ -195,7 +200,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         for obj in self._additional_objectives:
             self._objective += obj
 
-        self._constraints.append(cp.sum(self._w) == 1)
+        self.add_constraint(lambda w: cp.sum(w) == 1)
         return self._solve_cvxpy_opt_problem()
 
     def _max_return(self, return_value=True):
@@ -212,12 +217,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._w, self.expected_returns
         )
 
-        self._constraints.append(cp.sum(self._w) == 1)
+        self.add_constraint(lambda w: cp.sum(w) == 1)
 
         res = self._solve_cvxpy_opt_problem()
-
-        #  Cleanup constraints since this is a helper method
-        del self._constraints[-1]
 
         if return_value:
             return -self._opt.value
@@ -308,13 +310,18 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
 
-        self._objective = objective_functions.quadratic_utility(
-            self._w, self.expected_returns, self.cov_matrix, risk_aversion=risk_aversion
-        )
-        for obj in self._additional_objectives:
-            self._objective += obj
+        update_existing_parameter = self.is_parameter_defined('risk_aversion')
+        if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
+            self.update_parameter_value('risk_aversion', risk_aversion)
+        else:
+            self._objective = objective_functions.quadratic_utility(
+                self._w, self.expected_returns, self.cov_matrix, risk_aversion=risk_aversion
+            )
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        self._make_weight_sum_constraint(market_neutral)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_risk(self, target_volatility, market_neutral=False):
@@ -345,16 +352,22 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 )
             )
 
-        self._objective = objective_functions.portfolio_return(
-            self._w, self.expected_returns
-        )
-        variance = objective_functions.portfolio_variance(self._w, self.cov_matrix)
+        update_existing_parameter = self.is_parameter_defined('target_variance')
+        if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
+            self.update_parameter_value('target_variance', target_volatility ** 2)
+        else:
+            self._objective = objective_functions.portfolio_return(
+                self._w, self.expected_returns
+            )
+            variance = objective_functions.portfolio_variance(self._w, self.cov_matrix)
 
-        for obj in self._additional_objectives:
-            self._objective += obj
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        self._constraints.append(variance <= target_volatility ** 2)
-        self._make_weight_sum_constraint(market_neutral)
+            target_variance = cp.Parameter(name="target_variance", value=target_volatility ** 2, nonneg=True)
+            self.add_constraint(lambda _: variance <= target_variance)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def efficient_return(self, target_return, market_neutral=False):
@@ -373,23 +386,31 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
-        if target_return > self._max_return():
+        if not self._max_return_value:
+            self._max_return_value = copy.deepcopy(self)._max_return()
+        if target_return > self._max_return_value:
             raise ValueError(
                 "target_return must be lower than the maximum possible return"
             )
 
-        self._objective = objective_functions.portfolio_variance(
-            self._w, self.cov_matrix
-        )
-        ret = objective_functions.portfolio_return(
-            self._w, self.expected_returns, negative=False
-        )
+        update_existing_parameter = self.is_parameter_defined('target_return')
+        if update_existing_parameter:
+            self._validate_market_neutral(market_neutral)
+            self.update_parameter_value('target_return', target_return)
+        else:
+            self._objective = objective_functions.portfolio_variance(
+                self._w, self.cov_matrix
+            )
+            ret = objective_functions.portfolio_return(
+                self._w, self.expected_returns, negative=False
+            )
 
-        for obj in self._additional_objectives:
-            self._objective += obj
+            for obj in self._additional_objectives:
+                self._objective += obj
 
-        self._constraints.append(ret >= target_return)
-        self._make_weight_sum_constraint(market_neutral)
+            target_return_par = cp.Parameter(name='target_return', value=target_return)
+            self.add_constraint(lambda _: ret >= target_return_par)
+            self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
     def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
@@ -423,3 +444,6 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             verbose,
             risk_free_rate,
         )
+
+    def _validate_market_neutral(self, market_neutral: bool) -> None:
+        assert self._market_neutral == market_neutral, 'A new instance must be created when changing market_neutral'
