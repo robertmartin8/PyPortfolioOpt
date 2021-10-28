@@ -29,4 +29,4 @@ class Tickers:
                           'PYPL', 'PEP', 'QCOM', 'REGN', 'ROST', 'SGEN', 'SIRI', 'SWKS', 'SPLK', 'SBUX', 'SNPS', 'TMUS',
                           'TTWO', 'TSLA', 'TXN', 'KHC', 'TCOM', 'ULTA', 'UAL', 'VRSN', 'VRSK', 'VRTX', 'WBA', 'WDC',
                           'WLTW', 'WDAY', 'XEL', 'XLNX']
-    TEST = ["SCHO.CO","SIM.CO","SPNO.CO","STG.CO","SYDB.CO","TOP.CO","TRYG.CO","VWS.CO","ZEAL.CO"] 
+    TEST = ["MSFT", "AMZN", "KO", "MA", "COST","LUV", "XOM", "PFE", "JPM", "UNH","ACN", "DIS", "GILD", "F", "TSLA"]
