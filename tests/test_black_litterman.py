@@ -560,8 +560,8 @@ def test_idzorek_basic():
 
     # Perfect confidence - should equal views
     bl = BlackLittermanModel(
-        S, pi=pi, absolute_views=views, omega=np.diag(np.zeros(5))  # perfect confidence
-    )
+        S, pi=pi, absolute_views=views, omega=np.diag(np.zeros(5))
+    )  # perfect confidence
     pd.testing.assert_series_equal(bl.bl_returns(), pd.Series([0.3] * 5))
 
     # No confidence - should equal priors
