@@ -15,7 +15,7 @@
                 <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
                     alt="python"></a> &nbsp;
             <a href="https://pypi.org/project/PyPortfolioOpt/">
-                <img src="https://img.shields.io/badge/pypi-v1.5.1-brightgreen.svg"
+                <img src="https://img.shields.io/badge/pypi-v1.5.2-brightgreen.svg"
                     alt="python"></a> &nbsp;
             <a href="https://opensource.org/licenses/MIT">
                 <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -59,6 +59,8 @@ with additional instructions `here <https://docs.google.com/presentation/d/0B4Gs
 Installation can then be done via pip::
 
     pip install PyPortfolioOpt
+
+(you may need to follow separate installation instructions for `cvxopt <https://cvxopt.org/install/index.html#>`__ and `cvxpy <https://www.cvxpy.org/install/>`__).
 
 For the sake of best practice, it is good to do this with a dependency manager. I suggest you
 set yourself up with `poetry <https://github.com/sdispater/poetry>`_, then within a new poetry project

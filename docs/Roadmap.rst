@@ -31,6 +31,11 @@ discuss. If you have any other feature requests, please raise them using GitHub
 
 Mucked up the versioning on the 1.5.0 launch. Sorry!
 
+1.5.2
+-----
+
+Minor bug fixes
+
 1.4.0
 =====
 

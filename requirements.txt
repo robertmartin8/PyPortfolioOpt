@@ -1,4 +1,4 @@
-cvxopt>=1.2.0,<=1.2.5
+cvxopt>=1.2.0
 cvxpy>=1.1.10
 matplotlib>=3.2.0
 numpy>=1.12.0
