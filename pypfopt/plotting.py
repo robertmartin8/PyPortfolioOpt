@@ -183,7 +183,7 @@ def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets):
             continue
         except ValueError:
             warnings.warn(
-                "Could not construct portfolio for paramter value {:.3f}".format(
+                "Could not construct portfolio for parameter value {:.3f}".format(
                     param_value
                 )
             )
