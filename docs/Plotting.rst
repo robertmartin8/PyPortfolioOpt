@@ -45,18 +45,19 @@ We can easily generate more complex plots. The following script plots both the e
 randomly generated (suboptimal) portfolios, coloured by the Sharpe ratio::
 
     fig, ax = plt.subplots()
+    ef_max_sharpe = copy.deepcopy(ef)
     plotting.plot_efficient_frontier(ef, ax=ax, show_assets=False)
 
     # Find the tangency portfolio
-    ef.max_sharpe()
-    ret_tangent, std_tangent, _ = ef.portfolio_performance()
+    ef_max_sharpe.max_sharpe()
+    ret_tangent, std_tangent, _ = ef_max_sharpe.portfolio_performance()
     ax.scatter(std_tangent, ret_tangent, marker="*", s=100, c="r", label="Max Sharpe")
 
     # Generate random portfolios
     n_samples = 10000
-    w = np.random.dirichlet(np.ones(len(mu)), n_samples)
-    rets = w.dot(mu)
-    stds = np.sqrt(np.diag(w @ S @ w.T))
+    w = np.random.dirichlet(np.ones(ef.n_assets), n_samples)
+    rets = w.dot(ef.expected_returns)
+    stds = np.sqrt(np.diag(w @ ef.cov_matrix @ w.T))
     sharpes = rets / stds
     ax.scatter(stds, rets, marker=".", c=sharpes, cmap="viridis_r")
 
