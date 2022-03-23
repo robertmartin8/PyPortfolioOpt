@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.5.1-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.5.2-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -79,6 +79,8 @@ This project is available on PyPI, meaning that you can just:
 ```bash
 pip install PyPortfolioOpt
 ```
+
+(you may need to follow separate installation instructions for [cvxopt](https://cvxopt.org/install/index.html#) and [cvxpy](https://www.cvxpy.org/install/))).
 
 However, it is best practice to use a dependency manager within a virtual environment.
 My current recommendation is to get yourself set up with [poetry](https://github.com/sdispater/poetry) then just run

@@ -8,8 +8,8 @@ with open("README.md", "r") as f:
 
 
 setup(
-    name="PyPortfolioOpt",
-    version="1.5.1",
+    name="pyportfolioopt",
+    version="1.5.2",
     description="Financial portfolio optimization in python",
     long_description=desc,
     long_description_content_type="text/markdown",
