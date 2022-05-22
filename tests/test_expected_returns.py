@@ -50,6 +50,13 @@ def test_returns_from_prices():
     pd.testing.assert_series_equal(returns_df.iloc[-1], df.pct_change().iloc[-1])
 
 
+def test_returns_warning():
+    df = get_data()
+    df.iloc[3, :] = 0  # make some prices zero
+    with pytest.warns(UserWarning):
+        expected_returns.mean_historical_return(df)
+
+
 def test_log_returns_from_prices():
     df = get_data()
     old_nan = df.isnull().sum(axis=1).sum()
