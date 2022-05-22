@@ -89,6 +89,9 @@ class EfficientCVaR(EfficientFrontier):
         self._alpha = cp.Variable()
         self._u = cp.Variable(len(self.returns))
 
+    def set_weights(self, input_weights):
+        raise NotImplementedError("Method not available in EfficientCVaR.")
+
     @staticmethod
     def _validate_beta(beta):
         if not (0 <= beta < 1):
