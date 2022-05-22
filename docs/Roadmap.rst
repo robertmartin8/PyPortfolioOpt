@@ -8,15 +8,7 @@ Roadmap and Changelog
 Roadmap
 =======
 
-These are some of the features that I think would greatly improve PyPortfolioOpt; if you
-are interested in implementing one of these, raise an issue or send me an email and we can
-discuss. If you have any other feature requests, please raise them using GitHub
-`issues <https://github.com/robertmartin8/PyPortfolioOpt/issues>`_
-
-- Risk parity
-- Optimising for higher moments (i.e skew and kurtosis)
-- Factor modelling - this is conceptually doable, but a lot of thought needs to be put into the API.
-- Further support for different risk/return models
+PyPortfolioOpt is now a "mature" package – it is stable and I don't intend to implement major new functionality (though I will endeavour to fix bugs).
 
 1.5.0
 =====
@@ -35,6 +27,15 @@ Mucked up the versioning on the 1.5.0 launch. Sorry!
 -----
 
 Minor bug fixes
+
+1.5.3
+-----
+
+- Reworked packaging: ``cvxpy`` is no longer a requirement as we default to ``ECOS_BB`` for discrete allocation. 
+- Bumped minimum python version to ``3.8``. I would love to keep as many versions compatible (and I think most of the 
+  functionality *should* still work with ``3.6, 3.7`` but the dependencies have gotten too tricky to manage).
+- Changed to numpy pseudoinverse to allow for "cash" assets
+- Ticker labels for efficient frontier plot
 
 1.4.0
 =====
