@@ -9,7 +9,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="pyportfolioopt",
-    version="1.5.2",
+    version="1.5.3",
     description="Financial portfolio optimization in python",
     long_description=desc,
     long_description_content_type="text/markdown",
@@ -32,7 +32,6 @@ setup(
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Office/Business :: Financial",
         "Topic :: Office/Business :: Financial :: Investment",
-        "Topic :: Scientific/Engineering :: Mathematics",
     ],
     keywords="portfolio finance optimization quant trading investing",
     install_requires=["numpy", "pandas", "scipy", "cvxpy"],

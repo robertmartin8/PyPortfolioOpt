@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.5.2-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.5.3-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -30,13 +30,14 @@
 
 PyPortfolioOpt is a library that implements portfolio optimization methods, including
 classical mean-variance optimization techniques and Black-Litterman allocation, as well as more
-recent developments in the field like shrinkage and Hierarchical Risk Parity, along with
-some novel experimental features like exponentially-weighted covariance matrices.
+recent developments in the field like shrinkage and Hierarchical Risk Parity.
 
-It is **extensive** yet easily **extensible**, and can be useful for both the casual investor and the serious practitioner. Whether you are a fundamentals-oriented investor who has identified a
+It is **extensive** yet easily **extensible**, and can be useful for either a casual investors, or a professional looking for an easy prototyping tool. Whether you are a fundamentals-oriented investor who has identified a
 handful of undervalued picks, or an algorithmic trader who has a basket of
 strategies, PyPortfolioOpt can help you combine your alpha sources
 in a risk-efficient way.
+
+**Update as of May 2022**: I am starting fulltime work, so don’t have a huge amount of bandwidth for PyPortfolioOpt anymore. I will aim to keep the package funcitonal, but will not be adding new features. Please check out Dany Cajas' [Riskfolio-lib](https://riskfolio-lib.readthedocs.io/en/latest/index.html) if you would like more advanced features!
 
 Head over to the **[documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/)** to get an in-depth look at the project, or check out the [cookbook](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook) to see some examples showing the full process from downloading data to building a portfolio.
 

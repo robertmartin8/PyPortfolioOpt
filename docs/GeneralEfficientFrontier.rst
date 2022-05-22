@@ -157,7 +157,7 @@ EfficientCDaR
 ==============
 
 The **conditional drawdown at risk** (CDaR) is a more exotic measure of tail risk. It tries to alleviate the problems
-with Efficient Semivariance and Efficient CvAr in that it accounts for the timespan of material decreases in value. The CDaR can be
+with Efficient Semivariance and Efficient CVaR in that it accounts for the timespan of material decreases in value. The CDaR can be
 thought of as the average of losses that occur on "very bad periods", where "very bad" is quantified by the parameter
 :math:`\beta`. The drawdown is defined as the difference in non-compounded return to the previous peak.
 

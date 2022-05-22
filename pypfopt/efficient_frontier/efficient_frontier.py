@@ -346,7 +346,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         if not isinstance(target_volatility, (float, int)) or target_volatility < 0:
             raise ValueError("target_volatility should be a positive float")
 
-        global_min_volatility = np.sqrt(1 / np.sum(np.linalg.inv(self.cov_matrix)))
+        global_min_volatility = np.sqrt(1 / np.sum(np.linalg.pinv(self.cov_matrix)))
 
         if target_volatility < global_min_volatility:
             raise ValueError(

@@ -85,11 +85,11 @@ def test_cla_plot():
     cla = CLA(rets, S)
 
     ax = plotting.plot_efficient_frontier(cla, showfig=False)
-    assert len(ax.findobj()) == 143
+    assert len(ax.findobj()) == 142
     plt.clf()
 
     ax = plotting.plot_efficient_frontier(cla, show_assets=False, showfig=False)
-    assert len(ax.findobj()) == 161
+    assert len(ax.findobj()) == 160
     plt.clf()
     plt.close()
 
@@ -103,7 +103,7 @@ def test_cla_plot_ax():
 
     fig, ax = plt.subplots(figsize=(12, 10))
     plotting.plot_efficient_frontier(cla, ax=ax)
-    assert len(ax.findobj()) == 143
+    assert len(ax.findobj()) == 142
     plt.close()
     plt.close()
 
@@ -112,7 +112,7 @@ def test_default_ef_plot():
     plt.figure()
     ef = setup_efficient_frontier()
     ax = plotting.plot_efficient_frontier(ef, show_assets=True)
-    assert len(ax.findobj()) == 125
+    assert len(ax.findobj()) == 124
     plt.clf()
 
     # with constraints
@@ -120,9 +120,17 @@ def test_default_ef_plot():
     ef.add_constraint(lambda x: x <= 0.15)
     ef.add_constraint(lambda x: x[0] == 0.05)
     ax = plotting.plot_efficient_frontier(ef)
-    assert len(ax.findobj()) == 125
+    assert len(ax.findobj()) == 124
     plt.clf()
     plt.close()
+
+
+def test_default_ef_plot_labels():
+    plt.figure()
+    ef = setup_efficient_frontier()
+    ax = plotting.plot_efficient_frontier(ef, show_assets=True, show_tickers=True)
+    assert len(ax.findobj()) == 124 + len(ef.tickers)
+    plt.clf()
 
 
 def test_ef_plot_utility():
@@ -132,7 +140,7 @@ def test_ef_plot_utility():
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="utility", ef_param_range=delta_range, showfig=False
     )
-    assert len(ax.findobj()) == 125
+    assert len(ax.findobj()) == 124
     plt.clf()
     plt.close()
 
@@ -166,7 +174,7 @@ def test_ef_plot_risk():
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="risk", ef_param_range=risk_range, showfig=False
     )
-    assert len(ax.findobj()) == 125
+    assert len(ax.findobj()) == 124
     plt.clf()
     plt.close()
 
@@ -180,7 +188,7 @@ def test_ef_plot_return():
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="return", ef_param_range=return_range, showfig=False
     )
-    assert len(ax.findobj()) == 125
+    assert len(ax.findobj()) == 124
     plt.clf()
     plt.close()
 
@@ -194,7 +202,7 @@ def test_ef_plot_utility_short():
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="utility", ef_param_range=delta_range, showfig=False
     )
-    assert len(ax.findobj()) == 161
+    assert len(ax.findobj()) == 160
     plt.clf()
     plt.close()
 
@@ -210,7 +218,7 @@ def test_constrained_ef_plot_utility():
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="utility", ef_param_range=delta_range, showfig=False
     )
-    assert len(ax.findobj()) == 125
+    assert len(ax.findobj()) == 124
     plt.clf()
     plt.close()
 
@@ -230,7 +238,7 @@ def test_constrained_ef_plot_risk():
     ax = plotting.plot_efficient_frontier(
         ef, ef_param="risk", ef_param_range=risk_range, show_assets=True, showfig=False
     )
-    assert len(ax.findobj()) == 137
+    assert len(ax.findobj()) == 136
     plt.clf()
     plt.close()
 

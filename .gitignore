@@ -2,6 +2,7 @@
 .idea
 build
 sandbox
+.DS_Store
 
 tests/dockerfiles/
 .tox/

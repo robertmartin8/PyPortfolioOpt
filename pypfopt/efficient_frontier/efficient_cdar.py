@@ -89,7 +89,11 @@ class EfficientCDaR(EfficientFrontier):
         self._u = cp.Variable(len(self.returns) + 1)
         self._z = cp.Variable(len(self.returns))
 
-    def _validate_beta(self, beta):
+    def set_weights(self, input_weights):
+        raise NotImplementedError("Method not available in EfficientCDaR.")
+
+    @staticmethod
+    def _validate_beta(beta):
         if not (0 <= beta < 1):
             raise ValueError("beta must be between 0 and 1")
         if beta <= 0.2:

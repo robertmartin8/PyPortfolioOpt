@@ -249,7 +249,7 @@ class DiscreteAllocation:
             self._allocation_rmse_error(verbose)
         return self.allocation, available_funds
 
-    def lp_portfolio(self, reinvest=False, verbose=False, solver="GLPK_MI"):
+    def lp_portfolio(self, reinvest=False, verbose=False, solver="ECOS_BB"):
         """
         Convert continuous weights into a discrete portfolio allocation
         using integer programming.
@@ -259,7 +259,7 @@ class DiscreteAllocation:
         :param verbose: print error analysis?
         :type verbose: bool
         :param solver: the CVXPY solver to use (must support mixed-integer programs)
-        :type solver: str, defaults to "GLPK_MI"
+        :type solver: str, defaults to "ECOS_BB"
         :return: the number of shares of each ticker that should be purchased, along with the amount
                 of funds leftover.
         :rtype: (dict, float)

@@ -87,13 +87,18 @@ The optimization problem is then given by:
 
 This is straightforward to translate into ``cvxpy``.
 
-.. caution::
+.. info::
 
     Though ``lp_portfolio()`` produces allocations with a lower RMSE, some testing
     shows that it is between 100 and 1000 times slower than ``greedy_portfolio()``.
     This doesn't matter for small portfolios (it should still take less than a second),
     but the runtime for integer programs grows exponentially as the number of stocks, so
     for large portfolios you may have to use ``greedy_portfolio()``.
+
+.. warning::
+
+    PyPortfolioOpt uses ``ECOS_BB`` as a default solver for integer programming. ``ECOS_BB`` has known correctness issues (see `here <https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs>`_ for a discussion).
+    An alternative is to use ``GLPK_MI``, which comes packaged with ``cvxopt``.
 
 Dealing with shorts
 ===================
