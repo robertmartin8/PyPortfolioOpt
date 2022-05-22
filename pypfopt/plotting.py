@@ -202,6 +202,12 @@ def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets):
             color="k",
             label="assets",
         )
+        """
+        The following code puts the label from every ticker in EfficientFrontier object
+        in the right asset in the plot.
+        """
+        for i, label in enumerate(ef.tickers):
+            ax.annotate(label, ( np.sqrt(np.diag(ef.cov_matrix))[i], ef.expected_returns[i]))
     return ax
 
 
