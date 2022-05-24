@@ -144,7 +144,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                    to be passed).
                    If pi="equal", use an equal-weighted prior.
         :type pi: np.ndarray, pd.Series, optional
-        :param absolute_views: a colleciton of K absolute views on a subset of assets,
+        :param absolute_views: a collection of K absolute views on a subset of assets,
                                defaults to None. If this is provided, we do not need P, Q.
         :type absolute_views: pd.Series or dict, optional
         :param Q: Kx1 views vector, defaults to None
@@ -469,7 +469,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional
-        :raises ValueError: if weights have not been calcualted yet
+        :raises ValueError: if weights have not been calculated yet
         :return: expected return, volatility, Sharpe ratio.
         :rtype: (float, float, float)
         """

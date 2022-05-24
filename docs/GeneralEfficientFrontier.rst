@@ -200,7 +200,7 @@ in anything related to ``max_sharpe()``, ``min_volatility()``, ``efficient_risk(
 set up a completely new problem to optimize for some custom objective?
 
 For example, perhaps our objective is to construct a basket of assets that best replicates a
-particular index, in otherwords, to minimise the **tracking error**. This does not fit within
+particular index, in other words, to minimise the **tracking error**. This does not fit within
 a mean-variance optimization paradigm, but we can still implement it in PyPortfolioOpt::
 
     from pypfopt.base_optimizer import BaseConvexOptimizer
