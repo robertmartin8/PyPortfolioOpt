@@ -115,6 +115,8 @@ def sharpe_ratio(w, expected_returns, cov_matrix, risk_free_rate=0.02, negative=
     return _objective_value(w, sign * sharpe)
 
 
+
+
 def L2_reg(w, gamma=1):
     r"""
     L2 regularisation, i.e :math:`\gamma ||w||^2`, to increase the number of nonzero weights.
@@ -224,3 +226,32 @@ def ex_post_tracking_error(w, historic_returns, benchmark_returns):
     mean = cp.sum(x_i) / len(benchmark_returns)
     tracking_error = cp.sum_squares(x_i - mean)
     return _objective_value(w, tracking_error)
+
+
+def sortino_ratio(w, expected_returns, downside_diviations, risk_free_rate = 0.02):
+    """
+    Calculate the Sortino ratio of a portfolio
+
+    :param w: asset weights in the portfolio
+    :type w: np.ndarray OR cp.Variable
+    :param expected_returns: expected return of each asset
+    :type expected_returns: np.ndarray
+    :param downside_diviations: The downside diviation of each asset
+    :type downside_diviations: np.ndarray
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+                           The period of the risk-free rate should correspond to the
+                           frequency of expected returns.
+    :type risk_free_rate: float, optional
+    :return: Sortino ratio
+    :rtype: float
+    """
+    mu =  w @ expected_returns
+    if isinstance(downside_diviations, list):
+        x = np.array(downside_diviations)
+        dd = w * x
+        sortino = (mu - risk_free_rate) / dd
+        return sum((w * sortino))
+    else:
+        dd = w @ downside_diviations
+        sortino = (mu - risk_free_rate) / dd
+        return _objective_value(w, sortino)    

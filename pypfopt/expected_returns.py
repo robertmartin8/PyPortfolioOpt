@@ -23,6 +23,7 @@ Additionally, we provide utility functions to convert from returns to prices and
 import warnings
 import pandas as pd
 import numpy as np
+import math
 
 
 def returns_from_prices(prices, log_returns=False):
@@ -256,3 +257,36 @@ def capm_return(
 
     # CAPM formula
     return risk_free_rate + betas * (mkt_mean_ret - risk_free_rate)
+
+
+def calculate_downside_diviation( historical_returns, mar):
+    """
+    Calculate the downside diviation of all assets in a portfolio
+    
+    :param historical_returns: historical returns of assets in dataframe.
+    :type historical_returns: np.ndarray
+    :param mar: Minimum Acceptable Return. Preffered practices include either US 13-week T-bill or zero. 
+     CAUTION: mar must be in the same period as the returns. If you give daily returns then you need to convert mar to daily value.
+    :type mar: float
+    :param return_Max: an option to return the Max sortino ratio of the portfolio instead of a list of all sortino ratios for all stocks. Defaults to False 
+    :type return_Max: Boolean
+    :return: Sortino ratio
+    :rtype: float
+    """
+    downsideDiviations = []
+    linesOfData = len(historical_returns.iloc[:, [0]])
+    for stock in range(len(historical_returns.columns)):
+        noDataLines = 0 # counts NaN lines in dataset if any
+        negativeReturns = [] # stores the negative daily returns
+        for row in range(linesOfData):
+            if ( math.isnan(historical_returns.iloc[row, [stock]][0]) ):
+                noDataLines += 1
+                continue
+            if (  (historical_returns.iloc[row, [stock]][0] - mar) < 0 ):
+                negativeReturns.append(historical_returns.iloc[row, [stock][0]] - mar)
+        period = linesOfData - noDataLines # number of actual observations
+        squaredReturns = [r ** 2 for r in negativeReturns]
+        ts = sum(squaredReturns)
+        dd = math.sqrt(ts / period) * math.sqrt(period)
+        downsideDiviations.append(dd)
+    return downsideDiviations
