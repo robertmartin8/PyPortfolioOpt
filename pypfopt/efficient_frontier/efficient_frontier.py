@@ -389,8 +389,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :return: asset weights for the Markowitz portfolio
         :rtype: OrderedDict
         """
-        if not isinstance(target_return, float) or target_return < 0:
-            raise ValueError("target_return should be a positive float")
+        if not isinstance(target_return, float):
+            raise ValueError("target_return should be a float")
         if not self._max_return_value:
             self._max_return_value = copy.deepcopy(self)._max_return()
         if target_return > self._max_return_value:
