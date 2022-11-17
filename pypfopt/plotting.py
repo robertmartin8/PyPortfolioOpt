@@ -156,8 +156,8 @@ def _ef_default_returns_range(ef, points):
     Helper function to generate a range of returns from the GMV returns to
     the maximum (constrained) returns
     """
-    ef_minvol = copy.deepcopy(ef)
-    ef_maxret = copy.deepcopy(ef)
+    ef_minvol = ef.deepcopy()
+    ef_maxret = ef.deepcopy()
 
     ef_minvol.min_volatility()
     min_ret = ef_minvol.portfolio_performance()[0]

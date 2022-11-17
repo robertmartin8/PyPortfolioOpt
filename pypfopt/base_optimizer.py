@@ -7,6 +7,7 @@ Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
 """
 import collections
+import copy
 import json
 import warnings
 from collections.abc import Iterable
@@ -183,6 +184,20 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._verbose = verbose
         self._solver_options = solver_options if solver_options else {}
         self._map_bounds_to_constraints(weight_bounds)
+
+    def deepcopy(self):
+        """
+        Returns a custom deep copy of the optimizer. This is necessary because
+        ``cvxpy`` expressions do not support deepcopy, but the mutable arguments need to be
+        copied to avoid unintended side effects. Instead, we create a shallow copy
+        of the optimizer and then manually copy the mutable arguments.
+        """
+        self_copy = copy.copy(self)
+        self_copy._additional_objectives = [
+            copy.copy(obj) for obj in self_copy._additional_objectives
+        ]
+        self_copy._constraints = [copy.copy(con) for con in self_copy._constraints]
+        return self_copy
 
     def _map_bounds_to_constraints(self, test_bounds):
         """
