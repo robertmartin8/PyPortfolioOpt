@@ -8,7 +8,7 @@
         <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.5.3-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.5.4-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -25,8 +25,7 @@
 </p>
 
 <!-- content -->
-
-**PyPortfolioOpt has recently been [published](https://joss.theoj.org/papers/10.21105/joss.03066) in the Journal of Open Source Software 🎉**
+**PyPortfolioOpt is looking for maintainers! Please reach out to the email address at the bottom of the readme if you're interested**
 
 PyPortfolioOpt is a library that implements portfolio optimization methods, including
 classical mean-variance optimization techniques and Black-Litterman allocation, as well as more
@@ -37,7 +36,7 @@ handful of undervalued picks, or an algorithmic trader who has a basket of
 strategies, PyPortfolioOpt can help you combine your alpha sources
 in a risk-efficient way.
 
-**Update as of May 2022**: I am starting fulltime work, so don’t have a huge amount of bandwidth for PyPortfolioOpt anymore. I will aim to keep the package funcitonal, but will not be adding new features. Please check out Dany Cajas' [Riskfolio-lib](https://riskfolio-lib.readthedocs.io/en/latest/index.html) if you would like more advanced features!
+**PyPortfolioOpt has been [published](https://joss.theoj.org/papers/10.21105/joss.03066) in the Journal of Open Source Software 🎉**
 
 Head over to the **[documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/)** to get an in-depth look at the project, or check out the [cookbook](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook) to see some examples showing the full process from downloading data to building a portfolio.
 
