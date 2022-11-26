@@ -30,7 +30,7 @@ def test_hrp_portfolio():
     # uncomment this line if you want generating a new file
     # pd.Series(w).to_csv(resource("weights_hrp.csv"))
 
-    x = pd.read_csv(resource("weights_hrp.csv"), squeeze=True, index_col=0)
+    x = pd.read_csv(resource("weights_hrp.csv"), index_col=0).squeeze("columns")
     pd.testing.assert_series_equal(x, pd.Series(w), check_names=False, rtol=1e-2)
 
     assert isinstance(w, dict)

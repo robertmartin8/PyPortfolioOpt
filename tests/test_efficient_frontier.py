@@ -24,7 +24,6 @@ def test_data_source():
     assert isinstance(df, pd.DataFrame)
     assert df.shape[1] == 20
     assert len(df) == 7126
-    assert df.index.is_all_dates
 
 
 def test_returns_dataframe():
@@ -33,7 +32,6 @@ def test_returns_dataframe():
     assert isinstance(returns_df, pd.DataFrame)
     assert returns_df.shape[1] == 20
     assert len(returns_df) == 7125
-    assert returns_df.index.is_all_dates
     assert not ((returns_df > 1) & returns_df.notnull()).any().any()
 
 
@@ -392,6 +390,9 @@ def test_max_sharpe_error():
     ef.add_constraint(lambda _: v >> np.zeros((2, 2)))
     with pytest.raises(TypeError):
         ef.max_sharpe()
+
+    with pytest.raises(ValueError):
+        ef.max_sharpe(risk_free_rate=max(ef.expected_returns + 0.01))
 
 
 def test_max_sharpe_risk_free_warning():
@@ -1072,9 +1073,6 @@ def test_efficient_return():
 def test_efficient_return_error():
     ef = setup_efficient_frontier()
     max_ret = ef.expected_returns.max()
-
-    with pytest.raises(ValueError):
-        ef.efficient_return(-0.1)
     with pytest.raises(ValueError):
         # This return is too high
         ef.efficient_return(max_ret + 0.01)

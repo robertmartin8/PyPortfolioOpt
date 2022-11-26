@@ -239,8 +239,8 @@ def test_bl_cov_default():
 
 def test_market_risk_aversion():
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
     delta = black_litterman.market_implied_risk_aversion(prices)
     assert np.round(delta, 5) == 2.68549
 
@@ -263,8 +263,8 @@ def test_bl_weights():
     bl = BlackLittermanModel(S, absolute_views=viewdict)
 
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
 
     delta = black_litterman.market_implied_risk_aversion(prices)
     bl.bl_weights(delta)
@@ -316,8 +316,8 @@ def test_market_implied_prior():
     S = risk_models.sample_cov(df)
 
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
     delta = black_litterman.market_implied_risk_aversion(prices)
 
     mcaps = get_market_caps()
@@ -375,8 +375,8 @@ def test_bl_market_prior():
     S = risk_models.sample_cov(df)
 
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
 
     delta = black_litterman.market_implied_risk_aversion(prices)
 
@@ -468,8 +468,8 @@ def test_bl_tau():
     S = risk_models.sample_cov(df)
 
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
 
     delta = black_litterman.market_implied_risk_aversion(prices)
 

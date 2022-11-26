@@ -11,7 +11,6 @@ def test_returns_dataframe():
     assert isinstance(returns_df, pd.DataFrame)
     assert returns_df.shape[1] == 20
     assert len(returns_df) == 7125
-    assert returns_df.index.is_all_dates
     assert not ((returns_df > 1) & returns_df.notnull()).any().any()
 
 
