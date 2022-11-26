@@ -45,7 +45,7 @@ We can easily generate more complex plots. The following script plots both the e
 randomly generated (suboptimal) portfolios, coloured by the Sharpe ratio::
 
     fig, ax = plt.subplots()
-    ef_max_sharpe = copy.deepcopy(ef)
+    ef_max_sharpe = ef.deepcopy()
     plotting.plot_efficient_frontier(ef, ax=ax, show_assets=False)
 
     # Find the tangency portfolio

@@ -37,6 +37,12 @@ Minor bug fixes
 - Changed to numpy pseudoinverse to allow for "cash" assets
 - Ticker labels for efficient frontier plot
 
+1.5.4
+-----
+
+- Fixed ``cvxpy`` deprecating deepcopy. Thanks to Philipp for the fix! 
+- Several other tiny checks and bug fixes. Cheers to everyone for the PRs! 
+
 1.4.0
 =====
 

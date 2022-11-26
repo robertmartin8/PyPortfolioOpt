@@ -247,7 +247,12 @@ def capm_return(
             market_returns = market_prices
     else:
         returns = returns_from_prices(prices, log_returns)
+        
         if market_prices is not None:
+            if not isinstance(market_prices, pd.DataFrame):
+                warnings.warn("market prices are not in a dataframe", RuntimeWarning)
+                market_prices = pd.DataFrame(market_prices)
+                
             market_returns = returns_from_prices(market_prices, log_returns)
     # Use the equally-weighted dataset as a proxy for the market
     if market_returns is None:

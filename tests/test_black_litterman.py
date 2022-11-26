@@ -239,8 +239,8 @@ def test_bl_cov_default():
 
 def test_market_risk_aversion():
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
     delta = black_litterman.market_implied_risk_aversion(prices)
     assert np.round(delta, 5) == 2.68549
 
@@ -263,8 +263,8 @@ def test_bl_weights():
     bl = BlackLittermanModel(S, absolute_views=viewdict)
 
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
 
     delta = black_litterman.market_implied_risk_aversion(prices)
     bl.bl_weights(delta)
@@ -316,8 +316,8 @@ def test_market_implied_prior():
     S = risk_models.sample_cov(df)
 
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
     delta = black_litterman.market_implied_risk_aversion(prices)
 
     mcaps = get_market_caps()
@@ -375,8 +375,8 @@ def test_bl_market_prior():
     S = risk_models.sample_cov(df)
 
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
 
     delta = black_litterman.market_implied_risk_aversion(prices)
 
@@ -468,8 +468,8 @@ def test_bl_tau():
     S = risk_models.sample_cov(df)
 
     prices = pd.read_csv(
-        resource("spy_prices.csv"), parse_dates=True, index_col=0, squeeze=True
-    )
+        resource("spy_prices.csv"), parse_dates=True, index_col=0
+    ).squeeze("columns")
 
     delta = black_litterman.market_implied_risk_aversion(prices)
 
@@ -512,7 +512,7 @@ def test_bl_no_uncertainty():
     for k, v in viewdict.items():
         assert np.abs(rets[k] - v) < 1e-5
 
-    # If only one view has 100% confidencee, only that asset will have post = prior.
+    # If only one view has 100% confidence, only that asset will have post = prior.
     omega = np.diag([0, 0.2, 0.2, 0.2])
     bl = BlackLittermanModel(S, absolute_views=viewdict, omega=omega)
     rets = bl.bl_returns()

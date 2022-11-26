@@ -11,7 +11,6 @@ def test_returns_dataframe():
     assert isinstance(returns_df, pd.DataFrame)
     assert returns_df.shape[1] == 20
     assert len(returns_df) == 7125
-    assert returns_df.index.is_all_dates
     assert not ((returns_df > 1) & returns_df.notnull()).any().any()
 
 
@@ -41,7 +40,7 @@ def test_prices_from_log_returns():
     test_prices = pseudo_prices * initial_prices
 
     # check equality, robust to floating point issues
-    assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-10).all().all()
+    assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-5).all().all()
 
 
 def test_returns_from_prices():
