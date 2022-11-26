@@ -223,7 +223,7 @@ class EfficientCVaR(EfficientFrontier):
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
-        :raises ValueError: if weights have not been calcualted yet
+        :raises ValueError: if weights have not been calculated yet
         :return: expected return, CVaR.
         :rtype: (float, float)
         """

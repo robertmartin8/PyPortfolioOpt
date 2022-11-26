@@ -261,7 +261,7 @@ class EfficientSemivariance(EfficientFrontier):
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional
-        :raises ValueError: if weights have not been calcualted yet
+        :raises ValueError: if weights have not been calculated yet
         :return: expected return, semideviation, Sortino ratio.
         :rtype: (float, float, float)
         """

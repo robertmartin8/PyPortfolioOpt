@@ -240,7 +240,7 @@ def test_lp_portfolio_allocation():
     da = DiscreteAllocation(w, latest_prices, short_ratio=0.3)
     allocation, leftover = da.lp_portfolio()
 
-    #  Gives differnt answers on different machines
+    #  Gives different answers on different machines
     # assert allocation == {
     #     "AMD": 1,
     #     "GOOG": 1,

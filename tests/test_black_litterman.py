@@ -512,7 +512,7 @@ def test_bl_no_uncertainty():
     for k, v in viewdict.items():
         assert np.abs(rets[k] - v) < 1e-5
 
-    # If only one view has 100% confidencee, only that asset will have post = prior.
+    # If only one view has 100% confidence, only that asset will have post = prior.
     omega = np.diag([0, 0.2, 0.2, 0.2])
     bl = BlackLittermanModel(S, absolute_views=viewdict, omega=omega)
     rets = bl.bl_returns()
