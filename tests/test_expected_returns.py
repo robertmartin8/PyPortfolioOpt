@@ -40,7 +40,7 @@ def test_prices_from_log_returns():
     test_prices = pseudo_prices * initial_prices
 
     # check equality, robust to floating point issues
-    assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-10).all().all()
+    assert ((test_prices[1:] - df[1:]).fillna(0) < 1e-5).all().all()
 
 
 def test_returns_from_prices():
