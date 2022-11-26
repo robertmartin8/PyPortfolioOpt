@@ -1255,7 +1255,7 @@ def test_max_sharpe_short_semicovariance():
     )
 
 
-def test_min_volatilty_shrunk_L2_reg():
+def test_min_volatility_shrunk_L2_reg():
     df = get_data()
     ef = setup_efficient_frontier()
     ef.add_objective(objective_functions.L2_reg)

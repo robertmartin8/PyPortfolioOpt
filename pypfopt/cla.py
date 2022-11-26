@@ -103,7 +103,7 @@ class CLA(base_optimizer.BaseOptimizer):
 
         :param x: argument
         :type x: float
-        :return: infinity if the argmument was None otherwise x
+        :return: infinity if the argument was None otherwise x
         :rtype: float
         """
         return float("-inf") if x is None else x

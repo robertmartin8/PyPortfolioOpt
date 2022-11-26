@@ -49,7 +49,7 @@ but I ultimately decided that though BL is not technically an optimizer, it didn
 split up its methods into `expected_returns` or `risk_models`. I have thus made it an independent
 module and owing to the comparatively extensive theory, have given it a dedicated documentation page.
 I'd like to thank  `Felipe Schneider <https://github.com/schneiderfelipe>`_ for his multiple
-contributions to the Black-Litterman implementation. A full example of its usage, including the acquistion
+contributions to the Black-Litterman implementation. A full example of its usage, including the acquisition
 of market cap data for free, please refer to the `cookbook recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/4-Black-Litterman-Allocation.ipynb>`_.
 
 .. tip:: 

@@ -530,7 +530,7 @@ def portfolio_performance(
     :type verbose: bool, optional
     :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
     :type risk_free_rate: float, optional
-    :raises ValueError: if weights have not been calcualted yet
+    :raises ValueError: if weights have not been calculated yet
     :return: expected return, volatility, Sharpe ratio.
     :rtype: (float, float, float)
     """
