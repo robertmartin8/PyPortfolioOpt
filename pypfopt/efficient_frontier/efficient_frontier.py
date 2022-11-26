@@ -2,7 +2,6 @@
 The ``efficient_frontier`` submodule houses the EfficientFrontier class, which generates
 classical mean-variance optimal portfolios for a variety of objectives and constraints
 """
-import copy
 import warnings
 
 import numpy as np
@@ -392,7 +391,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         if not isinstance(target_return, float) or target_return < 0:
             raise ValueError("target_return should be a positive float")
         if not self._max_return_value:
-            self._max_return_value = copy.deepcopy(self)._max_return()
+            a = self.deepcopy()
+            self._max_return_value = a._max_return()
         if target_return > self._max_return_value:
             raise ValueError(
                 "target_return must be lower than the maximum possible return"

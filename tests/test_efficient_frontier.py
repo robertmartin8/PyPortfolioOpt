@@ -1093,7 +1093,7 @@ def test_efficient_frontier_error():
 
 
 def test_efficient_return_many_values():
-    ef = setup_efficient_frontier()
+    ef = setup_efficient_frontier(solver=cp.ECOS)
     for target_return in np.arange(0.25, 0.28, 0.01):
         ef.efficient_return(target_return)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
