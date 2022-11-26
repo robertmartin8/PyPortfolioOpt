@@ -243,6 +243,12 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         """
         if not isinstance(risk_free_rate, (int, float)):
             raise ValueError("risk_free_rate should be numeric")
+
+        if max(self.expected_returns) <= risk_free_rate:
+            raise ValueError(
+                "at least one of the assets must have an expected return exceeding the risk-free rate"
+            )
+
         self._risk_free_rate = risk_free_rate
 
         # max_sharpe requires us to make a variable transformation.
@@ -357,7 +363,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         update_existing_parameter = self.is_parameter_defined("target_variance")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value("target_variance", target_volatility ** 2)
+            self.update_parameter_value("target_variance", target_volatility**2)
         else:
             self._objective = objective_functions.portfolio_return(
                 self._w, self.expected_returns
@@ -368,7 +374,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 self._objective += obj
 
             target_variance = cp.Parameter(
-                name="target_variance", value=target_volatility ** 2, nonneg=True
+                name="target_variance", value=target_volatility**2, nonneg=True
             )
             self.add_constraint(lambda _: variance <= target_variance)
             self._make_weight_sum_constraint(market_neutral)
