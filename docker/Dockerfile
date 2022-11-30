@@ -10,7 +10,7 @@ RUN pip install --upgrade pip==21.0.1 && \
 
 COPY . .
 
-RUN cd cookbooks
+RUN cd cookbook
 
 # Usage examples:
 #
