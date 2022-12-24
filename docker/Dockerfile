@@ -1,4 +1,4 @@
-FROM python:3.8-buster
+FROM python:3.9-slim
 
 WORKDIR pypfopt
 COPY pyproject.toml poetry.lock ./
