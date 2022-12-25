@@ -4,6 +4,7 @@ on:
     push:
         branches:
             - master
+            - CI_does_not_work_on_maxos_and_win32#509
 
 jobs:
     pytest:
