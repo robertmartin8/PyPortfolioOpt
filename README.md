@@ -25,7 +25,6 @@
 </p>
 
 <!-- content -->
-**PyPortfolioOpt is looking for maintainers! Please reach out to the email address at the bottom of the readme if you're interested**
 
 PyPortfolioOpt is a library that implements portfolio optimization methods, including
 classical mean-variance optimization techniques and Black-Litterman allocation, as well as more

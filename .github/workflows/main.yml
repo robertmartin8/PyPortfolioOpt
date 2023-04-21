@@ -25,9 +25,9 @@ jobs:
             - name: Get full python version
               id: full-python-version
               run: |
-                  echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info[:3]))") && python3 -c "import sys; print(sys.platform)"
-            - name: Install Poetry
-              uses: snok/install-poetry@v1.1.1
+                  echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info[:3]))")
+            - name: Install Poetry Action
+              uses: snok/install-poetry@v1
               with:
                   virtualenvs-create: true
                   virtualenvs-in-project: true
