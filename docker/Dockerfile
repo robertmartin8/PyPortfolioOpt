@@ -1,11 +1,10 @@
-FROM python:3.8-buster
+FROM python:3.9-slim
 
 WORKDIR pypfopt
 COPY pyproject.toml poetry.lock ./
 
-RUN pip install --upgrade pip==21.0.1 && \
-    pip install "poetry==1.1.4" && \
-    pip install yfinance && \
+RUN pip install --upgrade pip \
+    pip install poetry yfinance && \
     poetry install -E optionals --no-root 
 
 COPY . .
