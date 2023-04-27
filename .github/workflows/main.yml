@@ -7,7 +7,7 @@ on:
 
 jobs:
     pytest:
-        name: py${{ matrix.python }} on ${{ matrix.os }}
+        name: py${{ matrix.python-version }} on ${{ matrix.os }}
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
