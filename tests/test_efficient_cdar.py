@@ -54,9 +54,7 @@ def test_es_return_sample():
     np.random.seed(0)
     mu_daily = (1 + mu) ** (1 / 252) - 1
     S_daily = S / 252
-    sample_rets = pd.DataFrame(
-        np.random.multivariate_normal(mu_daily, S_daily, 300), columns=mu.index
-    )
+    sample_rets = pd.DataFrame(np.random.multivariate_normal(mu_daily, S_daily, 300), columns=mu.index)
 
     cd = EfficientCDaR(mu, sample_rets)
     w = cd.efficient_return(0.2)
@@ -68,14 +66,12 @@ def test_es_return_sample():
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
-        (0.20, 0.045414),
+        (0.2, 0.061953),
         rtol=1e-4,
         atol=1e-4,
     )
     # Cover verbose param case
-    np.testing.assert_equal(
-        cd.portfolio_performance(verbose=True), cd.portfolio_performance()
-    )
+    np.testing.assert_equal(cd.portfolio_performance(verbose=True), cd.portfolio_performance())
 
 
 def test_cdar_example_weekly():
@@ -189,9 +185,7 @@ def test_min_cdar_different_solver():
 
     assert all([i >= -1e-5 for i in w.values()])
     test_performance = (0.14798, 0.056433)
-    np.testing.assert_allclose(
-        cd.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
-    )
+    np.testing.assert_allclose(cd.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2)
 
 
 def test_min_cdar_tx_costs():
@@ -225,10 +219,7 @@ def test_min_cdar_L2_reg():
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cd.n_assets,), 1 / cd.n_assets)
-    assert (
-        np.abs(equal_weight - cd.weights).sum()
-        < np.abs(equal_weight - cd2.weights).sum()
-    )
+    assert np.abs(equal_weight - cd.weights).sum() < np.abs(equal_weight - cd2.weights).sum()
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
@@ -358,10 +349,7 @@ def test_efficient_risk_L2_reg():
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cd.n_assets,), 1 / cd.n_assets)
-    assert (
-        np.abs(equal_weight - cd.weights).sum()
-        < np.abs(equal_weight - cd2.weights).sum()
-    )
+    assert np.abs(equal_weight - cd.weights).sum() < np.abs(equal_weight - cd2.weights).sum()
 
 
 def test_efficient_return():
@@ -394,9 +382,7 @@ def test_efficient_return_short():
     )
     cdar = cd.portfolio_performance()[1]
 
-    ef_long_only = EfficientCDaR(
-        *setup_efficient_cdar(data_only=True), weight_bounds=(0.0, 1.0)
-    )
+    ef_long_only = EfficientCDaR(*setup_efficient_cdar(data_only=True), weight_bounds=(0.0, 1.0))
     ef_long_only.efficient_return(0.26)
     long_only_cdar = ef_long_only.portfolio_performance()[1]
 

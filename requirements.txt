@@ -1,4 +1,4 @@
-cvxpy>=1.1.10
+cvxpy>=1.1.19
 matplotlib>=3.2.0
 numpy>=1.12.0
 pandas>=0.19
