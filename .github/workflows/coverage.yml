@@ -23,7 +23,7 @@ jobs:
       run: |
         pip install pytest
         pip install pytest-cov
-        pytest --cov=./ --cov-report=xml
+        pytest --cov=./ --cov-report=xml:/home/runner/coverage.xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
@@ -31,7 +31,7 @@ jobs:
         directory: ./coverage/reports/
         env_vars: OS,PYTHON
         fail_ci_if_error: true
-        files: ./coverage.xml ./coverage1.xml,./coverage2.xml,!./cache
+        files: /home/runner/coverage.xml,./coverage1.xml,./coverage2.xml,!./cache
         flags: unittests
         name: codecov-umbrella
         verbose: true
