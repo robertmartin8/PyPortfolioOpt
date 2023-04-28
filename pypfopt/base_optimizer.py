@@ -221,8 +221,7 @@ class BaseConvexOptimizer(BaseOptimizer):
             # Otherwise this must be a pair.
             if len(test_bounds) != 2 or not isinstance(test_bounds, (tuple, list)):
                 raise TypeError(
-                    "test_bounds must be a pair (lower bound, upper bound) "
-                    "OR a collection of bounds for each asset"
+                    "test_bounds must be a pair (lower bound, upper bound) OR a collection of bounds for each asset"
                 )
             lower, upper = test_bounds
 

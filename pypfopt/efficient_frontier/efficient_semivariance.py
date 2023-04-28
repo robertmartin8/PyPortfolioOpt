@@ -185,7 +185,7 @@ class EfficientSemivariance(EfficientFrontier):
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value(
-                "target_semivariance", target_semideviation ** 2
+                "target_semivariance", target_semideviation**2
             )
         else:
             self._objective = objective_functions.portfolio_return(
@@ -198,7 +198,7 @@ class EfficientSemivariance(EfficientFrontier):
             n = cp.Variable(self._T, nonneg=True)
 
             target_semivariance = cp.Parameter(
-                value=target_semideviation ** 2, name="target_semivariance", nonneg=True
+                value=target_semideviation**2, name="target_semivariance", nonneg=True
             )
             self.add_constraint(
                 lambda _: self.frequency * cp.sum(cp.square(n)) <= target_semivariance
@@ -234,7 +234,6 @@ class EfficientSemivariance(EfficientFrontier):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("target_return", target_return)
         else:
-
             p = cp.Variable(self._T, nonneg=True)
             n = cp.Variable(self._T, nonneg=True)
             self._objective = cp.sum(cp.square(n))

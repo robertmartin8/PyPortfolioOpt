@@ -1,6 +1,7 @@
 import numpy as np
-import pandas as pd
 import pytest
+from cvxpy.error import SolverError
+
 from pypfopt import (
     risk_models,
     expected_returns,
@@ -9,7 +10,6 @@ from pypfopt import (
     objective_functions,
 )
 from tests.utilities_for_tests import setup_efficient_semivariance, get_data
-from cvxpy.error import SolverError
 
 
 def test_es_example():
@@ -32,7 +32,9 @@ def test_es_example():
         atol=1e-4,
     )
     # Cover verbose param case
-    np.testing.assert_equal(es.portfolio_performance(verbose=True), es.portfolio_performance())
+    np.testing.assert_equal(
+        es.portfolio_performance(verbose=True), es.portfolio_performance()
+    )
 
 
 def test_es_no_returns():
@@ -46,15 +48,9 @@ def test_es_no_returns():
 def test_es_return_sample():
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
-    S = risk_models.sample_cov(df)
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
 
-    # Generate a 1y sample of daily data
-    np.random.seed(0)
-    mu_daily = (1 + mu) ** (1 / 252) - 1
-    S_daily = S / 252
-    sample_rets = pd.DataFrame(np.random.multivariate_normal(mu_daily, S_daily, 300), columns=mu.index)
-
-    es = EfficientSemivariance(mu, sample_rets)
+    es = EfficientSemivariance(mu, historical_rets)
     w = es.efficient_return(0.2)
 
     assert isinstance(w, dict)
@@ -64,12 +60,14 @@ def test_es_return_sample():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.2, 0.104054, 1.729867),
+        (0.2, 0.08559, 2.103053),
         rtol=1e-4,
         atol=1e-4,
     )
     # Cover verbose param case
-    np.testing.assert_equal(es.portfolio_performance(verbose=True), es.portfolio_performance())
+    np.testing.assert_equal(
+        es.portfolio_performance(verbose=True), es.portfolio_performance()
+    )
 
 
 def test_es_errors():
@@ -192,11 +190,15 @@ def test_min_semivariance_different_solver():
     np.testing.assert_almost_equal(es.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
     test_performance = (0.10258693150198975, 0.08495982152369484, 0.9720704448391136)
-    np.testing.assert_allclose(es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2)
+    np.testing.assert_allclose(
+        es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
+    )
 
     es = setup_efficient_semivariance(solver="OSQP")
     w = es.min_semivariance()
-    np.testing.assert_allclose(es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2)
+    np.testing.assert_allclose(
+        es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
+    )
 
     # SCS is way off.
     # es = setup_efficient_semivariance(solver="SCS")
@@ -235,7 +237,10 @@ def test_min_semivariance_L2_reg():
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((es.n_assets,), 1 / es.n_assets)
-    assert np.abs(equal_weight - es.weights).sum() < np.abs(equal_weight - ef2.weights).sum()
+    assert (
+        np.abs(equal_weight - es.weights).sum()
+        < np.abs(equal_weight - ef2.weights).sum()
+    )
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
@@ -324,7 +329,9 @@ def test_max_quadratic_utility_range():
 
 
 def test_max_quadratic_utility_with_shorts():
-    es = EfficientSemivariance(*setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1))
+    es = EfficientSemivariance(
+        *setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1)
+    )
     es.max_quadratic_utility()
     np.testing.assert_almost_equal(es.weights.sum(), 1)
 
@@ -337,7 +344,11 @@ def test_max_quadratic_utility_with_shorts():
 
 
 def test_max_quadratic_utility_market_neutral():
-    es = EfficientSemivariance(*setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1), solver="ECOS")
+    es = EfficientSemivariance(
+        *setup_efficient_semivariance(data_only=True),
+        weight_bounds=(-1, 1),
+        solver="ECOS"
+    )
     es.max_quadratic_utility(market_neutral=True)
     np.testing.assert_almost_equal(es.weights.sum(), 0)
     np.testing.assert_allclose(
@@ -369,7 +380,10 @@ def test_max_quadratic_utility_L2_reg():
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((es.n_assets,), 1 / es.n_assets)
-    assert np.abs(equal_weight - es.weights).sum() < np.abs(equal_weight - ef2.weights).sum()
+    assert (
+        np.abs(equal_weight - es.weights).sum()
+        < np.abs(equal_weight - ef2.weights).sum()
+    )
 
 
 def test_efficient_risk():
@@ -410,7 +424,9 @@ def test_efficient_risk_low_risk():
 
 
 def test_efficient_risk_market_neutral():
-    es = EfficientSemivariance(*setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1))
+    es = EfficientSemivariance(
+        *setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1)
+    )
     w = es.efficient_risk(0.21, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
@@ -445,7 +461,10 @@ def test_efficient_risk_L2_reg():
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((es.n_assets,), 1 / es.n_assets)
-    assert np.abs(equal_weight - es.weights).sum() < np.abs(equal_weight - ef2.weights).sum()
+    assert (
+        np.abs(equal_weight - es.weights).sum()
+        < np.abs(equal_weight - ef2.weights).sum()
+    )
 
 
 def test_efficient_return():
@@ -465,7 +484,9 @@ def test_efficient_return():
 
 
 def test_efficient_return_short():
-    es = EfficientSemivariance(*setup_efficient_semivariance(data_only=True), weight_bounds=(None, None))
+    es = EfficientSemivariance(
+        *setup_efficient_semivariance(data_only=True), weight_bounds=(None, None)
+    )
     w = es.efficient_return(0.25)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
@@ -510,7 +531,9 @@ def test_efficient_semivariance_vs_heuristic():
 
     mean_return, historic_returns = setup_efficient_semivariance(data_only=True)
 
-    pairwise_semivariance = risk_models.semicovariance(historic_returns, returns_data=True, benchmark=0, frequency=1)
+    pairwise_semivariance = risk_models.semicovariance(
+        historic_returns, returns_data=True, benchmark=0, frequency=1
+    )
     ef = EfficientFrontier(mean_return, pairwise_semivariance)
     ef.efficient_return(0.20)
     mu_ef, _, _ = ef.portfolio_performance()
@@ -536,7 +559,9 @@ def test_efficient_semivariance_vs_heuristic_weekly():
     es.efficient_return(0.20 / 52)
     mu_es, semi_deviation, _ = es.portfolio_performance()
 
-    pairwise_semivariance = risk_models.semicovariance(weekly_returns, returns_data=True, benchmark=0, frequency=1)
+    pairwise_semivariance = risk_models.semicovariance(
+        weekly_returns, returns_data=True, benchmark=0, frequency=1
+    )
     ef = EfficientFrontier(mean_weekly_returns, pairwise_semivariance)
     ef.efficient_return(0.20 / 52)
     mu_ef, _, _ = ef.portfolio_performance()

@@ -1,14 +1,9 @@
 import numpy as np
-import pandas as pd
 import pytest
-from pypfopt import (
-    risk_models,
-    expected_returns,
-    EfficientCVaR,
-    objective_functions,
-)
-from tests.utilities_for_tests import setup_efficient_cvar, get_data
+
+from pypfopt import expected_returns, EfficientCVaR, objective_functions
 from pypfopt.exceptions import OptimizationError
+from tests.utilities_for_tests import setup_efficient_cvar, get_data
 
 
 def test_cvar_example():
@@ -50,15 +45,9 @@ def test_cvar_no_returns():
 def test_es_return_sample():
     df = get_data()
     mu = expected_returns.mean_historical_return(df)
-    S = risk_models.sample_cov(df)
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
 
-    # Generate a 1y sample of daily data
-    np.random.seed(0)
-    mu_daily = (1 + mu) ** (1 / 252) - 1
-    S_daily = S / 252
-    sample_rets = pd.DataFrame(np.random.multivariate_normal(mu_daily, S_daily, 300), columns=mu.index)
-
-    cv = EfficientCVaR(mu, sample_rets)
+    cv = EfficientCVaR(mu, historical_rets)
     w = cv.efficient_return(0.2)
 
     assert isinstance(w, dict)
@@ -68,12 +57,14 @@ def test_es_return_sample():
 
     np.testing.assert_allclose(
         cv.portfolio_performance(),
-        (0.2, 0.01858),
+        (0.2, 0.017222),
         rtol=1e-4,
         atol=1e-4,
     )
     # Cover verbose param case
-    np.testing.assert_equal(cv.portfolio_performance(verbose=True), cv.portfolio_performance())
+    np.testing.assert_equal(
+        cv.portfolio_performance(verbose=True), cv.portfolio_performance()
+    )
 
 
 def test_cvar_example_weekly():
@@ -180,7 +171,9 @@ def test_min_cvar_different_solver():
     np.testing.assert_almost_equal(cv.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
     test_performance = (0.08447037713814826, 0.017049502122532853)
-    np.testing.assert_allclose(cv.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2)
+    np.testing.assert_allclose(
+        cv.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
+    )
 
 
 def test_min_cvar_tx_costs():
@@ -214,7 +207,10 @@ def test_min_cvar_L2_reg():
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cv.n_assets,), 1 / cv.n_assets)
-    assert np.abs(equal_weight - cv.weights).sum() < np.abs(equal_weight - cv2.weights).sum()
+    assert (
+        np.abs(equal_weight - cv.weights).sum()
+        < np.abs(equal_weight - cv2.weights).sum()
+    )
 
     np.testing.assert_allclose(
         cv.portfolio_performance(),
@@ -344,7 +340,10 @@ def test_efficient_risk_L2_reg():
 
     # L2_reg should pull close to equal weight
     equal_weight = np.full((cv.n_assets,), 1 / cv.n_assets)
-    assert np.abs(equal_weight - cv.weights).sum() < np.abs(equal_weight - cv2.weights).sum()
+    assert (
+        np.abs(equal_weight - cv.weights).sum()
+        < np.abs(equal_weight - cv2.weights).sum()
+    )
 
 
 def test_efficient_return():
@@ -377,7 +376,9 @@ def test_efficient_return_short():
     )
     cvar = cv.portfolio_performance()[1]
 
-    ef_long_only = EfficientCVaR(*setup_efficient_cvar(data_only=True), weight_bounds=(0.0, 1.0))
+    ef_long_only = EfficientCVaR(
+        *setup_efficient_cvar(data_only=True), weight_bounds=(0.0, 1.0)
+    )
     ef_long_only.efficient_return(0.26)
     long_only_cvar = ef_long_only.portfolio_performance()[1]
 
