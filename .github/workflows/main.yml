@@ -1,4 +1,4 @@
-name: Python package
+name: pytest
 on:
     pull_request:
     push:
@@ -27,4 +27,4 @@ jobs:
             - name: Test with pytest
               run: |
                   pip install pytest pytest-cov
-                  pytest ./tests --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+                  pytest ./tests --doctest-modules --cov-report=html

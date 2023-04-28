@@ -5,7 +5,7 @@
 <!-- buttons -->
 <p align="center">
     <a href="https://www.python.org/">
-        <img src="https://img.shields.io/badge/python-v3-brightgreen.svg"
+        <img src="https://img.shields.io/pypi/pyversions/PyPortfolioOpt.svg"
             alt="python"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
         <img src="https://img.shields.io/badge/pypi-v1.5.4-brightgreen.svg"
