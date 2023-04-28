@@ -4,9 +4,12 @@
 
 <!-- buttons -->
 <p align="center">
-    <a href="https://www.python.org/">
+    <a href="https://www.python.org">
         <img src="https://img.shields.io/pypi/pyversions/PyPortfolioOpt.svg"
             alt="python"></a> &nbsp;
+    <a href="https://www.python.org">
+        <img src="https://img.shields.io/badge/Platforms-linux--64,win--64,osx--64-orange.svg?style=flat-square"
+            alt="platforms"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
         <img src="https://img.shields.io/badge/pypi-v1.5.4-brightgreen.svg"
             alt="pypi"></a> &nbsp;
