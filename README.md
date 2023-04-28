@@ -16,6 +16,9 @@
     <a href="https://github.com/robertmartin8/PyPortfolioOpt/actions">
         <img src="https://github.com/robertmartin8/PyPortfolioOpt/workflows/pytest/badge.svg?event=push"
             alt="build"></a> &nbsp;
+    <a href="https://app.codecov.io/gh/robertmartin8/PyPortfolioOpt">
+        <img src="https://codecov.io/github/robertmartin8/PyPortfolioOpt/coverage.svg?branch=main"
+            alt="codecov"></a> &nbsp;
     <a href="https://pepy.tech/project/pyportfolioopt">
         <img src="https://pepy.tech/badge/pyportfolioopt"
             alt="downloads"></a> &nbsp;
