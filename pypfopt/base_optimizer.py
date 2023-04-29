@@ -397,10 +397,10 @@ class BaseConvexOptimizer(BaseOptimizer):
                 "Sector constraints may not produce reasonable results if shorts are allowed."
             )
         for sector in sector_upper:
-            is_sector = [sector_mapper[t] == sector for t in self.tickers]
+            is_sector = [sector_mapper.get(t) == sector for t in self.tickers]
             self.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
         for sector in sector_lower:
-            is_sector = [sector_mapper[t] == sector for t in self.tickers]
+            is_sector = [sector_mapper.get(t) == sector for t in self.tickers]
             self.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
 
     def convex_objective(self, custom_objective, weights_sum_to_one=True, **kwargs):
