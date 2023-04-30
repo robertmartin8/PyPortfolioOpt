@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 import pandas as pd
+
 from pypfopt import expected_returns
 from pypfopt import risk_models
 from pypfopt.efficient_frontier import (
@@ -11,7 +12,6 @@ from pypfopt.efficient_frontier import (
     EfficientCDaR,
 )
 from pypfopt.cla import CLA
-from pypfopt.expected_returns import returns_from_prices
 
 
 def resource(name):
@@ -72,7 +72,7 @@ def setup_efficient_frontier(
 def setup_efficient_semivariance(data_only=False, solver=None, verbose=False):
     df = get_data().dropna(axis=0, how="any")
     mean_return = expected_returns.mean_historical_return(df, compounding=False)
-    historic_returns = returns_from_prices(df)
+    historic_returns = expected_returns.returns_from_prices(df)
     if data_only:
         return mean_return, historic_returns
     return EfficientSemivariance(
@@ -85,7 +85,7 @@ def setup_efficient_cvar(
 ):
     df = get_data().dropna(axis=0, how="any")
     mean_return = expected_returns.mean_historical_return(df)
-    historic_returns = returns_from_prices(df)
+    historic_returns = expected_returns.returns_from_prices(df)
     if data_only:
         return mean_return, historic_returns
     return EfficientCVaR(
@@ -102,7 +102,7 @@ def setup_efficient_cdar(
 ):
     df = get_data().dropna(axis=0, how="any")
     mean_return = expected_returns.mean_historical_return(df)
-    historic_returns = returns_from_prices(df)
+    historic_returns = expected_returns.returns_from_prices(df)
     if data_only:
         return mean_return, historic_returns
     return EfficientCDaR(

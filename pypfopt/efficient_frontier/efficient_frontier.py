@@ -83,10 +83,8 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         :raises TypeError: if ``cov_matrix`` is not a dataframe or array
         """
         # Inputs
-        self.cov_matrix = EfficientFrontier._validate_cov_matrix(cov_matrix)
-        self.expected_returns = EfficientFrontier._validate_expected_returns(
-            expected_returns
-        )
+        self.cov_matrix = self._validate_cov_matrix(cov_matrix)
+        self.expected_returns = self._validate_expected_returns(expected_returns)
         self._max_return_value = None
         self._market_neutral = None
 

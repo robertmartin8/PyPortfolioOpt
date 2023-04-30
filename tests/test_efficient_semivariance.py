@@ -3,13 +3,13 @@ import pytest
 from cvxpy.error import SolverError
 
 from pypfopt import (
-    risk_models,
-    expected_returns,
     EfficientFrontier,
     EfficientSemivariance,
+    expected_returns,
     objective_functions,
+    risk_models,
 )
-from tests.utilities_for_tests import setup_efficient_semivariance, get_data
+from tests.utilities_for_tests import get_data, setup_efficient_semivariance
 
 
 def test_es_example():
