@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
-from tests.utilities_for_tests import get_data, setup_cla
+
 from pypfopt import risk_models
 from pypfopt.cla import CLA
+from tests.utilities_for_tests import get_data, setup_cla
 
 
 def test_portfolio_performance():
@@ -33,7 +34,7 @@ def test_cla_max_sharpe_long_only():
 
 
 def test_cla_max_sharpe_short():
-    cla = CLA(*setup_cla(data_only=True), weight_bounds=(-1, 1))
+    cla = setup_cla(weight_bounds=(-1, 1))
     w = cla.max_sharpe()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cla.tickers)
@@ -53,7 +54,7 @@ def test_cla_max_sharpe_short():
 
 def test_cla_custom_bounds():
     bounds = [(0.01, 0.13), (0.02, 0.11)] * 10
-    cla = CLA(*setup_cla(data_only=True), weight_bounds=bounds)
+    cla = setup_cla(weight_bounds=bounds)
     df = get_data()
     cla.cov_matrix = risk_models.exp_cov(df).values
     w = cla.min_volatility()
@@ -64,7 +65,7 @@ def test_cla_custom_bounds():
     assert (0.02 <= cla.weights[1::2]).all() and (cla.weights[1::2] <= 0.11).all()
     # Test polymorphism of the weight_bounds param.
     bounds2 = ([bounds[0][0], bounds[1][0]] * 10, [bounds[0][1], bounds[1][1]] * 10)
-    cla2 = CLA(*setup_cla(data_only=True), weight_bounds=bounds2)
+    cla2 = setup_cla(weight_bounds=bounds2)
     cla2.cov_matrix = risk_models.exp_cov(df).values
     w2 = cla2.min_volatility()
     assert dict(w2) == dict(w)
@@ -126,7 +127,7 @@ def test_cla_max_sharpe_exp_cov():
 
 
 def test_cla_min_volatility_exp_cov_short():
-    cla = CLA(*setup_cla(data_only=True), weight_bounds=(-1, 1))
+    cla = setup_cla(weight_bounds=(-1, 1))
     df = get_data()
     cla.cov_matrix = risk_models.exp_cov(df).values
     w = cla.min_volatility()

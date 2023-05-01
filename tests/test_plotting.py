@@ -1,15 +1,21 @@
 import os
 import tempfile
 
-import numpy as np
-import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import pytest
-
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
-from pypfopt import plotting, risk_models, expected_returns
-from pypfopt import HRPOpt, CLA, EfficientFrontier
+
+from pypfopt import (
+    CLA,
+    EfficientFrontier,
+    expected_returns,
+    HRPOpt,
+    plotting,
+    risk_models,
+)
 
 
 def test_correlation_plot():

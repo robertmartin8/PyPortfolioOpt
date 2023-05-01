@@ -13,11 +13,7 @@ from tests.utilities_for_tests import get_data, setup_efficient_semivariance
 
 
 def test_es_example():
-    df = get_data()
-    mu = expected_returns.mean_historical_return(df)
-    historical_rets = expected_returns.returns_from_prices(df).dropna()
-
-    es = EfficientSemivariance(mu, historical_rets)
+    es = setup_efficient_semivariance()
     w = es.efficient_return(0.2)
 
     assert isinstance(w, dict)
@@ -27,7 +23,7 @@ def test_es_example():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.20, 0.08558991313395496, 2.1030523036993265),
+        (0.20, 0.091287, 1.971794),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -46,11 +42,7 @@ def test_es_no_returns():
 
 
 def test_es_return_sample():
-    df = get_data()
-    mu = expected_returns.mean_historical_return(df)
-    historical_rets = expected_returns.returns_from_prices(df).dropna()
-
-    es = EfficientSemivariance(mu, historical_rets)
+    es = setup_efficient_semivariance()
     w = es.efficient_return(0.2)
 
     assert isinstance(w, dict)
@@ -60,7 +52,7 @@ def test_es_return_sample():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.2, 0.08559, 2.103053),
+        (0.2, 0.091287, 1.971794),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -164,7 +156,7 @@ def test_min_semivariance():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.1024524845740464, 0.08497381732237187, 0.970328121911246),
+        (0.091059, 0.084974, 0.836243),
         rtol=1e-3,
         atol=1e-3,
     )
@@ -189,7 +181,7 @@ def test_min_semivariance_different_solver():
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
-    test_performance = (0.10258693150198975, 0.08495982152369484, 0.9720704448391136)
+    test_performance = (0.091159, 0.08496, 0.837566)
     np.testing.assert_allclose(
         es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
     )
@@ -244,7 +236,7 @@ def test_min_semivariance_L2_reg():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.11684586840374926, 0.11286393006990993, 0.8580763432902009),
+        (0.089844, 0.112864, 0.618832),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -306,7 +298,7 @@ def test_max_quadratic_utility():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.45386915148502716, 0.1730946893389541, 2.506542246570167),
+        (0.50857, 0.17469, 2.796777),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -314,14 +306,19 @@ def test_max_quadratic_utility():
 
 def test_max_quadratic_utility_range():
     # increasing risk_aversion should lower both vol and return
-    es = setup_efficient_semivariance()
-    es.solver = "ECOS"
+    df = get_data().dropna(axis=0, how="any")
+    mean_return = expected_returns.mean_historical_return(df, compounding=False)
+    historic_returns = expected_returns.returns_from_prices(df)
+    es = EfficientSemivariance(
+        mean_return,
+        historic_returns,
+        verbose=True,
+        solver_options={"warm_start": False},
+    )
     es.max_quadratic_utility(risk_aversion=0.01)
     prev_ret, prev_semivar, _ = es.portfolio_performance()
     for delta in [0.1, 0.5, 1, 3, 5, 10]:
-        es = setup_efficient_semivariance()
         es.max_quadratic_utility(risk_aversion=delta)
-        print(es.portfolio_performance())
         ret, semivar, _ = es.portfolio_performance()
         assert ret < prev_ret and semivar < prev_semivar
         prev_ret = ret
@@ -329,31 +326,25 @@ def test_max_quadratic_utility_range():
 
 
 def test_max_quadratic_utility_with_shorts():
-    es = EfficientSemivariance(
-        *setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1)
-    )
+    es = setup_efficient_semivariance(weight_bounds=(-1, 1))
     es.max_quadratic_utility()
     np.testing.assert_almost_equal(es.weights.sum(), 1)
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (3.2806086360944846, 1.0219729896939227, 3.190503730505662),
+        (3.380009, 1.021973, 3.287767),
         rtol=1e-4,
         atol=1e-4,
     )
 
 
 def test_max_quadratic_utility_market_neutral():
-    es = EfficientSemivariance(
-        *setup_efficient_semivariance(data_only=True),
-        weight_bounds=(-1, 1),
-        solver="ECOS"
-    )
+    es = setup_efficient_semivariance(solver="ECOS", weight_bounds=(-1, 1))
     es.max_quadratic_utility(market_neutral=True)
     np.testing.assert_almost_equal(es.weights.sum(), 0)
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (3.106826930927578, 0.9789014670659041, 3.153358161960706),
+        (3.20978, 0.968704, 3.292832),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -370,7 +361,7 @@ def test_max_quadratic_utility_L2_reg():
     assert all([i >= 0 for i in weights.values()])
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.11717839698599568, 0.11286470279298752, 0.8610167269410781),
+        (0.090208, 0.112854, 0.62212),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -397,7 +388,7 @@ def test_efficient_risk():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.4567521774612227, 0.2, 2.183678863194344),
+        (0.508571, 0.174691, 2.796777),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -417,16 +408,14 @@ def test_efficient_risk_low_risk():
     es.efficient_risk(min_value + 0.01)
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.22187394011764086, min_value + 0.01, 2.1248023794940822),
+        (0.228226, min_value + 0.01, 2.192011),
         rtol=1e-4,
         atol=1e-4,
     )
 
 
 def test_efficient_risk_market_neutral():
-    es = EfficientSemivariance(
-        *setup_efficient_semivariance(data_only=True), weight_bounds=(-1, 1)
-    )
+    es = setup_efficient_semivariance(weight_bounds=(-1, 1))
     w = es.efficient_risk(0.21, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
@@ -434,7 +423,7 @@ def test_efficient_risk_market_neutral():
     assert (es.weights < 1).all() and (es.weights > -1).all()
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.9257112257221027, 0.21, 4.312873624163129),
+        (1.020958, 0.210008, 4.766278),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -451,7 +440,7 @@ def test_efficient_risk_L2_reg():
     np.testing.assert_array_less(np.zeros(len(weights)), es.weights + 1e-4)
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.31339234055845905, 0.14360466712901232, 2.0430557475884794),
+        (0.288996, 0.131377, 2.047509),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -477,23 +466,21 @@ def test_efficient_return():
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.25, 0.10035962239578998, 2.291760094911752),
+        (0.25, 0.098453, 2.33615),
         rtol=1e-4,
         atol=1e-4,
     )
 
 
 def test_efficient_return_short():
-    es = EfficientSemivariance(
-        *setup_efficient_semivariance(data_only=True), weight_bounds=(None, None)
-    )
+    es = setup_efficient_semivariance(weight_bounds=(None, None))
     w = es.efficient_return(0.25)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.25, 0.09073654273906914, 2.534811096726317),
+        (0.25, 0.090188, 2.550234),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -516,7 +503,7 @@ def test_efficient_return_L2_reg():
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.25, 0.12068369208695134, 1.9058084487031388),
+        (0.25, 0.121407, 1.894448),
         rtol=1e-4,
         atol=1e-4,
     )

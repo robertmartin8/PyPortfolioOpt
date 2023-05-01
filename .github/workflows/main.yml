@@ -31,4 +31,4 @@ jobs:
             - name: Test with pytest
               run: |
                   pip install pytest pytest-cov
-                  pytest ./tests --doctest-modules --cov-report=html
+                  pytest -s ./tests --doctest-modules --cov-report=html

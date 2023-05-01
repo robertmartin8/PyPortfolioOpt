@@ -8,12 +8,9 @@ from tests.utilities_for_tests import setup_efficient_cdar, get_data
 
 def test_cdar_example():
     beta = 0.95
-    df = get_data()
-    mu = expected_returns.mean_historical_return(df)
-    historical_rets = expected_returns.returns_from_prices(df).dropna()
-
-    cd = EfficientCDaR(mu, historical_rets, beta=beta)
+    cd = setup_efficient_cdar(beta=beta)
     w = cd.min_cdar()
+    cdar = cd.portfolio_performance()[1]
 
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
@@ -22,12 +19,13 @@ def test_cdar_example():
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
-        (0.21502, 0.056433),
+        (0.14798, 0.056433),
         rtol=1e-4,
         atol=1e-4,
     )
 
-    cdar = cd.portfolio_performance()[1]
+    df = get_data()
+    historical_rets = expected_returns.returns_from_prices(df).dropna()
     portfolio_rets = historical_rets @ cd.weights
     cum_rets = portfolio_rets.cumsum(0)
     drawdown = cum_rets.cummax() - cum_rets
@@ -38,11 +36,7 @@ def test_cdar_example():
 
 
 def test_es_return_sample():
-    df = get_data()
-    mu = expected_returns.mean_historical_return(df)
-    historical_rets = expected_returns.returns_from_prices(df).dropna()
-
-    cd = EfficientCDaR(mu, historical_rets)
+    cd = setup_efficient_cdar()
     w = cd.efficient_return(0.2)
 
     assert isinstance(w, dict)
@@ -52,7 +46,7 @@ def test_es_return_sample():
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
-        (0.21502, 0.056433),
+        (0.2, 0.063709),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -131,14 +125,7 @@ def test_cdar_beta():
 
 
 def test_cdar_example_short():
-    df = get_data()
-    mu = expected_returns.mean_historical_return(df)
-    historical_rets = expected_returns.returns_from_prices(df).dropna()
-    cd = EfficientCDaR(
-        mu,
-        historical_rets,
-        weight_bounds=(-1, 1),
-    )
+    cd = setup_efficient_cdar(weight_bounds=(-1, 1))
     w = cd.efficient_return(0.2, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
@@ -146,7 +133,7 @@ def test_cdar_example_short():
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
-        (0.2, 0.047152),
+        (0.2, 0.022799),
         rtol=1e-4,
         atol=1e-4,
     )
@@ -307,7 +294,7 @@ def test_efficient_risk_low_risk():
 
 
 def test_efficient_risk_market_neutral():
-    cd = EfficientCDaR(*setup_efficient_cdar(data_only=True), weight_bounds=(-1, 1))
+    cd = setup_efficient_cdar(weight_bounds=(-1, 1))
     w = cd.efficient_risk(0.025, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
@@ -365,7 +352,7 @@ def test_efficient_return():
 
 
 def test_efficient_return_short():
-    cd = EfficientCDaR(*setup_efficient_cdar(data_only=True), weight_bounds=(-3.0, 3.0))
+    cd = setup_efficient_cdar(weight_bounds=(-3.0, 3.0))
     w = cd.efficient_return(0.28)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
@@ -378,9 +365,7 @@ def test_efficient_return_short():
     )
     cdar = cd.portfolio_performance()[1]
 
-    ef_long_only = EfficientCDaR(
-        *setup_efficient_cdar(data_only=True), weight_bounds=(0.0, 1.0)
-    )
+    ef_long_only = cd = setup_efficient_cdar(weight_bounds=(0.0, 1.0))
     ef_long_only.efficient_return(0.26)
     long_only_cdar = ef_long_only.portfolio_performance()[1]
 

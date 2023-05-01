@@ -1,16 +1,17 @@
 import warnings
+
+import cvxpy as cp
 import numpy as np
 import pandas as pd
-import cvxpy as cp
 import pytest
 import scipy.optimize as sco
 
 from pypfopt import (
     EfficientFrontier,
-    expected_returns,
-    risk_models,
-    objective_functions,
     exceptions,
+    expected_returns,
+    objective_functions,
+    risk_models,
 )
 from tests.utilities_for_tests import (
     get_data,
@@ -36,11 +37,7 @@ def test_returns_dataframe():
 
 
 def test_ef_example():
-    df = get_data()
-    mu = expected_returns.mean_historical_return(df)
-    S = risk_models.sample_cov(df)
-
-    ef = EfficientFrontier(mu, S)
+    ef = setup_efficient_frontier()
     ef.efficient_return(0.2)
     np.testing.assert_almost_equal(ef.portfolio_performance()[0], 0.2)
 
@@ -151,9 +148,7 @@ def test_min_volatility_tx_costs():
 
 
 def test_min_volatility_short():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(None, None))
     w = ef.min_volatility()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
@@ -304,10 +299,7 @@ def test_min_volatility_sector_constraints():
     }
     sector_lower = {"utility": 0.01, "fig": 0.02, "airline": 0.01}
 
-    # ef = setup_efficient_frontier()
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(None, None))
     ef.add_sector_constraints(sector_mapper, sector_lower, sector_upper)
 
     weights = ef.min_volatility()
@@ -417,18 +409,14 @@ def test_max_sharpe_long_only():
 
 
 def test_max_sharpe_long_weight_bounds():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(0.03, 0.13)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(0.03, 0.13))
     ef.max_sharpe()
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
     assert ef.weights.min() >= 0.03
     assert ef.weights.max() <= 0.13
 
     bounds = [(0.01, 0.13), (0.02, 0.11)] * 10
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=bounds
-    )
+    ef = setup_efficient_frontier(weight_bounds=bounds)
     ef.max_sharpe()
     assert (0.01 <= ef.weights[::2]).all() and (ef.weights[::2] <= 0.13).all()
     assert (0.02 <= ef.weights[1::2]).all() and (ef.weights[1::2] <= 0.11).all()
@@ -448,9 +436,7 @@ def test_max_sharpe_explicit_bound():
 
 
 def test_max_sharpe_short():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(None, None))
     w = ef.max_sharpe()
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
@@ -548,9 +534,7 @@ def test_max_sharpe_L2_reg_with_shorts():
     ef_no_reg.max_sharpe()
     initial_number = sum(ef_no_reg.weights > 0.01)
 
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(None, None))
     ef.add_objective(objective_functions.L2_reg)
     w = ef.max_sharpe()
     assert isinstance(w, dict)
@@ -833,9 +817,7 @@ def test_max_quadratic_utility():
 
 
 def test_max_quadratic_utility_with_shorts():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     ef.max_quadratic_utility()
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
@@ -846,9 +828,7 @@ def test_max_quadratic_utility_with_shorts():
 
 
 def test_max_quadratic_utility_market_neutral():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     ef.max_quadratic_utility(market_neutral=True)
     np.testing.assert_almost_equal(ef.weights.sum(), 0)
     np.testing.assert_allclose(
@@ -955,9 +935,7 @@ def test_efficient_risk_many_values():
 
 
 def test_efficient_risk_short():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     w = ef.efficient_risk(0.19)
 
     assert isinstance(w, dict)
@@ -1004,9 +982,7 @@ def test_efficient_risk_L2_reg():
 
 
 def test_efficient_risk_market_neutral():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     w = ef.efficient_risk(0.21, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
@@ -1026,9 +1002,7 @@ def test_efficient_risk_market_neutral():
 
 
 def test_efficient_risk_market_neutral_L2_reg():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     ef.add_objective(objective_functions.L2_reg)
 
     w = ef.efficient_risk(0.19, market_neutral=True)
@@ -1101,19 +1075,19 @@ def test_efficient_return_many_values():
 
 
 def test_efficient_return_short():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(None, None))
     target_return = 0.25
     weights_sum = 1.0  # Not market neutral, weights must sum to 1.
     w = ef.efficient_return(target_return)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), weights_sum)
+
     w_expected = simple_ef_weights(
         ef.expected_returns, ef.cov_matrix, target_return, weights_sum
     )
     np.testing.assert_almost_equal(ef.weights, w_expected)
+
     vol_expected = np.sqrt(
         objective_functions.portfolio_variance(w_expected, ef.cov_matrix)
     )
@@ -1123,6 +1097,7 @@ def test_efficient_return_short():
     np.testing.assert_allclose(
         ef.portfolio_performance(), (target_return, vol_expected, sharpe_expected)
     )
+
     sharpe = ef.portfolio_performance()[2]
 
     ef_long_only = setup_efficient_frontier()
@@ -1163,9 +1138,7 @@ def test_efficient_return_L2_reg():
 
 
 def test_efficient_return_market_neutral():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     w = ef.efficient_return(0.25, market_neutral=True)
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
@@ -1182,9 +1155,7 @@ def test_efficient_return_market_neutral():
 
 
 def test_efficient_return_market_neutral_unbounded():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(None, None)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(None, None))
     target_return = 0.25
     weights_sum = 0.0  # Market neutral so weights must sum to 0.0
     w = ef.efficient_return(target_return, market_neutral=True)
@@ -1239,9 +1210,7 @@ def test_max_sharpe_semicovariance():
 
 def test_max_sharpe_short_semicovariance():
     df = get_data()
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     ef.cov_matrix = risk_models.semicovariance(df, benchmark=0)
     w = ef.max_sharpe()
     assert isinstance(w, dict)
@@ -1322,9 +1291,7 @@ def test_min_volatility_exp_cov_L2_reg():
 
 def test_efficient_risk_exp_cov_market_neutral():
     df = get_data()
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     ef.cov_matrix = risk_models.exp_cov(df)
     w = ef.efficient_risk(0.19, market_neutral=True)
     assert isinstance(w, dict)

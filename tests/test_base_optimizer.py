@@ -2,14 +2,13 @@ import json
 import os
 import tempfile
 
+import cvxpy as cp
 import numpy as np
 import pandas as pd
 import pytest
-import cvxpy as cp
 
-from pypfopt import EfficientFrontier, objective_functions
-from pypfopt import exceptions
-from pypfopt.base_optimizer import portfolio_performance, BaseOptimizer
+from pypfopt import EfficientFrontier, exceptions, objective_functions
+from pypfopt.base_optimizer import BaseOptimizer, portfolio_performance
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
@@ -23,9 +22,7 @@ def test_base_optimizer():
 
 
 def test_custom_bounds():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(0.02, 0.13)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(0.02, 0.13))
     ef.min_volatility()
     np.testing.assert_allclose(ef._lower_bounds, np.array([0.02] * ef.n_assets))
     np.testing.assert_allclose(ef._upper_bounds, np.array([0.13] * ef.n_assets))
@@ -37,97 +34,71 @@ def test_custom_bounds():
 
 def test_custom_bounds_different_values():
     bounds = [(0.01, 0.13), (0.02, 0.11)] * 10
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=bounds
-    )
+    ef = setup_efficient_frontier(weight_bounds=bounds)
     ef.min_volatility()
     assert (0.01 <= ef.weights[::2]).all() and (ef.weights[::2] <= 0.13).all()
     assert (0.02 <= ef.weights[1::2]).all() and (ef.weights[1::2] <= 0.11).all()
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     bounds = ((0.01, 0.13), (0.02, 0.11)) * 10
-    assert EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=bounds
-    )
+    assert setup_efficient_frontier(weight_bounds=bounds)
 
 
 def test_weight_bounds_minus_one_to_one():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     assert ef.max_sharpe()
-    ef2 = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef2 = setup_efficient_frontier(weight_bounds=(-1, 1))
     assert ef2.min_volatility()
 
 
 def test_none_bounds():
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(None, 0.3)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(None, 0.3))
     ef.min_volatility()
     w1 = ef.weights
 
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 0.3)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 0.3))
     ef.min_volatility()
     w2 = ef.weights
+
     np.testing.assert_array_almost_equal(w1, w2)
 
 
 def test_bound_input_types():
     bounds = [0.01, 0.13]
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=bounds
-    )
+    ef = setup_efficient_frontier(weight_bounds=bounds)
     assert ef
     np.testing.assert_allclose(ef._lower_bounds, np.array([0.01] * ef.n_assets))
     np.testing.assert_allclose(ef._upper_bounds, np.array([0.13] * ef.n_assets))
 
     lb = np.array([0.01, 0.02] * 10)
     ub = np.array([0.07, 0.2] * 10)
-    assert EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(lb, ub)
-    )
+    assert setup_efficient_frontier(weight_bounds=(lb, ub))
+
     bounds = ((0.01, 0.13), (0.02, 0.11)) * 10
-    assert EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=bounds
-    )
+    assert setup_efficient_frontier(weight_bounds=bounds)
 
 
 def test_bound_failure():
     # Ensure optimization fails when lower bound is too high or upper bound is too low
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(0.06, 0.13)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(0.06, 0.13))
     with pytest.raises(exceptions.OptimizationError):
         ef.min_volatility()
 
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(0, 0.04)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(0, 0.04))
     with pytest.raises(exceptions.OptimizationError):
         ef.min_volatility()
 
 
 def test_bounds_errors():
-    assert EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(0, 1)
-    )
+    assert setup_efficient_frontier(weight_bounds=(0, 1))
 
     with pytest.raises(TypeError):
-        EfficientFrontier(
-            *setup_efficient_frontier(data_only=True), weight_bounds=(0.06, 1, 3)
-        )
+        setup_efficient_frontier(weight_bounds=(0.06, 1, 3))
 
     with pytest.raises(TypeError):
         # Not enough bounds
         bounds = [(0.01, 0.13), (0.02, 0.11)] * 5
-        EfficientFrontier(
-            *setup_efficient_frontier(data_only=True), weight_bounds=bounds
-        )
+        setup_efficient_frontier(weight_bounds=bounds)
 
 
 def test_clean_weights():
@@ -138,16 +109,13 @@ def test_clean_weights():
     cleaned_weights = cleaned.values()
     clean_number_tiny_weights = sum(i < 1e-4 for i in cleaned_weights)
     assert clean_number_tiny_weights == number_tiny_weights
-    #  Check rounding
+    # Check rounding
     cleaned_weights_str_length = [len(str(i)) for i in cleaned_weights]
     assert all([length == 7 or length == 3 for length in cleaned_weights_str_length])
 
 
 def test_clean_weights_short():
-    ef = setup_efficient_frontier()
-    ef = EfficientFrontier(
-        *setup_efficient_frontier(data_only=True), weight_bounds=(-1, 1)
-    )
+    ef = setup_efficient_frontier(weight_bounds=(-1, 1))
     ef.min_volatility()
     # In practice we would never use such a high cutoff
     number_tiny_weights = sum(np.abs(ef.weights) < 0.05)

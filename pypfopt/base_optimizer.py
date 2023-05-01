@@ -164,7 +164,7 @@ class BaseConvexOptimizer(BaseOptimizer):
                               for portfolios with shorting.
         :type weight_bounds: tuple OR tuple list, optional
         :param solver: name of solver. list available solvers with: ``cvxpy.installed_solvers()``
-        :type solver: str, optional. Defaults to "ECOS"
+        :type solver: str, optional.
         :param verbose: whether performance and debugging info should be printed, defaults to False
         :type verbose: bool, optional
         :param solver_options: parameters for the given solver

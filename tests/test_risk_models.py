@@ -1,6 +1,7 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytest
+
 from pypfopt import risk_models, expected_returns
 from tests.utilities_for_tests import get_data
 
@@ -323,7 +324,6 @@ def test_risk_matrix_and_returns_data():
         "ledoit_wolf_constant_correlation",
         "oracle_approximating",
     }:
-
         S = risk_models.risk_matrix(df, method=method)
         assert S.shape == (20, 20)
         assert S.notnull().all().all()
