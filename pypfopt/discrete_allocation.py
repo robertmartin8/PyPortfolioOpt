@@ -251,7 +251,7 @@ class DiscreteAllocation:
             self._allocation_rmse_error(verbose)
         return self.allocation, available_funds
 
-    def lp_portfolio(self, reinvest=False, verbose=False, solver=None):
+    def lp_portfolio(self, reinvest=False, verbose=False, solver="ECOS_BB"):
         """
         Convert continuous weights into a discrete portfolio allocation
         using integer programming.
