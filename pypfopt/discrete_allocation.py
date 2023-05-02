@@ -3,9 +3,11 @@ The ``discrete_allocation`` module contains the ``DiscreteAllocation`` class, wh
 offers multiple methods to generate a discrete portfolio allocation from continuous weights.
 """
 import collections
+
+import cvxpy as cp
 import numpy as np
 import pandas as pd
-import cvxpy as cp
+
 from . import exceptions
 
 
@@ -249,7 +251,7 @@ class DiscreteAllocation:
             self._allocation_rmse_error(verbose)
         return self.allocation, available_funds
 
-    def lp_portfolio(self, reinvest=False, verbose=False, solver="ECOS_BB"):
+    def lp_portfolio(self, reinvest=False, verbose=False, solver=None):
         """
         Convert continuous weights into a discrete portfolio allocation
         using integer programming.
@@ -319,9 +321,6 @@ class DiscreteAllocation:
         objective = cp.sum(u) + r
 
         opt = cp.Problem(cp.Minimize(objective), constraints)
-
-        if solver is not None and solver not in cp.installed_solvers():
-            raise NameError("Solver {} is not installed. ".format(solver))
         opt.solve(solver=solver)
 
         if opt.status not in {"optimal", "optimal_inaccurate"}:  # pragma: no cover

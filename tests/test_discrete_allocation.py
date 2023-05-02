@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
 import pytest
+from cvxpy.error import SolverError
 
 from pypfopt.discrete_allocation import get_latest_prices, DiscreteAllocation
-from pypfopt.efficient_frontier import EfficientFrontier
-from pypfopt.expected_returns import mean_historical_return
-from pypfopt.risk_models import sample_cov
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
@@ -71,7 +69,7 @@ def test_greedy_allocation_rmse_error():
     da.greedy_portfolio()
 
     np.testing.assert_almost_equal(
-        da._allocation_rmse_error(verbose=False), 0.017086185150415774
+        da._allocation_rmse_error(verbose=True), 0.017086185150415774
     )
 
 
@@ -132,7 +130,7 @@ def test_greedy_allocation_rmse_error_short():
     da.greedy_portfolio()
 
     np.testing.assert_almost_equal(
-        da._allocation_rmse_error(verbose=False), 0.06063511265243106
+        da._allocation_rmse_error(verbose=True), 0.06063511265243106
     )
 
 
@@ -275,7 +273,7 @@ def test_lp_allocation_rmse_error():
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(w, latest_prices, short_ratio=0.3)
     da.lp_portfolio()
-    assert da._allocation_rmse_error(verbose=False) < 0.02
+    assert da._allocation_rmse_error(verbose=True) < 0.02
 
 
 def test_lp_portfolio_allocation_short():
@@ -378,7 +376,7 @@ def test_lp_allocation_rmse_error_short():
     latest_prices = get_latest_prices(df)
     da = DiscreteAllocation(w, latest_prices, short_ratio=0.3)
     da.lp_portfolio()
-    assert da._allocation_rmse_error(verbose=False) < 0.1
+    assert da._allocation_rmse_error(verbose=True) < 0.1
 
 
 def test_lp_portfolio_allocation_different_params():
@@ -420,11 +418,11 @@ def test_rmse_decreases_with_value():
 
     da1 = DiscreteAllocation(w, latest_prices, total_portfolio_value=10000)
     da1.greedy_portfolio()
-    rmse1 = da1._allocation_rmse_error(verbose=False)
+    rmse1 = da1._allocation_rmse_error(verbose=True)
 
     da2 = DiscreteAllocation(w, latest_prices, total_portfolio_value=100000)
     da2.greedy_portfolio()
-    rmse2 = da2._allocation_rmse_error(verbose=False)
+    rmse2 = da2._allocation_rmse_error(verbose=True)
 
     assert rmse2 < rmse1
 
@@ -445,7 +443,7 @@ def test_allocation_errors():
         DiscreteAllocation(w, latest_prices, total_portfolio_value=0)
     with pytest.raises(ValueError):
         DiscreteAllocation(w, latest_prices, short_ratio=-0.4)
-    with pytest.raises(NameError):
+    with pytest.raises(SolverError):
         da = DiscreteAllocation(w, latest_prices)
         da.lp_portfolio(solver="ABCDEF")
 
