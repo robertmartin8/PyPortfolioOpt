@@ -1,3 +1,5 @@
 [flake8]
-max-line-length = 88
+max-line-length = 120
 extend-ignore = E203
+per-file-ignores =
+    tests/test_imports.py:F401

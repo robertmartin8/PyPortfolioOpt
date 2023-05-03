@@ -222,7 +222,7 @@ class CLA(base_optimizer.BaseOptimizer):
                     if (
                         self.w[i][j] - self.lB[j] < -tol
                         or self.w[i][j] - self.uB[j] > tol
-                    ):  #  pragma: no cover
+                    ):  # pragma: no cover
                         flag = True
                         break
             if flag is True:

@@ -8,7 +8,6 @@ Currently implemented:
   - ``plot_efficient_frontier`` – plot the efficient frontier from an EfficientFrontier or CLA object
   - ``plot_weights`` - bar chart of weights
 """
-import copy
 import warnings
 
 import numpy as np

@@ -591,10 +591,10 @@ def _get_all_args(expression: cp.Expression) -> List[cp.Expression]:
         return list(_flatten([_get_all_args(arg) for arg in expression.args]))
 
 
-def _flatten(l: Iterable) -> Iterable:
+def _flatten(alist: Iterable) -> Iterable:
     # Helper method to flatten an iterable
-    for el in l:
-        if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
-            yield from _flatten(el)
+    for v in alist:
+        if isinstance(v, Iterable) and not isinstance(v, (str, bytes)):
+            yield from _flatten(v)
         else:
-            yield el
+            yield v
