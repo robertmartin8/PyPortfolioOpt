@@ -4,12 +4,11 @@ classical mean-variance optimal portfolios for a variety of objectives and const
 """
 import warnings
 
+import cvxpy as cp
 import numpy as np
 import pandas as pd
-import cvxpy as cp
 
-from .. import exceptions
-from .. import objective_functions, base_optimizer
+from .. import base_optimizer, exceptions, objective_functions
 
 
 class EfficientFrontier(base_optimizer.BaseConvexOptimizer):

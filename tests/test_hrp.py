@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pypfopt import HRPOpt, CovarianceShrinkage
+from pypfopt import CovarianceShrinkage, HRPOpt
 from tests.utilities_for_tests import get_data, resource
 
 

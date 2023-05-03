@@ -3,15 +3,14 @@ import os
 import numpy as np
 import pandas as pd
 
-from pypfopt import expected_returns
-from pypfopt import risk_models
+from pypfopt import expected_returns, risk_models
+from pypfopt.cla import CLA
 from pypfopt.efficient_frontier import (
+    EfficientCDaR,
+    EfficientCVaR,
     EfficientFrontier,
     EfficientSemivariance,
-    EfficientCVaR,
-    EfficientCDaR,
 )
-from pypfopt.cla import CLA
 
 
 def resource(name):

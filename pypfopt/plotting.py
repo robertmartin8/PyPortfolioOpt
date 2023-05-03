@@ -9,11 +9,12 @@ Currently implemented:
   - ``plot_weights`` - bar chart of weights
 """
 import copy
-import numpy as np
-from . import risk_models, exceptions
-from . import EfficientFrontier, CLA
-import scipy.cluster.hierarchy as sch
 import warnings
+
+import numpy as np
+import scipy.cluster.hierarchy as sch
+
+from . import CLA, EfficientFrontier, exceptions, risk_models
 
 try:
     import matplotlib.pyplot as plt

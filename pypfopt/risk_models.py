@@ -22,8 +22,10 @@ The format of the data input is the same as that in :ref:`expected-returns`.
 """
 
 import warnings
+
 import numpy as np
 import pandas as pd
+
 from .expected_returns import returns_from_prices
 
 
@@ -486,13 +488,13 @@ class CovarianceShrinkage:
 
         # compute shrinkage parameters
         c = np.linalg.norm(sample - F, "fro") ** 2
-        y = Xm ** 2
-        p = 1 / t * np.sum(np.dot(y.T, y)) - np.sum(sample ** 2)
+        y = Xm**2
+        p = 1 / t * np.sum(np.dot(y.T, y)) - np.sum(sample**2)
 
         # r is divided into diagonal
         # and off-diagonal terms, and the off-diagonal term
         # is itself divided into smaller terms
-        rdiag = 1 / t * np.sum(y ** 2) - sum(np.diag(sample) ** 2)
+        rdiag = 1 / t * np.sum(y**2) - sum(np.diag(sample) ** 2)
         z = Xm * np.tile(xmkt, (n,))
         v1 = 1 / t * np.dot(y.T, z) - np.tile(betas, (n,)) * sample
         roff1 = (
@@ -501,8 +503,8 @@ class CovarianceShrinkage:
         )
         v3 = 1 / t * np.dot(z.T, z) - varmkt * sample
         roff3 = (
-            np.sum(v3 * np.dot(betas, betas.T)) / varmkt ** 2
-            - np.sum(np.diag(v3).reshape(-1, 1) * betas ** 2) / varmkt ** 2
+            np.sum(v3 * np.dot(betas, betas.T)) / varmkt**2
+            - np.sum(np.diag(v3).reshape(-1, 1) * betas**2) / varmkt**2
         )
         roff = 2 * roff1 - roff3
         r = rdiag + roff
@@ -540,12 +542,12 @@ class CovarianceShrinkage:
 
         # Estimate pi
         Xm = X - X.mean(axis=0)
-        y = Xm ** 2
-        pi_mat = np.dot(y.T, y) / t - 2 * np.dot(Xm.T, Xm) * S / t + S ** 2
+        y = Xm**2
+        pi_mat = np.dot(y.T, y) / t - 2 * np.dot(Xm.T, Xm) * S / t + S**2
         pi_hat = np.sum(pi_mat)
 
         # Theta matrix, expanded term by term
-        term1 = np.dot((Xm ** 3).T, Xm) / t
+        term1 = np.dot((Xm**3).T, Xm) / t
         help_ = np.dot(Xm.T, Xm) / t
         help_diag = np.diag(help_)
         term2 = np.tile(help_diag, (n, 1)).T * S

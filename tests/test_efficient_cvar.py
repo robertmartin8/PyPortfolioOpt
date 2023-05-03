@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from pypfopt import expected_returns, EfficientCVaR, objective_functions
+from pypfopt import EfficientCVaR, expected_returns, objective_functions
 from pypfopt.exceptions import OptimizationError
-from tests.utilities_for_tests import setup_efficient_cvar, get_data
+from tests.utilities_for_tests import get_data, setup_efficient_cvar
 
 
 def test_cvar_example():

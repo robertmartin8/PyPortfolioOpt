@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from pypfopt import expected_returns, EfficientCDaR, objective_functions
+from pypfopt import EfficientCDaR, expected_returns, objective_functions
 from pypfopt.exceptions import OptimizationError
-from tests.utilities_for_tests import setup_efficient_cdar, get_data
+from tests.utilities_for_tests import get_data, setup_efficient_cdar
 
 
 def test_cdar_example():

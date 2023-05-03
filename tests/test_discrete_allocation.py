@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from cvxpy.error import SolverError
 
-from pypfopt.discrete_allocation import get_latest_prices, DiscreteAllocation
+from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 

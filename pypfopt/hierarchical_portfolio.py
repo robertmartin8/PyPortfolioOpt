@@ -13,6 +13,7 @@ Currently implemented:
 """
 
 import collections
+
 import numpy as np
 import pandas as pd
 import scipy.cluster.hierarchy as sch

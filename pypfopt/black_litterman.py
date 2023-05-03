@@ -8,8 +8,10 @@ views. In addition, two utility functions are defined, which calculate:
 """
 import sys
 import warnings
+
 import numpy as np
 import pandas as pd
+
 from . import base_optimizer
 
 

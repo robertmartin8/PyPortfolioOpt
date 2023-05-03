@@ -28,8 +28,8 @@ Currently implemented:
 - Ex-post (squared) tracking error
 """
 
-import numpy as np
 import cvxpy as cp
+import numpy as np
 
 
 def _objective_value(w, obj):

@@ -4,8 +4,9 @@ generates portfolios along the mean-CDaR (conditional drawdown-at-risk) frontier
 """
 
 import warnings
-import numpy as np
+
 import cvxpy as cp
+import numpy as np
 
 from .. import objective_functions
 from .efficient_frontier import EfficientFrontier

@@ -6,16 +6,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
-from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 from pypfopt import (
     CLA,
     EfficientFrontier,
-    expected_returns,
     HRPOpt,
+    expected_returns,
     plotting,
     risk_models,
 )
+from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
 
 def test_correlation_plot():

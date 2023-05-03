@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pypfopt import risk_models, expected_returns
+from pypfopt import expected_returns, risk_models
 from pypfopt.black_litterman import (
     BlackLittermanModel,
-    market_implied_risk_aversion,
     market_implied_prior_returns,
+    market_implied_risk_aversion,
 )
 from tests.utilities_for_tests import get_data, get_market_caps, resource
 

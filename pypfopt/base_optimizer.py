@@ -13,13 +13,12 @@ import warnings
 from collections.abc import Iterable
 from typing import List
 
+import cvxpy as cp
 import numpy as np
 import pandas as pd
-import cvxpy as cp
 import scipy.optimize as sco
 
-from . import objective_functions
-from . import exceptions
+from . import exceptions, objective_functions
 
 
 class BaseOptimizer:

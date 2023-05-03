@@ -15,16 +15,16 @@ def test_import_modules():
 
 def test_explicit_import():
     from pypfopt.black_litterman import (
+        BlackLittermanModel,
         market_implied_prior_returns,
         market_implied_risk_aversion,
-        BlackLittermanModel,
     )
     from pypfopt.cla import CLA
-    from pypfopt.discrete_allocation import get_latest_prices, DiscreteAllocation
+    from pypfopt.discrete_allocation import DiscreteAllocation, get_latest_prices
     from pypfopt.efficient_frontier import (
+        EfficientCVaR,
         EfficientFrontier,
         EfficientSemivariance,
-        EfficientCVaR,
     )
     from pypfopt.hierarchical_portfolio import HRPOpt
     from pypfopt.risk_models import CovarianceShrinkage
@@ -32,15 +32,15 @@ def test_explicit_import():
 
 def test_import_toplevel():
     from pypfopt import (
-        market_implied_prior_returns,
-        market_implied_risk_aversion,
-        BlackLittermanModel,
         CLA,
-        get_latest_prices,
+        BlackLittermanModel,
+        CovarianceShrinkage,
         DiscreteAllocation,
+        EfficientCVaR,
         EfficientFrontier,
         EfficientSemivariance,
-        EfficientCVaR,
         HRPOpt,
-        CovarianceShrinkage,
+        get_latest_prices,
+        market_implied_prior_returns,
+        market_implied_risk_aversion,
     )
