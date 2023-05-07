@@ -43,6 +43,13 @@ Minor bug fixes
 - Fixed ``cvxpy`` deprecating deepcopy. Thanks to Philipp for the fix! 
 - Several other tiny checks and bug fixes. Cheers to everyone for the PRs! 
 
+1.5.5
+-----
+
+- `Tuan Tran <https://github.com/88d52bdba0366127fffca9dfa93895>`_ is now the primary maintainer for PyPortfolioOpt
+- Wide range of bug fixes and code improvements.
+
+
 1.4.0
 =====
 

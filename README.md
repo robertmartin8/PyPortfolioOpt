@@ -11,7 +11,7 @@
         <img src="https://img.shields.io/badge/Platforms-linux--64,win--64,osx--64-orange.svg?style=flat-square"
             alt="platforms"></a> &nbsp;
     <a href="https://pypi.org/project/PyPortfolioOpt/">
-        <img src="https://img.shields.io/badge/pypi-v1.5.4-brightgreen.svg"
+        <img src="https://img.shields.io/badge/pypi-v1.5.5-brightgreen.svg"
             alt="pypi"></a> &nbsp;
     <a href="https://opensource.org/licenses/MIT">
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
@@ -42,6 +42,8 @@ strategies, PyPortfolioOpt can help you combine your alpha sources
 in a risk-efficient way.
 
 **PyPortfolioOpt has been [published](https://joss.theoj.org/papers/10.21105/joss.03066) in the Journal of Open Source Software 🎉**
+
+PyPortfolioOpt is now being maintained by [Tuan Tran](https://github.com/88d52bdba0366127fffca9dfa93895).
 
 Head over to the **[documentation on ReadTheDocs](https://pyportfolioopt.readthedocs.io/en/latest/)** to get an in-depth look at the project, or check out the [cookbook](https://github.com/robertmartin8/PyPortfolioOpt/tree/master/cookbook) to see some examples showing the full process from downloading data to building a portfolio.
 
@@ -85,7 +87,7 @@ This project is available on PyPI, meaning that you can just:
 pip install PyPortfolioOpt
 ```
 
-(you may need to follow separate installation instructions for [cvxopt](https://cvxopt.org/install/index.html#) and [cvxpy](https://www.cvxpy.org/install/))).
+(you may need to follow separate installation instructions for [cvxopt](https://cvxopt.org/install/index.html#) and [cvxpy](https://www.cvxpy.org/install/)).
 
 However, it is best practice to use a dependency manager within a virtual environment.
 My current recommendation is to get yourself set up with [poetry](https://github.com/sdispater/poetry) then just run
@@ -423,6 +425,7 @@ Contributions are _most welcome_. Have a look at the [Contribution Guide](https:
 I'd like to thank all of the people who have contributed to PyPortfolioOpt since its release in 2018.
 Special shout-outs to:
 
+-   Tuan Tran (who is now the primary maintainer!)
 -   Philipp Schiele
 -   Carl Peasnell
 -   Felipe Schneider
