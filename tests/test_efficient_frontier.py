@@ -14,6 +14,7 @@ from pypfopt import (
     risk_models,
 )
 from tests.utilities_for_tests import (
+    get_cov_matrix,
     get_data,
     setup_efficient_frontier,
     simple_ef_weights,
@@ -352,6 +353,14 @@ def test_min_volatility_nonlinear_constraint():
     ef.add_constraint(lambda x: (x + 1) / (x + 2) ** 2 <= 0.5)
     with pytest.raises(exceptions.OptimizationError):
         ef.min_volatility()
+
+
+def test_min_volatility_large_cov_matrix():
+    # test that a large covariance matrix will not fail the PSD check in cvxpy
+    cov_matrix = get_cov_matrix()
+    mean_return = pd.Series([0.1] * len(cov_matrix), index=cov_matrix.index)
+    ef = EfficientFrontier(mean_return, cov_matrix, verbose=True)
+    ef.min_volatility()
 
 
 def test_max_returns():
