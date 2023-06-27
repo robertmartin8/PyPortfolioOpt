@@ -198,7 +198,7 @@ def ex_ante_tracking_error(w, cov_matrix, benchmark_weights):
     :rtype: float OR cp.Expression
     """
     relative_weights = w - benchmark_weights
-    tracking_error = cp.quad_form(relative_weights, cov_matrix, assume_PSD=True)
+    tracking_error = cp.quad_form(relative_weights, cov_matrix)
     return _objective_value(w, tracking_error)
 
 
