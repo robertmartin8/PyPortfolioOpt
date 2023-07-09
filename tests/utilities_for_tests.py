@@ -27,27 +27,28 @@ def get_benchmark_data():
 
 def get_market_caps():
     mcaps = {
-        "GOOG": 927e9,
-        "AAPL": 1.19e12,
-        "FB": 574e9,
-        "BABA": 533e9,
-        "AMZN": 867e9,
-        "GE": 96e9,
-        "AMD": 43e9,
-        "WMT": 339e9,
-        "BAC": 301e9,
-        "GM": 51e9,
-        "T": 61e9,
-        "UAA": 78e9,
+        "GOOG": 1.52e12,
+        "AAPL": 3e12,
+        "FB": 745e9,
+        "BABA": 232e9,
+        "AMZN": 1.33e12,
+        "GE": 118e9,
+        "AMD": 182e9,
+        "WMT": 413e9,
+        "BAC": 227e9,
+        "GM": 55e9,
+        "T": 112e9,
+        "UAA": 3e9,
         "SHLD": 0,
-        "XOM": 295e9,
-        "RRC": 1e9,
-        "BBY": 22e9,
-        "MA": 288e9,
-        "PFE": 212e9,
+        "XOM": 417e9,
+        "RRC": 6.9e9,
+        "BBY": 17.3e9,
+        "MA": 368e9,
+        "PFE": 201e9,
         "JPM": 422e9,
-        "SBUX": 102e9,
+        "SBUX": 110e9,
     }
+
     return mcaps
 
 
