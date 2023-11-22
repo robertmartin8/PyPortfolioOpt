@@ -11,16 +11,15 @@ Currently implemented:
 import warnings
 
 import numpy as np
+import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as sch
 
 from . import CLA, EfficientFrontier, exceptions, risk_models
 
 try:
-    import matplotlib.pyplot as plt
-
     plt.style.use("seaborn-deep")
-except (ModuleNotFoundError, ImportError):  # pragma: no cover
-    raise ImportError("Please install matplotlib via pip or poetry")
+except:  # pragma: no cover
+    pass
 
 
 def _plot_io(**kwargs):
