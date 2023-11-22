@@ -18,7 +18,7 @@ from . import CLA, EfficientFrontier, exceptions, risk_models
 
 try:
     plt.style.use("seaborn-deep")
-except:  # pragma: no cover
+except Exception:  # pragma: no cover
     pass
 
 
