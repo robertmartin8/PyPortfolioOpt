@@ -10,8 +10,8 @@ Currently implemented:
 """
 import warnings
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import scipy.cluster.hierarchy as sch
 
 from . import CLA, EfficientFrontier, exceptions, risk_models
