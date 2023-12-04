@@ -1022,7 +1022,12 @@ def test_efficient_risk_market_neutral_warning():
     ef = setup_efficient_frontier()
     with pytest.warns(RuntimeWarning) as w:
         ef.efficient_risk(0.19, market_neutral=True)
-        print("test_efficient_risk_market_neutral_warning", len(w), type(w), str(w))
+        print(
+            "test_efficient_risk_market_neutral_warning",
+            len(w),
+            type(w),
+            [v.message for v in w],
+        )
         assert len(w) == 1
         assert (
             str(w[0].message)
@@ -1187,7 +1192,12 @@ def test_efficient_return_market_neutral_warning():
     ef = setup_efficient_frontier()
     with pytest.warns(RuntimeWarning) as w:
         ef.efficient_return(0.25, market_neutral=True)
-        print("test_efficient_return_market_neutral_warning", len(w), type(w), str(w))
+        print(
+            "test_efficient_return_market_neutral_warning",
+            len(w),
+            type(w),
+            [v.message for v in w],
+        )
         assert len(w) == 1
         assert (
             str(w[0].message)
