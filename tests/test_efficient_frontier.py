@@ -1019,7 +1019,7 @@ def test_efficient_risk_market_neutral_L2_reg():
 
 
 def test_efficient_risk_market_neutral_warning():
-    ef = setup_efficient_frontier(solver=cp.ECOS)
+    ef = setup_efficient_frontier()
     with pytest.warns(RuntimeWarning) as w:
         ef.efficient_risk(0.19, market_neutral=True)
         print(
