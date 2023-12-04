@@ -72,6 +72,7 @@ def test_dendrogram_plot():
     hrp = HRPOpt(returns)
     with pytest.warns(RuntimeWarning) as w:
         ax = plotting.plot_dendrogram(hrp, show_tickers=False, showfig=False)
+        print("test_dendrogram_plot", len(w), type(w), w)
         assert len(w) == 1
         assert (
             str(w[0].message)
