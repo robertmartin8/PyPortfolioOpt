@@ -18,7 +18,6 @@ from pypfopt import (
 )
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
 
-
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
