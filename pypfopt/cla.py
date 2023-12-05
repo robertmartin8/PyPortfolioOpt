@@ -163,7 +163,7 @@ class CLA(base_optimizer.BaseOptimizer):
         if c == 0:  # pragma: no cover
             return None, None
         # 2) bi
-        if type(bi) == list:
+        if isinstance(type(bi), list):
             bi = self._compute_bi(c, bi)
         # 3) Lambda
         if wB is None:
