@@ -1,5 +1,6 @@
 import os
 import tempfile
+import warnings
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -16,6 +17,9 @@ from pypfopt import (
     risk_models,
 )
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
+
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
 def test_correlation_plot():
