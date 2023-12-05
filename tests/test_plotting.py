@@ -1,6 +1,5 @@
 import os
 import tempfile
-import warnings
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -17,8 +16,6 @@ from pypfopt import (
     risk_models,
 )
 from tests.utilities_for_tests import get_data, setup_efficient_frontier
-
-warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
 def test_correlation_plot():
@@ -75,8 +72,7 @@ def test_dendrogram_plot():
     hrp = HRPOpt(returns)
     with pytest.warns(RuntimeWarning) as w:
         ax = plotting.plot_dendrogram(hrp, show_tickers=False, showfig=False)
-        print("test_dendrogram_plot", len(w), type(w), [v.message for v in w])
-        assert len(w) == 1
+        assert len(w) <= 2  # the second is FutureWarning if exists
         assert (
             str(w[0].message)
             == "hrp param has not been optimized.  Attempting optimization."
