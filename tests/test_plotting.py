@@ -75,7 +75,7 @@ def test_dendrogram_plot():
         assert len(w) <= 2  # the second is FutureWarning if exists
         assert (
             str(w[0].message)
-            == "hrp param has not been optimized.  Attempting optimization."
+            == "hrp param has not been optimized. Attempting optimization."
         )
         assert len(ax.findobj()) > 60
         assert type(ax.findobj()[0]) == matplotlib.collections.LineCollection
