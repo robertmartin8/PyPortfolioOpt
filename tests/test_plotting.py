@@ -72,10 +72,10 @@ def test_dendrogram_plot():
     hrp = HRPOpt(returns)
     with pytest.warns(RuntimeWarning) as w:
         ax = plotting.plot_dendrogram(hrp, show_tickers=False, showfig=False)
-        assert len(w) == 1
+        assert len(w) <= 2  # the second is FutureWarning if exists
         assert (
             str(w[0].message)
-            == "hrp param has not been optimized.  Attempting optimization."
+            == "hrp param has not been optimized. Attempting optimization."
         )
         assert len(ax.findobj()) > 60
         assert type(ax.findobj()[0]) == matplotlib.collections.LineCollection

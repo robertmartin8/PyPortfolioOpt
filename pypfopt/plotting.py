@@ -101,7 +101,7 @@ def plot_dendrogram(hrp, ax=None, show_tickers=True, **kwargs):
 
     if hrp.clusters is None:
         warnings.warn(
-            "hrp param has not been optimized.  Attempting optimization.",
+            "hrp param has not been optimized. Attempting optimization.",
             RuntimeWarning,
         )
         hrp.optimize()
