@@ -14,7 +14,7 @@ PyPortfolioOpt is now a "mature" package – it is stable and I don't intend to 
 =====
 
 - Major redesign of the backend, thanks to `Philipp Schiele <https://github.com/phschiele>`_
-  - Becuase we use ``cp.Parameter``, we can efficiently re-run optimisation problems with different constants (e.g risk targets) 
+  - Because we use ``cp.Parameter``, we can efficiently re-run optimisation problems with different constants (e.g risk targets) 
   - This leads to a significant improvement in plotting performance as we no longer have to repeatedly re-instantiate ``EfficientFrontier``.
 - Several misc bug fixes (thanks to `Eric Armbruster <https://github.com/armbruer>`_ and `Ayoub Ennassiri <https://github.com/samatix>`_)
 
