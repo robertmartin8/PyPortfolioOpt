@@ -404,7 +404,14 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         if self._A is None:
             self._A = (self.P @ self._tau_sigma_P) + self.omega
         b = self.Q - self.P @ self.pi
-        post_rets = self.pi + self._tau_sigma_P @ np.linalg.solve(self._A, b)
+        try:
+            solution = np.linalg.solve(self._A, b)
+        except np.linalg.LinAlgError as e:
+            if 'Singular matrix' in str(e):
+                solution = np.linalg.lstsq(self._A, b, rcond=None)[0]
+            else:
+                raise e
+        post_rets = self.pi + self._tau_sigma_P @ solution
         return pd.Series(post_rets.flatten(), index=self.tickers)
 
     def bl_cov(self):
@@ -423,7 +430,14 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             self._A = (self.P @ self._tau_sigma_P) + self.omega
 
         b = self._tau_sigma_P.T
-        M = self.tau * self.cov_matrix - self._tau_sigma_P @ np.linalg.solve(self._A, b)
+        try:
+            M_solution = np.linalg.solve(self._A, b)
+        except np.linalg.LinAlgError as e:
+            if 'Singular matrix' in str(e):
+                M_solution = np.linalg.lstsq(self._A, b, rcond=None)[0]
+            else:
+                raise e
+        M = self.tau * self.cov_matrix - self._tau_sigma_P @ M_solution
         posterior_cov = self.cov_matrix + M
         return pd.DataFrame(posterior_cov, index=self.tickers, columns=self.tickers)
 
@@ -449,7 +463,14 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         self.posterior_rets = self.bl_returns()
         A = risk_aversion * self.cov_matrix
         b = self.posterior_rets
-        raw_weights = np.linalg.solve(A, b)
+        try:
+            weight_solution = np.linalg.solve(A, b)
+        except np.linalg.LinAlgError as e:
+            if 'Singular matrix' in str(e):
+                weight_solution = np.linalg.lstsq(self._A, b, rcond=None)[0]
+            else:
+                raise e
+        raw_weights = weight_solution
         self.weights = raw_weights / raw_weights.sum()
         return self._make_output_weights()
 
