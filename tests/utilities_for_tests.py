@@ -51,6 +51,10 @@ def get_market_caps():
     return mcaps
 
 
+def get_cov_matrix():
+    return pd.read_csv(resource("cov_matrix.csv"), index_col=0)
+
+
 def setup_efficient_frontier(data_only=False, *args, **kwargs):
     df = get_data()
     mean_return = expected_returns.mean_historical_return(df)
