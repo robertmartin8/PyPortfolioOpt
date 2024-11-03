@@ -17,7 +17,15 @@ import scipy.cluster.hierarchy as sch
 from . import CLA, EfficientFrontier, exceptions, risk_models
 
 try:
-    plt.style.use("seaborn-v0_8-deep")
+    available_styles = plt.style.available
+    search_word = "deep"
+    for index, item in enumerate(available_styles):
+        if search_word in item:
+            style = index
+    plt.style.use(available_styles[style])
+except OSError as e:
+    raise OSError(f"{e}\n"
+                  f"Valid styles are {plt.style.available}.")
 except Exception:  # pragma: no cover
     pass
 
