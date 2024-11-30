@@ -117,7 +117,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         :return: raw portfolio weights
         :rtype: pd.Series
         """
-        w = pd.Series(1, index=ordered_tickers)
+        w = pd.Series(1.0, index=ordered_tickers)
         cluster_items = [ordered_tickers]  # initialize all items in one cluster
 
         while len(cluster_items) > 0:
