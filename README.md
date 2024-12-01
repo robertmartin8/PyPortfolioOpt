@@ -17,7 +17,7 @@
         <img src="https://img.shields.io/badge/license-MIT-brightgreen.svg"
             alt="MIT license"></a> &nbsp;
     <a href="https://github.com/robertmartin8/PyPortfolioOpt/actions">
-        <img src="https://github.com/robertmartin8/PyPortfolioOpt/workflows/pytest/badge.svg?branch=master"
+        <img src="https://github.com/robertmartin8/PyPortfolioOpt/actions/workflows/main.yml/badge.svg?branch=master"
             alt="build"></a> &nbsp;
     <a href="https://app.codecov.io/gh/robertmartin8/PyPortfolioOpt">
         <img src="https://codecov.io/github/robertmartin8/PyPortfolioOpt/coverage.svg?branch=main"
