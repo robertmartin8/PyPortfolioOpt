@@ -67,7 +67,7 @@ def portfolio_variance(w, cov_matrix):
     :return: value of the objective function OR objective function expression
     :rtype: float OR cp.Expression
     """
-    variance = cp.quad_form(w, cov_matrix)
+    variance = cp.quad_form(w, cov_matrix, assume_PSD=True)
     return _objective_value(w, variance)
 
 
@@ -109,7 +109,7 @@ def sharpe_ratio(w, expected_returns, cov_matrix, risk_free_rate=0.02, negative=
     :rtype: float
     """
     mu = w @ expected_returns
-    sigma = cp.sqrt(cp.quad_form(w, cov_matrix))
+    sigma = cp.sqrt(cp.quad_form(w, cov_matrix, assume_PSD=True))
     sign = -1 if negative else 1
     sharpe = (mu - risk_free_rate) / sigma
     return _objective_value(w, sign * sharpe)
@@ -156,7 +156,7 @@ def quadratic_utility(w, expected_returns, cov_matrix, risk_aversion, negative=T
     """
     sign = -1 if negative else 1
     mu = w @ expected_returns
-    variance = cp.quad_form(w, cov_matrix)
+    variance = cp.quad_form(w, cov_matrix, assume_PSD=True)
 
     risk_aversion_par = cp.Parameter(
         value=risk_aversion, name="risk_aversion", nonneg=True
