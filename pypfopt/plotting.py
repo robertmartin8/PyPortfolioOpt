@@ -174,7 +174,7 @@ def _plot_cla(cla, points, ax, show_assets, show_tickers, interactive):
                 mode="markers",
                 name="Max Sharpe Portfolio",
                 marker=dict(size=12, symbol="x", color="coral"),
-                hovertemplate=f"Sharpe: %{{customdata[1]:.4}}<br>" + hovertemplate,
+                hovertemplate="Sharpe: %{{customdata[1]:.4}}<br>" + hovertemplate,
             )
         )
     else:

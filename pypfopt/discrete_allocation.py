@@ -2,6 +2,7 @@
 The ``discrete_allocation`` module contains the ``DiscreteAllocation`` class, which
 offers multiple methods to generate a discrete portfolio allocation from continuous weights.
 """
+
 import collections
 
 import cvxpy as cp
