@@ -68,9 +68,7 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
-    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0.
-                            The period of the risk-free rate should correspond to the
-                            frequency of expected returns.
+    :param risk_free_rate: annualised risk-free rate of borrowing/lending, defaults to 0.0.
     :type risk_free_rate: float, optional
     :raises TypeError: if market_prices cannot be parsed
     :return: market-implied risk aversion

@@ -199,7 +199,7 @@ def semicovariance(
     :type benchmark: float
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year). Ensure that you use the appropriate
-                      benchmark, e.g if ``frequency=12`` use the monthly risk-free rate.
+                      benchmark, e.g if ``frequency=12`` use monthly benchmark returns
     :type frequency: int, optional
     :param log_returns: whether to compute using log returns
     :type log_returns: bool, defaults to False
