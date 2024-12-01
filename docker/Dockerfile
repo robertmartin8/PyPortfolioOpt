@@ -5,6 +5,10 @@ COPY requirements.txt .
 
 RUN pip install --upgrade pip \
     pip install yfinance && \
+    pip install poetry \
+    pip install ipython \
+    pip install jupyter \
+    pip install pytest \
     pip install -r requirements.txt
 
 COPY . .

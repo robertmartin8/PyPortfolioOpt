@@ -51,9 +51,9 @@ def returns_from_prices(prices, log_returns=False):
     :rtype: pd.DataFrame
     """
     if log_returns:
-        returns = np.log(1 + prices.pct_change()).dropna(how="all")
+        returns = np.log(1 + prices.pct_change(fill_method=None)).dropna(how="all")
     else:
-        returns = prices.pct_change().dropna(how="all")
+        returns = prices.pct_change(fill_method=None).dropna(how="all")
     return returns
 
 
