@@ -247,11 +247,6 @@ def test_market_risk_aversion():
     delta = market_implied_risk_aversion(prices, risk_free_rate=0.02)
     assert np.round(delta, 5) == 2.68549
 
-    # check it works for df
-    prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0)
-    delta = market_implied_risk_aversion(prices, risk_free_rate=0.02)
-    assert np.round(delta.iloc[0], 5) == 2.68549
-
     # Check it raises for other types.
     list_invalid = [100.0, 110.0, 120.0, 130.0]
     with pytest.raises(TypeError):

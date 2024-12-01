@@ -76,6 +76,7 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
     """
     if not isinstance(market_prices, (pd.Series, pd.DataFrame)):
         raise TypeError("Please format market_prices as a pd.Series")
+    market_prices = market_prices.squeeze()
     rets = market_prices.pct_change().dropna()
     r = rets.mean() * frequency
     var = rets.var() * frequency
