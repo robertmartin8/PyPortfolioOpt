@@ -22,14 +22,15 @@ def test_es_example():
     assert all([i >= -1e-5 for i in w.values()])
 
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.20, 0.091287, 1.971794),
         rtol=1e-4,
         atol=1e-4,
     )
     # Cover verbose param case
     np.testing.assert_equal(
-        es.portfolio_performance(verbose=True), es.portfolio_performance()
+        es.portfolio_performance(verbose=True, risk_free_rate=0.02),
+        es.portfolio_performance(risk_free_rate=0.02),
     )
 
 
@@ -51,14 +52,15 @@ def test_es_return_sample():
     assert all([i >= -1e-5 for i in w.values()])
 
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.2, 0.091287, 1.971794),
         rtol=1e-4,
         atol=1e-4,
     )
     # Cover verbose param case
     np.testing.assert_equal(
-        es.portfolio_performance(verbose=True), es.portfolio_performance()
+        es.portfolio_performance(verbose=True, risk_free_rate=0.02),
+        es.portfolio_performance(risk_free_rate=0.02),
     )
 
 
@@ -108,7 +110,7 @@ def test_es_example_weekly():
     es = EfficientSemivariance(mu, historical_rets, frequency=52)
     es.efficient_return(0.2)
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.2000000562544616, 0.07667633475531543, 2.3475307841574087),
         rtol=1e-4,
         atol=1e-4,
@@ -124,7 +126,7 @@ def test_es_example_monthly():
 
     es.efficient_return(0.3)
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.3, 0.04746519522734184, 5.899059271933824),
         rtol=1e-4,
         atol=1e-4,
@@ -155,7 +157,7 @@ def test_min_semivariance():
     assert all([i >= -1e-5 for i in w.values()])
 
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.091059, 0.084974, 0.836243),
         rtol=1e-3,
         atol=1e-3,
@@ -183,19 +185,25 @@ def test_min_semivariance_different_solver():
     assert all([i >= 0 for i in w.values()])
     test_performance = (0.091159, 0.08496, 0.837566)
     np.testing.assert_allclose(
-        es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
+        es.portfolio_performance(risk_free_rate=0.02),
+        test_performance,
+        rtol=1e-2,
+        atol=1e-2,
     )
 
     es = setup_efficient_semivariance(solver="OSQP")
     w = es.min_semivariance()
     np.testing.assert_allclose(
-        es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
+        es.portfolio_performance(risk_free_rate=0.02),
+        test_performance,
+        rtol=1e-2,
+        atol=1e-2,
     )
 
     # SCS is way off.
     # es = setup_efficient_semivariance(solver="SCS")
     # w = es.min_semivariance()
-    # np.testing.assert_allclose(es.portfolio_performance(), test_performance, atol=1e-3)
+    # np.testing.assert_allclose(es.portfolio_performance(risk_free_rate=0.02), test_performance, atol=1e-3)
 
 
 def test_min_semivariance_tx_costs():
@@ -235,7 +243,7 @@ def test_min_semivariance_L2_reg():
     )
 
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.089844, 0.112864, 0.618832),
         rtol=1e-4,
         atol=1e-4,
@@ -297,7 +305,7 @@ def test_max_quadratic_utility():
     np.testing.assert_almost_equal(es.weights.sum(), 1)
 
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.50857, 0.17469, 2.796777),
         rtol=1e-4,
         atol=1e-4,
@@ -316,10 +324,10 @@ def test_max_quadratic_utility_range():
         solver_options={"warm_start": False},
     )
     es.max_quadratic_utility(risk_aversion=0.01)
-    prev_ret, prev_semivar, _ = es.portfolio_performance()
+    prev_ret, prev_semivar, _ = es.portfolio_performance(risk_free_rate=0.02)
     for delta in [0.1, 0.5, 1, 3, 5, 10]:
         es.max_quadratic_utility(risk_aversion=delta)
-        ret, semivar, _ = es.portfolio_performance()
+        ret, semivar, _ = es.portfolio_performance(risk_free_rate=0.02)
         assert ret < prev_ret and semivar < prev_semivar
         prev_ret = ret
         prev_semivar = semivar
@@ -331,7 +339,7 @@ def test_max_quadratic_utility_with_shorts():
     np.testing.assert_almost_equal(es.weights.sum(), 1)
 
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (3.380009, 1.021973, 3.287767),
         rtol=1e-4,
         atol=1e-4,
@@ -343,7 +351,7 @@ def test_max_quadratic_utility_market_neutral():
     es.max_quadratic_utility(market_neutral=True)
     np.testing.assert_almost_equal(es.weights.sum(), 0)
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (3.20978, 0.968704, 3.292832),
         rtol=1e-4,
         atol=1e-4,
@@ -360,7 +368,7 @@ def test_max_quadratic_utility_L2_reg():
     np.testing.assert_almost_equal(es.weights.sum(), 1)
     assert all([i >= 0 for i in weights.values()])
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.090208, 0.112854, 0.62212),
         rtol=1e-4,
         atol=1e-4,
@@ -387,7 +395,7 @@ def test_efficient_risk():
     assert all([i >= -1e-5 for i in w.values()])
 
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.508571, 0.174691, 2.796777),
         rtol=1e-4,
         atol=1e-4,
@@ -397,7 +405,7 @@ def test_efficient_risk():
 def test_efficient_risk_low_risk():
     es = setup_efficient_semivariance()
     es.min_semivariance()
-    min_value = es.portfolio_performance()[1]
+    min_value = es.portfolio_performance(risk_free_rate=0.02)[1]
 
     # Should fail below
     with pytest.raises(SolverError):
@@ -407,7 +415,7 @@ def test_efficient_risk_low_risk():
     es = setup_efficient_semivariance()
     es.efficient_risk(min_value + 0.01)
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.228096, min_value + 0.01, 2.191091),
         rtol=1e-4,
     )
@@ -421,7 +429,7 @@ def test_efficient_risk_market_neutral():
     np.testing.assert_almost_equal(es.weights.sum(), 0)
     assert (es.weights < 1).all() and (es.weights > -1).all()
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (1.020958, 0.210008, 4.766278),
         rtol=1e-4,
         atol=1e-4,
@@ -438,7 +446,7 @@ def test_efficient_risk_L2_reg():
     np.testing.assert_almost_equal(es.weights.sum(), 1)
     np.testing.assert_array_less(np.zeros(len(weights)), es.weights + 1e-4)
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.288996, 0.131377, 2.047509),
         rtol=1e-4,
         atol=1e-4,
@@ -464,7 +472,7 @@ def test_efficient_return():
     assert all([i >= -1e-5 for i in w.values()])
 
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.25, 0.098453, 2.33615),
         rtol=1e-4,
         atol=1e-4,
@@ -478,16 +486,16 @@ def test_efficient_return_short():
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.25, 0.090188, 2.550234),
         rtol=1e-4,
         atol=1e-4,
     )
-    sortino = es.portfolio_performance()[2]
+    sortino = es.portfolio_performance(risk_free_rate=0.02)[2]
 
     ef_long_only = setup_efficient_semivariance()
     ef_long_only.efficient_return(0.25)
-    long_only_sortino = ef_long_only.portfolio_performance()[2]
+    long_only_sortino = ef_long_only.portfolio_performance(risk_free_rate=0.02)[2]
 
     assert sortino > long_only_sortino
 
@@ -501,7 +509,7 @@ def test_efficient_return_L2_reg():
     np.testing.assert_almost_equal(es.weights.sum(), 1)
     assert all([i >= 0 for i in w.values()])
     np.testing.assert_allclose(
-        es.portfolio_performance(),
+        es.portfolio_performance(risk_free_rate=0.02),
         (0.25, 0.121407, 1.894448),
         rtol=1e-4,
         atol=1e-4,
@@ -512,7 +520,7 @@ def test_efficient_semivariance_vs_heuristic():
     benchmark = 0
     es = setup_efficient_semivariance()
     es.efficient_return(0.20)
-    mu_es, semi_deviation, _ = es.portfolio_performance()
+    mu_es, semi_deviation, _ = es.portfolio_performance(risk_free_rate=0.02)
     np.testing.assert_almost_equal(mu_es, 0.2)
 
     mean_return, historic_returns = setup_efficient_semivariance(data_only=True)
@@ -522,7 +530,7 @@ def test_efficient_semivariance_vs_heuristic():
     )
     ef = EfficientFrontier(mean_return, pairwise_semivariance)
     ef.efficient_return(0.20)
-    mu_ef, _, _ = ef.portfolio_performance()
+    mu_ef, _, _ = ef.portfolio_performance(risk_free_rate=0.02)
     # mu_ef *= 252
 
     portfolio_returns = historic_returns @ ef.weights
@@ -543,14 +551,14 @@ def test_efficient_semivariance_vs_heuristic_weekly():
 
     es = EfficientSemivariance(mean_weekly_returns, weekly_returns, frequency=52)
     es.efficient_return(0.20 / 52)
-    mu_es, semi_deviation, _ = es.portfolio_performance()
+    mu_es, semi_deviation, _ = es.portfolio_performance(risk_free_rate=0.02)
 
     pairwise_semivariance = risk_models.semicovariance(
         weekly_returns, returns_data=True, benchmark=0, frequency=1
     )
     ef = EfficientFrontier(mean_weekly_returns, pairwise_semivariance)
     ef.efficient_return(0.20 / 52)
-    mu_ef, _, _ = ef.portfolio_performance()
+    mu_ef, _, _ = ef.portfolio_performance(risk_free_rate=0.02)
     portfolio_returns = historic_returns @ ef.weights
     drops = np.fmin(portfolio_returns - benchmark, 0)
     T = weekly_returns.shape[0]

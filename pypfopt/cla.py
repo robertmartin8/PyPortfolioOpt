@@ -11,7 +11,6 @@ from . import base_optimizer
 
 
 class CLA(base_optimizer.BaseOptimizer):
-
     """
     Instance variables:
 
@@ -444,14 +443,14 @@ class CLA(base_optimizer.BaseOptimizer):
         # Overrides parent method since set_weights does nothing.
         raise NotImplementedError("set_weights does nothing for CLA")
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.0):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0
         :type risk_free_rate: float, optional
         :raises ValueError: if weights have not been calculated yet
         :return: expected return, volatility, Sharpe ratio.

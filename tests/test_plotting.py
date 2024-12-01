@@ -75,7 +75,7 @@ def test_dendrogram_plot():
         assert len(w) <= 2  # the second is FutureWarning if exists
         assert (
             str(w[0].message)
-            == "hrp param has not been optimized. Attempting optimization."
+            == "hrp param has not been optimized.  Attempting optimization."
         )
         assert len(ax.findobj()) > 60
         assert type(ax.findobj()[0]) == matplotlib.collections.LineCollection
@@ -304,3 +304,9 @@ def test_plotting_edge_case():
             ax=ax,
             show_assets=False,
         )
+
+
+def test_plot_efficient_frontier():
+    ef = setup_efficient_frontier()
+    ef.min_volatility()
+    optimal_ret, optimal_risk, _ = ef.portfolio_performance(risk_free_rate=0.02)

@@ -30,7 +30,7 @@ def test_remove_zero_positions():
 
 def test_greedy_portfolio_allocation():
     ef = setup_efficient_frontier()
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -61,7 +61,7 @@ def test_greedy_portfolio_allocation():
 
 def test_greedy_allocation_rmse_error():
     ef = setup_efficient_frontier()
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -75,7 +75,7 @@ def test_greedy_allocation_rmse_error():
 
 def test_greedy_portfolio_allocation_short():
     ef = setup_efficient_frontier(weight_bounds=(-1, 1))
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -122,7 +122,7 @@ def test_greedy_portfolio_allocation_short():
 
 def test_greedy_allocation_rmse_error_short():
     ef = setup_efficient_frontier(weight_bounds=(-1, 1))
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -136,7 +136,7 @@ def test_greedy_allocation_rmse_error_short():
 
 def test_greedy_portfolio_allocation_short_different_params():
     ef = setup_efficient_frontier(weight_bounds=(-1, 1))
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -180,7 +180,7 @@ def test_greedy_portfolio_allocation_short_different_params():
 
 def test_greedy_portfolio_allocation_short_different_params_reinvest():
     ef = setup_efficient_frontier(weight_bounds=(-1, 1))
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -225,7 +225,7 @@ def test_greedy_portfolio_allocation_short_different_params_reinvest():
 
 def test_lp_portfolio_allocation():
     ef = setup_efficient_frontier()
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -267,7 +267,7 @@ def test_lp_portfolio_allocation():
 
 def test_lp_allocation_rmse_error():
     ef = setup_efficient_frontier()
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -278,7 +278,7 @@ def test_lp_allocation_rmse_error():
 
 def test_lp_portfolio_allocation_short():
     ef = setup_efficient_frontier(weight_bounds=(-1, 1))
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -326,7 +326,7 @@ def test_lp_portfolio_allocation_short():
 
 def test_lp_portfolio_allocation_short_reinvest():
     ef = setup_efficient_frontier(weight_bounds=(-1, 1))
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -370,7 +370,7 @@ def test_lp_portfolio_allocation_short_reinvest():
 
 def test_lp_allocation_rmse_error_short():
     ef = setup_efficient_frontier(weight_bounds=(-1, 1))
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -381,7 +381,7 @@ def test_lp_allocation_rmse_error_short():
 
 def test_lp_portfolio_allocation_different_params():
     ef = setup_efficient_frontier()
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -411,7 +411,7 @@ def test_lp_portfolio_allocation_different_params():
 def test_rmse_decreases_with_value():
     # As total_portfolio_value increases, rmse should decrease.
     ef = setup_efficient_frontier()
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)
@@ -429,7 +429,7 @@ def test_rmse_decreases_with_value():
 
 def test_allocation_errors():
     ef = setup_efficient_frontier()
-    w = ef.max_sharpe()
+    w = ef.max_sharpe(risk_free_rate=0.02)
 
     df = get_data()
     latest_prices = get_latest_prices(df)

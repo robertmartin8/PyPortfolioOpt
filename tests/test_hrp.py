@@ -47,7 +47,7 @@ def test_portfolio_performance():
         hrp.portfolio_performance()
     hrp.optimize(linkage_method="single")
     np.testing.assert_allclose(
-        hrp.portfolio_performance(),
+        hrp.portfolio_performance(risk_free_rate=0.02),
         (0.21353402380950973, 0.17844159743748936, 1.084579081272277),
     )
 
