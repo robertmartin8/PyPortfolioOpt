@@ -49,6 +49,10 @@ Minor bug fixes
 - `Tuan Tran <https://github.com/88d52bdba0366127fffca9dfa93895>`_ is now the primary maintainer for PyPortfolioOpt
 - Wide range of bug fixes and code improvements.
 
+1.5.6
+-----
+
+- Various bug fixes
 
 1.4.0
 =====
