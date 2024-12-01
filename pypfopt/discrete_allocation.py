@@ -328,7 +328,9 @@ class DiscreteAllocation:
 
         vals = np.rint(x.value).astype(int)
         self.allocation = self._remove_zero_positions(
-            collections.OrderedDict(zip([i[0] for i in self.weights], vals))
+            collections.OrderedDict(
+                zip([i[0] for i in self.weights], [int(v) for v in vals])
+            )
         )
 
         if verbose:
