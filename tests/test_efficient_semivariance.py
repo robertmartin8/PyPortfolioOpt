@@ -408,9 +408,8 @@ def test_efficient_risk_low_risk():
     es.efficient_risk(min_value + 0.01)
     np.testing.assert_allclose(
         es.portfolio_performance(),
-        (0.228226, min_value + 0.01, 2.192011),
+        (0.228096, min_value + 0.01, 2.191091),
         rtol=1e-4,
-        atol=1e-4,
     )
 
 

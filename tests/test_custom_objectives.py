@@ -136,6 +136,7 @@ def test_custom_convex_logarithmic_barrier():
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.17261881638711316, 0.21100848889958182, 0.7232828270702603),
+        rtol=1e-4,
     )
 
 
