@@ -3,7 +3,6 @@ The ``efficient_semivariance`` submodule houses the EfficientSemivariance class,
 generates portfolios along the mean-semivariance frontier.
 """
 
-
 import cvxpy as cp
 import numpy as np
 
@@ -104,7 +103,7 @@ class EfficientSemivariance(EfficientFrontier):
     def min_volatility(self):
         raise NotImplementedError("Please use min_semivariance instead.")
 
-    def max_sharpe(self, risk_free_rate=0.02):
+    def max_sharpe(self, risk_free_rate=0.0):
         raise NotImplementedError("Method not available in EfficientSemivariance")
 
     def min_semivariance(self, market_neutral=False):
@@ -184,9 +183,7 @@ class EfficientSemivariance(EfficientFrontier):
         update_existing_parameter = self.is_parameter_defined("target_semivariance")
         if update_existing_parameter:
             self._validate_market_neutral(market_neutral)
-            self.update_parameter_value(
-                "target_semivariance", target_semideviation**2
-            )
+            self.update_parameter_value("target_semivariance", target_semideviation**2)
         else:
             self._objective = objective_functions.portfolio_return(
                 self._w, self.expected_returns
@@ -249,14 +246,14 @@ class EfficientSemivariance(EfficientFrontier):
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.0):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio, specifically: expected return, semideviation, Sortino ratio.
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0.
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional

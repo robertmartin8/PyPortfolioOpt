@@ -28,7 +28,7 @@ def test_cla_max_sharpe_long_only():
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
 
     np.testing.assert_allclose(
-        cla.portfolio_performance(),
+        cla.portfolio_performance(risk_free_rate=0.02),
         (0.2994470912768992, 0.21764331657015668, 1.283968171780824),
     )
 
@@ -40,14 +40,14 @@ def test_cla_max_sharpe_short():
     assert set(w.keys()) == set(cla.tickers)
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
     np.testing.assert_allclose(
-        cla.portfolio_performance(),
+        cla.portfolio_performance(risk_free_rate=0.02),
         (0.44859872371106785, 0.26762066559448255, 1.601515797589826),
     )
-    sharpe = cla.portfolio_performance()[2]
+    sharpe = cla.portfolio_performance(risk_free_rate=0.02)[2]
 
     cla_long_only = setup_cla()
     cla_long_only.max_sharpe()
-    long_only_sharpe = cla_long_only.portfolio_performance()[2]
+    long_only_sharpe = cla_long_only.portfolio_performance(risk_free_rate=0.02)[2]
 
     assert sharpe > long_only_sharpe
 
@@ -78,7 +78,7 @@ def test_cla_min_volatility():
     assert set(w.keys()) == set(cla.tickers)
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
     np.testing.assert_allclose(
-        cla.portfolio_performance(),
+        cla.portfolio_performance(risk_free_rate=0.02),
         (0.1505682139948257, 0.15915084514118688, 0.8204054077060994),
     )
 
@@ -105,7 +105,7 @@ def test_cla_max_sharpe_semicovariance():
     assert set(w.keys()) == set(cla.tickers)
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
     np.testing.assert_allclose(
-        cla.portfolio_performance(),
+        cla.portfolio_performance(risk_free_rate=0.02),
         (0.2721798377099145, 0.07258537193305141, 3.474251505420551),
         atol=1e-4,
         rtol=1e-4,
@@ -121,7 +121,7 @@ def test_cla_max_sharpe_exp_cov():
     assert set(w.keys()) == set(cla.tickers)
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
     np.testing.assert_allclose(
-        cla.portfolio_performance(),
+        cla.portfolio_performance(risk_free_rate=0.02),
         (0.32971891062187103, 0.17670121760851704, 1.7527831149871063),
     )
 
@@ -135,7 +135,7 @@ def test_cla_min_volatility_exp_cov_short():
     assert set(w.keys()) == set(cla.tickers)
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
     np.testing.assert_allclose(
-        cla.portfolio_performance(),
+        cla.portfolio_performance(risk_free_rate=0.02),
         (0.23215576461823062, 0.1325959061825329, 1.6000174569958052),
     )
 

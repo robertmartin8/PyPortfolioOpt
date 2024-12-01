@@ -2,6 +2,7 @@
 The ``efficient_frontier`` submodule houses the EfficientFrontier class, which generates
 classical mean-variance optimal portfolios for a variety of objectives and constraints
 """
+
 import warnings
 
 import cvxpy as cp
@@ -12,7 +13,6 @@ from .. import base_optimizer, exceptions, objective_functions
 
 
 class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
-
     """
     An EfficientFrontier object (inheriting from BaseConvexOptimizer) contains multiple
     optimization methods that can be called (corresponding to different objective
@@ -222,7 +222,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:
             return res
 
-    def max_sharpe(self, risk_free_rate=0.02):
+    def max_sharpe(self, risk_free_rate=0.0):
         """
         Maximise the Sharpe Ratio. The result is also referred to as the tangency portfolio,
         as it is the portfolio for which the capital market line is tangent to the efficient frontier.
@@ -230,7 +230,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         This is a convex optimization problem after making a certain variable substitution. See
         `Cornuejols and Tutuncu (2006) <http://web.math.ku.dk/~rolf/CT_FinOpt.pdf>`_ for more.
 
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0.
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional
@@ -250,7 +250,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         # max_sharpe requires us to make a variable transformation.
         # Here we treat w as the transformed variable.
-        self._objective = cp.quad_form(self._w, self.cov_matrix)
+        self._objective = cp.quad_form(self._w, self.cov_matrix, assume_PSD=True)
         k = cp.Variable()
 
         # Note: objectives are not scaled by k. Hence there are subtle differences
@@ -421,14 +421,14 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             self._make_weight_sum_constraint(market_neutral)
         return self._solve_cvxpy_opt_problem()
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.0):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0.
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional

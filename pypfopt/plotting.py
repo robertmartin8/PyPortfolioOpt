@@ -8,18 +8,31 @@ Currently implemented:
   - ``plot_efficient_frontier`` – plot the efficient frontier from an EfficientFrontier or CLA object
   - ``plot_weights`` - bar chart of weights
 """
+
 import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy.cluster.hierarchy as sch
 
 from . import CLA, EfficientFrontier, exceptions, risk_models
 
 try:
-    plt.style.use("seaborn-v0_8-deep")
-except Exception:  # pragma: no cover
-    pass
+    import matplotlib.pyplot as plt
+except (ModuleNotFoundError, ImportError):  # pragma: no cover
+    raise ImportError("Please install matplotlib via pip or poetry")
+
+
+def _get_plotly():
+    """Helper function to import plotly only when needed"""
+    try:
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+
+        return go, make_subplots
+    except (ModuleNotFoundError, ImportError):
+        raise ImportError(
+            "Please install plotly via pip or poetry to use interactive plots"
+        )
 
 
 def _plot_io(**kwargs):
@@ -101,7 +114,7 @@ def plot_dendrogram(hrp, ax=None, show_tickers=True, **kwargs):
 
     if hrp.clusters is None:
         warnings.warn(
-            "hrp param has not been optimized. Attempting optimization.",
+            "hrp param has not been optimized.  Attempting optimization.",
             RuntimeWarning,
         )
         hrp.optimize()
@@ -118,35 +131,83 @@ def plot_dendrogram(hrp, ax=None, show_tickers=True, **kwargs):
     return ax
 
 
-def _plot_cla(cla, points, ax, show_assets, show_tickers):
+def _plot_cla(cla, points, ax, show_assets, show_tickers, interactive):
     """
     Helper function to plot the efficient frontier from a CLA object
     """
+    if interactive:
+        go, _ = _get_plotly()
+
     if cla.weights is None:
         cla.max_sharpe()
-    optimal_ret, optimal_risk, _ = cla.portfolio_performance()
-
+    optimal_ret, optimal_risk, sharpe_max = cla.portfolio_performance()
+    opt_weights = cla.weights
     if cla.frontier_values is None:
         cla.efficient_frontier(points=points)
 
-    mus, sigmas, _ = cla.frontier_values
+    mus, sigmas, weights = cla.frontier_values
 
-    ax.plot(sigmas, mus, label="Efficient frontier")
-    ax.scatter(optimal_risk, optimal_ret, marker="x", s=100, color="r", label="optimal")
+    if interactive:
+        # Create the label
+        hovertemplate = "Risk: %{x}<br>Return: %{y}<extra>"
+        # Loop over each asset and append its information
+        for i, ticker in enumerate(cla.tickers):
+            hovertemplate += f"{ticker}: %{{customdata[{i}]:.4%}}<br>"
+        hovertemplate += "</extra>"
+
+        ax.add_trace(
+            go.Scatter(
+                x=sigmas,
+                y=mus,
+                mode="lines",
+                line=dict(color="lightskyblue", width=2),
+                name="Efficient frontier",
+                customdata=weights,
+                hovertemplate=hovertemplate,
+            )
+        )
+        ax.add_trace(
+            go.Scatter(
+                x=[optimal_risk],
+                y=[optimal_ret],
+                customdata=[opt_weights, [sharpe_max]],
+                mode="markers",
+                name="Max Sharpe Portfolio",
+                marker=dict(size=12, symbol="x", color="coral"),
+                hovertemplate="Sharpe: %{{customdata[1]:.4}}<br>" + hovertemplate,
+            )
+        )
+    else:
+        ax.plot(sigmas, mus, label="Efficient frontier")
+        ax.scatter(
+            optimal_risk, optimal_ret, marker="x", s=100, color="r", label="optimal"
+        )
 
     asset_mu = cla.expected_returns
     asset_sigma = np.sqrt(np.diag(cla.cov_matrix))
     if show_assets:
-        ax.scatter(
-            asset_sigma,
-            asset_mu,
-            s=30,
-            color="k",
-            label="assets",
-        )
-        if show_tickers:
-            for i, label in enumerate(cla.tickers):
-                ax.annotate(label, (asset_sigma[i], asset_mu[i]))
+        if interactive:
+            ax.add_trace(
+                go.Scatter(
+                    x=asset_sigma,
+                    y=asset_mu,
+                    mode="markers",
+                    name="Assets",
+                    marker=dict(size=10, symbol="star-diamond", color="silver"),
+                    hovertemplate="Risk: %{x}<br>Return: %{y}<extra></extra>",
+                )
+            )
+        else:
+            ax.scatter(
+                asset_sigma,
+                asset_mu,
+                s=30,
+                color="k",
+                label="assets",
+            )
+            if show_tickers:
+                for i, label in enumerate(cla.tickers):
+                    ax.annotate(label, (asset_sigma[i], asset_mu[i]))
     return ax
 
 
@@ -164,10 +225,13 @@ def _ef_default_returns_range(ef, points):
     return np.linspace(min_ret, max_ret - 0.0001, points)
 
 
-def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets, show_tickers):
+def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets, show_tickers, interactive):
     """
     Helper function to plot the efficient frontier from an EfficientFrontier object
     """
+    if interactive:
+        go, _ = _get_plotly()
+
     mus, sigmas = [], []
 
     # Create a portfolio for each value of ef_param_range
@@ -196,21 +260,42 @@ def _plot_ef(ef, ef_param, ef_param_range, ax, show_assets, show_tickers):
         mus.append(ret)
         sigmas.append(sigma)
 
-    ax.plot(sigmas, mus, label="Efficient frontier")
+    if interactive:
+        ax.add_trace(
+            go.Scatter(
+                x=sigmas,
+                y=mus,
+                mode="lines",
+                name="Efficient frontier",
+                line=dict(width=2, color="lightskyblue"),
+            )
+        )
+    else:
+        ax.plot(sigmas, mus, label="Efficient frontier")
 
     asset_mu = ef.expected_returns
     asset_sigma = np.sqrt(np.diag(ef.cov_matrix))
     if show_assets:
-        ax.scatter(
-            asset_sigma,
-            asset_mu,
-            s=30,
-            color="k",
-            label="assets",
-        )
-        if show_tickers:
-            for i, label in enumerate(ef.tickers):
-                ax.annotate(label, (asset_sigma[i], asset_mu[i]))
+        if interactive:
+            ax.add_trace(
+                go.Scatter(
+                    x=asset_sigma,
+                    y=asset_mu,
+                    mode="markers",
+                    marker=dict(size=10, symbol="star-diamond", color="silver"),
+                )
+            )
+        else:
+            ax.scatter(
+                asset_sigma,
+                asset_mu,
+                s=30,
+                color="k",
+                label="assets",
+            )
+            if show_tickers:
+                for i, label in enumerate(ef.tickers):
+                    ax.annotate(label, (asset_sigma[i], asset_mu[i]))
     return ax
 
 
@@ -222,7 +307,8 @@ def plot_efficient_frontier(
     ax=None,
     show_assets=True,
     show_tickers=False,
-    **kwargs
+    interactive=False,
+    **kwargs,
 ):
     """
     Plot the efficient frontier based on either a CLA or EfficientFrontier object.
@@ -242,6 +328,8 @@ def plot_efficient_frontier(
     :type show_assets: bool, optional
     :param show_tickers: whether we should annotate each asset with its ticker, defaults to False
     :type show_tickers: bool, optional
+    :param interactive: Switch rendering engine between Plotly and Matplotlib
+    :type show_tickers: bool, optional
     :param filename: name of the file to save to, defaults to None (doesn't save)
     :type filename: str, optional
     :param showfig: whether to plt.show() the figure, defaults to False
@@ -249,11 +337,20 @@ def plot_efficient_frontier(
     :return: matplotlib axis
     :rtype: matplotlib.axes object
     """
-    ax = ax or plt.gca()
+    if interactive:
+        go, _ = _get_plotly()
+        ax = go.Figure()
+    else:
+        ax = ax or plt.gca()
 
     if isinstance(opt, CLA):
         ax = _plot_cla(
-            opt, points, ax=ax, show_assets=show_assets, show_tickers=show_tickers
+            opt,
+            points,
+            ax=ax,
+            show_assets=show_assets,
+            show_tickers=show_tickers,
+            interactive=interactive,
         )
     elif isinstance(opt, EfficientFrontier):
         if ef_param_range is None:
@@ -266,15 +363,22 @@ def plot_efficient_frontier(
             ax=ax,
             show_assets=show_assets,
             show_tickers=show_tickers,
+            interactive=interactive,
         )
     else:
         raise NotImplementedError("Please pass EfficientFrontier or CLA object")
 
-    ax.legend()
-    ax.set_xlabel("Volatility")
-    ax.set_ylabel("Return")
+    if interactive:
+        ax.update_layout(
+            xaxis_title="Volatility",
+            yaxis_title="Return",
+        )
+    else:
+        ax.legend()
+        ax.set_xlabel("Volatility")
+        ax.set_ylabel("Return")
 
-    _plot_io(**kwargs)
+        _plot_io(**kwargs)
     return ax
 
 

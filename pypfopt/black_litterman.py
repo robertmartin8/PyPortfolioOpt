@@ -6,6 +6,7 @@ views. In addition, two utility functions are defined, which calculate:
 - market-implied prior estimate of returns
 - market-implied risk-aversion parameter
 """
+
 import sys
 import warnings
 
@@ -16,7 +17,7 @@ from . import base_optimizer
 
 
 def market_implied_prior_returns(
-    market_caps, risk_aversion, cov_matrix, risk_free_rate=0.02
+    market_caps, risk_aversion, cov_matrix, risk_free_rate=0.0
 ):
     r"""
     Compute the prior estimate of returns implied by the market weights.
@@ -33,7 +34,7 @@ def market_implied_prior_returns(
     :type risk_aversion: positive float
     :param cov_matrix: covariance matrix of asset returns
     :type cov_matrix: pd.DataFrame
-    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0.
                            You should use the appropriate time period, corresponding
                            to the covariance matrix.
     :type risk_free_rate: float, optional
@@ -51,7 +52,7 @@ def market_implied_prior_returns(
     return risk_aversion * cov_matrix.dot(mkt_weights) + risk_free_rate
 
 
-def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.02):
+def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.0):
     r"""
     Calculate the market-implied risk-aversion parameter (i.e market price of risk)
     based on market prices. For example, if the market has excess returns of 10% a year
@@ -67,9 +68,7 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
     :param frequency: number of time periods in a year, defaults to 252 (the number
                       of trading days in a year)
     :type frequency: int, optional
-    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
-                            The period of the risk-free rate should correspond to the
-                            frequency of expected returns.
+    :param risk_free_rate: annualised risk-free rate of borrowing/lending, defaults to 0.0.
     :type risk_free_rate: float, optional
     :raises TypeError: if market_prices cannot be parsed
     :return: market-implied risk aversion
@@ -77,6 +76,7 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
     """
     if not isinstance(market_prices, (pd.Series, pd.DataFrame)):
         raise TypeError("Please format market_prices as a pd.Series")
+    market_prices = market_prices.squeeze()
     rets = market_prices.pct_change().dropna()
     r = rets.mean() * frequency
     var = rets.var() * frequency
@@ -84,7 +84,6 @@ def market_implied_risk_aversion(market_prices, frequency=252, risk_free_rate=0.
 
 
 class BlackLittermanModel(base_optimizer.BaseOptimizer):
-
     """
     A BlackLittermanModel object (inheriting from BaseOptimizer) contains requires
     a specific input format, specifying the prior, the views, the uncertainty in views,
@@ -168,7 +167,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         :param market_caps: (kwarg) market caps for the assets, required if pi="market"
         :type market_caps: np.ndarray, pd.Series, optional
         :param risk_free_rate: (kwarg) risk_free_rate is needed in some methods
-        :type risk_free_rate: float, defaults to 0.02
+        :type risk_free_rate: float, defaults to 0.0
         """
         if sys.version_info[1] == 5:  # pragma: no cover
             warnings.warn(
@@ -268,7 +267,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
                     "Please pass a series/array of market caps via the market_caps keyword argument"
                 )
             market_caps = kwargs.get("market_caps")
-            risk_free_rate = kwargs.get("risk_free_rate", 0)
+            risk_free_rate = kwargs.get("risk_free_rate", 0.0)
 
             market_prior = market_implied_prior_returns(
                 market_caps, self.risk_aversion, self._raw_cov_matrix, risk_free_rate
@@ -404,7 +403,14 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         if self._A is None:
             self._A = (self.P @ self._tau_sigma_P) + self.omega
         b = self.Q - self.P @ self.pi
-        post_rets = self.pi + self._tau_sigma_P @ np.linalg.solve(self._A, b)
+        try:
+            solution = np.linalg.solve(self._A, b)
+        except np.linalg.LinAlgError as e:
+            if "Singular matrix" in str(e):
+                solution = np.linalg.lstsq(self._A, b, rcond=None)[0]
+            else:
+                raise e
+        post_rets = self.pi + self._tau_sigma_P @ solution
         return pd.Series(post_rets.flatten(), index=self.tickers)
 
     def bl_cov(self):
@@ -423,7 +429,14 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
             self._A = (self.P @ self._tau_sigma_P) + self.omega
 
         b = self._tau_sigma_P.T
-        M = self.tau * self.cov_matrix - self._tau_sigma_P @ np.linalg.solve(self._A, b)
+        try:
+            M_solution = np.linalg.solve(self._A, b)
+        except np.linalg.LinAlgError as e:
+            if "Singular matrix" in str(e):
+                M_solution = np.linalg.lstsq(self._A, b, rcond=None)[0]
+            else:
+                raise e
+        M = self.tau * self.cov_matrix - self._tau_sigma_P @ M_solution
         posterior_cov = self.cov_matrix + M
         return pd.DataFrame(posterior_cov, index=self.tickers, columns=self.tickers)
 
@@ -449,7 +462,14 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         self.posterior_rets = self.bl_returns()
         A = risk_aversion * self.cov_matrix
         b = self.posterior_rets
-        raw_weights = np.linalg.solve(A, b)
+        try:
+            weight_solution = np.linalg.solve(A, b)
+        except np.linalg.LinAlgError as e:
+            if "Singular matrix" in str(e):
+                weight_solution = np.linalg.lstsq(self._A, b, rcond=None)[0]
+            else:
+                raise e
+        raw_weights = weight_solution
         self.weights = raw_weights / raw_weights.sum()
         return self._make_output_weights()
 
@@ -459,7 +479,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         """
         return self.bl_weights(risk_aversion)
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02):
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.0):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio.
@@ -467,7 +487,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0.
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional

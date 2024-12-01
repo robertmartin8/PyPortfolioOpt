@@ -51,7 +51,7 @@ def test_sharpe_ratio():
     S = sample_cov(df)
     w = np.array([1 / len(e_rets)] * len(e_rets))
 
-    sharpe = objective_functions.sharpe_ratio(w, e_rets, S)
+    sharpe = objective_functions.sharpe_ratio(w, e_rets, S, risk_free_rate=0.02)
     assert isinstance(sharpe, float)
     assert sharpe < 0
 

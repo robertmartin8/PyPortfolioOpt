@@ -107,7 +107,7 @@ class EfficientCVaR(EfficientFrontier):
     def min_volatility(self):
         raise NotImplementedError("Please use min_cvar instead.")
 
-    def max_sharpe(self, risk_free_rate=0.02):
+    def max_sharpe(self, risk_free_rate=0.0):
         raise NotImplementedError("Method not available in EfficientCVaR.")
 
     def max_quadratic_utility(self, risk_aversion=1, market_neutral=False):

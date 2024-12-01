@@ -6,6 +6,7 @@ optimization.
 Additionally, we define a general utility function ``portfolio_performance`` to
 evaluate return and risk for a given set of portfolio weights.
 """
+
 import collections
 import copy
 import json
@@ -22,7 +23,6 @@ from . import exceptions, objective_functions
 
 
 class BaseOptimizer:
-
     """
     Instance variables:
 
@@ -61,6 +61,9 @@ class BaseOptimizer:
         """
         if weights is None:
             weights = self.weights
+
+        # Convert numpy float64 to plain Python float
+        weights = [float(w) for w in weights]
 
         return collections.OrderedDict(zip(self.tickers, weights))
 
@@ -106,7 +109,7 @@ class BaseOptimizer:
         """
         clean_weights = self.clean_weights()
 
-        ext = filename.split(".")[1]
+        ext = filename.split(".")[-1].lower()
         if ext == "csv":
             pd.Series(clean_weights).to_csv(filename, header=False)
         elif ext == "json":
@@ -120,7 +123,6 @@ class BaseOptimizer:
 
 
 class BaseConvexOptimizer(BaseOptimizer):
-
     """
     The BaseConvexOptimizer contains many private variables for use by
     ``cvxpy``. For example, the immutable optimization variable for weights
@@ -511,7 +513,7 @@ class BaseConvexOptimizer(BaseOptimizer):
 
 
 def portfolio_performance(
-    weights, expected_returns, cov_matrix, verbose=False, risk_free_rate=0.02
+    weights, expected_returns, cov_matrix, verbose=False, risk_free_rate=0.0
 ):
     """
     After optimising, calculate (and optionally print) the performance of the optimal
@@ -526,7 +528,7 @@ def portfolio_performance(
     :type weights: list, np.array or dict, optional
     :param verbose: whether performance should be printed, defaults to False
     :type verbose: bool, optional
-    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0
     :type risk_free_rate: float, optional
     :raises ValueError: if weights have not been calculated yet
     :return: expected return, volatility, Sharpe ratio.

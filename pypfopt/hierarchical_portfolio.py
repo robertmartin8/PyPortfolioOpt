@@ -117,7 +117,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         :return: raw portfolio weights
         :rtype: pd.Series
         """
-        w = pd.Series(1, index=ordered_tickers)
+        w = pd.Series(1.0, index=ordered_tickers)
         cluster_items = [ordered_tickers]  # initialize all items in one cluster
 
         while len(cluster_items) > 0:
@@ -173,7 +173,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         self.set_weights(weights)
         return weights
 
-    def portfolio_performance(self, verbose=False, risk_free_rate=0.02, frequency=252):
+    def portfolio_performance(self, verbose=False, risk_free_rate=0.0, frequency=252):
         """
         After optimising, calculate (and optionally print) the performance of the optimal
         portfolio. Currently calculates expected return, volatility, and the Sharpe ratio
@@ -181,7 +181,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
 
         :param verbose: whether performance should be printed, defaults to False
         :type verbose: bool, optional
-        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+        :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0.
                                The period of the risk-free rate should correspond to the
                                frequency of expected returns.
         :type risk_free_rate: float, optional

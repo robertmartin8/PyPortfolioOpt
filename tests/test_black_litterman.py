@@ -158,7 +158,7 @@ def test_bl_equal_prior():
 
     bl.bl_weights()
     np.testing.assert_allclose(
-        bl.portfolio_performance(),
+        bl.portfolio_performance(risk_free_rate=0.02),
         (0.1877432247395778, 0.3246889329226965, 0.5166274785827545),
     )
 
@@ -244,18 +244,13 @@ def test_market_risk_aversion():
     prices = pd.read_csv(
         resource("spy_prices.csv"), parse_dates=True, index_col=0
     ).squeeze("columns")
-    delta = market_implied_risk_aversion(prices)
+    delta = market_implied_risk_aversion(prices, risk_free_rate=0.02)
     assert np.round(delta, 5) == 2.68549
-
-    # check it works for df
-    prices = pd.read_csv(resource("spy_prices.csv"), parse_dates=True, index_col=0)
-    delta = market_implied_risk_aversion(prices)
-    assert np.round(delta.iloc[0], 5) == 2.68549
 
     # Check it raises for other types.
     list_invalid = [100.0, 110.0, 120.0, 130.0]
     with pytest.raises(TypeError):
-        delta = market_implied_risk_aversion(list_invalid)
+        delta = market_implied_risk_aversion(list_invalid, risk_free_rate=0.02)
 
 
 def test_bl_weights():
@@ -321,10 +316,10 @@ def test_market_implied_prior():
     prices = pd.read_csv(
         resource("spy_prices.csv"), parse_dates=True, index_col=0
     ).squeeze("columns")
-    delta = market_implied_risk_aversion(prices)
+    delta = market_implied_risk_aversion(prices, risk_free_rate=0.02)
 
     mcaps = get_market_caps()
-    pi = market_implied_prior_returns(mcaps, delta, S)
+    pi = market_implied_prior_returns(mcaps, delta, S, risk_free_rate=0.02)
     assert isinstance(pi, pd.Series)
     assert list(pi.index) == list(df.columns)
     assert pi.notnull().all()
@@ -358,7 +353,7 @@ def test_market_implied_prior():
     )
 
     mcaps = pd.Series(mcaps)
-    pi2 = market_implied_prior_returns(mcaps, delta, S)
+    pi2 = market_implied_prior_returns(mcaps, delta, S, risk_free_rate=0.02)
     pd.testing.assert_series_equal(pi, pi2, check_exact=False)
 
     # Test alternate syntax
@@ -368,8 +363,9 @@ def test_market_implied_prior():
         market_caps=mcaps,
         absolute_views={"AAPL": 0.1},
         risk_aversion=delta,
+        risk_free_rate=0.02,
     )
-    pi = market_implied_prior_returns(mcaps, delta, S, risk_free_rate=0)
+    pi = market_implied_prior_returns(mcaps, delta, S, risk_free_rate=0.02)
     np.testing.assert_array_almost_equal(bl.pi, pi.values.reshape(-1, 1))
 
 
@@ -381,14 +377,14 @@ def test_bl_market_prior():
         resource("spy_prices.csv"), parse_dates=True, index_col=0
     ).squeeze("columns")
 
-    delta = market_implied_risk_aversion(prices)
+    delta = market_implied_risk_aversion(prices, risk_free_rate=0.02)
 
     mcaps = get_market_caps()
 
     with pytest.warns(RuntimeWarning):
         market_implied_prior_returns(mcaps, delta, S.values)
 
-    prior = market_implied_prior_returns(mcaps, delta, S)
+    prior = market_implied_prior_returns(mcaps, delta, S, risk_free_rate=0.02)
 
     viewdict = {"GOOG": 0.40, "AAPL": -0.30, "FB": 0.30, "BABA": 0}
     bl = BlackLittermanModel(S, pi=prior, absolute_views=viewdict)
@@ -401,11 +397,11 @@ def test_bl_market_prior():
         )
 
     with pytest.raises(ValueError):
-        bl.portfolio_performance()
+        bl.portfolio_performance(risk_free_rate=0.02)
 
     bl.bl_weights(delta)
     np.testing.assert_allclose(
-        bl.portfolio_performance(),
+        bl.portfolio_performance(risk_free_rate=0.02),
         (0.2580693114409672, 0.265445955488424, 0.8968654692926723),
     )
     # Check that bl.cov() has been called and used
@@ -657,11 +653,11 @@ def test_idzorek_with_priors():
     np.testing.assert_almost_equal(rets["AAPL"], -0.3)
 
     with pytest.raises(ValueError):
-        bl.portfolio_performance()
+        bl.portfolio_performance(risk_free_rate=0.02)
 
     bl.bl_weights()
     np.testing.assert_allclose(
-        bl.portfolio_performance(),
+        bl.portfolio_performance(risk_free_rate=0.02),
         (0.943431295405105, 0.5361412623208567, 1.722365653051476),
     )
     # Check that bl.cov() has been called and used

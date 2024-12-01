@@ -51,9 +51,9 @@ def returns_from_prices(prices, log_returns=False):
     :rtype: pd.DataFrame
     """
     if log_returns:
-        returns = np.log(1 + prices.pct_change()).dropna(how="all")
+        returns = np.log(1 + prices.pct_change(fill_method=None)).dropna(how="all")
     else:
-        returns = prices.pct_change().dropna(how="all")
+        returns = prices.pct_change(fill_method=None).dropna(how="all")
     return returns
 
 
@@ -199,7 +199,7 @@ def capm_return(
     prices,
     market_prices=None,
     returns_data=False,
-    risk_free_rate=0.02,
+    risk_free_rate=0.0,
     compounding=True,
     frequency=252,
     log_returns=False,
@@ -221,7 +221,7 @@ def capm_return(
     :type market_prices: pd.DataFrame, optional
     :param returns_data: if true, the first arguments are returns instead of prices.
     :type returns_data: bool, defaults to False.
-    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.02.
+    :param risk_free_rate: risk-free rate of borrowing/lending, defaults to 0.0.
                            You should use the appropriate time period, corresponding
                            to the frequency parameter.
     :type risk_free_rate: float, optional

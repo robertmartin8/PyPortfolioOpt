@@ -169,7 +169,7 @@ def test_ema_historical_return_limit():
 
 def test_capm_no_benchmark():
     df = get_data()
-    mu = expected_returns.capm_return(df)
+    mu = expected_returns.capm_return(df, risk_free_rate=0.02)
     assert isinstance(mu, pd.Series)
     assert list(mu.index) == list(df.columns)
     assert mu.notnull().all()
@@ -201,7 +201,7 @@ def test_capm_no_benchmark():
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
     # Test the (warning triggering) case that input is not a dataFrame
     with pytest.warns(RuntimeWarning):
-        mu_np = expected_returns.capm_return(df.to_numpy())
+        mu_np = expected_returns.capm_return(df.to_numpy(), risk_free_rate=0.02)
         mu_np.name = mu.name  # These will differ.
         mu_np.index = mu.index  # Index labels would be tickers.
         pd.testing.assert_series_equal(mu_np, mu)
@@ -210,7 +210,9 @@ def test_capm_no_benchmark():
 def test_capm_with_benchmark():
     df = get_data()
     mkt_df = get_benchmark_data()
-    mu = expected_returns.capm_return(df, market_prices=mkt_df, compounding=True)
+    mu = expected_returns.capm_return(
+        df, market_prices=mkt_df, compounding=True, risk_free_rate=0.02
+    )
 
     assert isinstance(mu, pd.Series)
     assert list(mu.index) == list(df.columns)
@@ -242,7 +244,9 @@ def test_capm_with_benchmark():
     )
     np.testing.assert_array_almost_equal(mu.values, correct_mu)
 
-    mu2 = expected_returns.capm_return(df, market_prices=mkt_df, compounding=False)
+    mu2 = expected_returns.capm_return(
+        df, market_prices=mkt_df, compounding=False, risk_free_rate=0.02
+    )
     assert (mu2 >= mu).all()
 
 

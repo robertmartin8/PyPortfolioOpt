@@ -134,8 +134,9 @@ def test_custom_convex_logarithmic_barrier():
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        ef.portfolio_performance(risk_free_rate=0.02),
         (0.17261881638711316, 0.21100848889958182, 0.7232828270702603),
+        rtol=1e-4,
     )
 
 
@@ -230,14 +231,14 @@ def test_custom_nonconvex_sharpe():
     ef = setup_efficient_frontier()
     w1 = ef.nonconvex_objective(
         objective_functions.sharpe_ratio,
-        objective_args=(ef.expected_returns, ef.cov_matrix),
+        objective_args=(ef.expected_returns, ef.cov_matrix, 0.02),
         weights_sum_to_one=True,
     )
-    p1 = ef.portfolio_performance()
+    p1 = ef.portfolio_performance(risk_free_rate=0.02)
 
     ef = setup_efficient_frontier()
-    w2 = ef.max_sharpe()
-    p2 = ef.portfolio_performance()
+    w2 = ef.max_sharpe(risk_free_rate=0.02)
+    p2 = ef.portfolio_performance(risk_free_rate=0.02)
 
     np.testing.assert_allclose(list(w1.values()), list(w2.values()), atol=2e-4)
     assert p2[2] >= p1[2]
@@ -320,7 +321,7 @@ def test_custom_nonconvex_objective_market_neutral_efficient_risk():
         constraints=constraints,
     )
     np.testing.assert_allclose(
-        ef.portfolio_performance(),
+        ef.portfolio_performance(risk_free_rate=0.02),
         (0.2591296227818582, target_risk, 1.258574109251818),
         atol=1e-6,
     )

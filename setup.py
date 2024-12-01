@@ -10,7 +10,7 @@ with open("README.md", "r") as f:
 if __name__ == "__main__":
     setuptools.setup(
         name="pyportfolioopt",
-        version="1.5.5",
+        version="1.5.6",
         description="Financial portfolio optimization in python",
         long_description=desc,
         long_description_content_type="text/markdown",
