@@ -106,7 +106,7 @@ class BaseOptimizer:
         """
         clean_weights = self.clean_weights()
 
-        ext = filename.split(".")[1]
+        ext = filename.split(".")[-1].lower()
         if ext == "csv":
             pd.Series(clean_weights).to_csv(filename, header=False)
         elif ext == "json":
