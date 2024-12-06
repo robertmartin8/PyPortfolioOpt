@@ -1,0 +1,27 @@
+# This workflow will analyze Python dependencies, see https://deptry.com
+
+name: deptry
+
+on:
+  push
+
+jobs:
+  deptry:
+    runs-on: ubuntu-latest
+    #env:
+    #  MPLBACKEND: Agg # https://github.com/orgs/community/discussions/26434
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install deptry
+      - name: Analysis with deptry
+        run: |
+          deptry -vv pypfopt
