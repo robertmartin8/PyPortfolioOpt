@@ -1,14 +1,23 @@
-FROM python:3.11-slim-buster
+FROM python:3.12
 
-WORKDIR pypfopt
-COPY requirements.txt .
+WORKDIR /pypfopt
+COPY --link requirements.txt .
 
-RUN pip install --upgrade pip \
-    pip install yfinance && \
-    pip install poetry \
-    pip install ipython \
-    pip install jupyter \
-    pip install pytest \
+# prepare the system to install scs
+RUN apt-get update && apt-get install -y \
+    cmake \
+    libopenblas-dev \
+    liblapack-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+
+RUN pip install --upgrade pip && \
+    pip install yfinance \
+    poetry \
+    ipython \
+    jupyter \
+    ecos \
+    pytest && \
     pip install -r requirements.txt
 
 COPY . .
