@@ -1,0 +1,19 @@
+#https://stackoverflow.com/questions/28097064/dockerignore-ignore-everything-except-a-file-and-the-dockerfile
+
+# Ignore Everything
+**
+
+# do not ignore
+!docs
+!cookbook
+!pypfopt
+!tests
+
+!requirements.txt
+!poetry.lock
+!pyproject.toml
+!README.md
+
+# even in those folders ignore
+*/__pycache__
+*/*.pyc
