@@ -46,7 +46,7 @@ portfolio), the allocation method may deviate rather widely from the desired wei
 particularly for companies with a high share price (e.g AMZN).
 
 .. code-block:: text
-    
+
     Funds remaining: 12.15
     MA: allocated 0.242, desired 0.246
     FB: allocated 0.200, desired 0.199
@@ -108,7 +108,7 @@ allocations for the long-only and short-only portions. If your portfolio has sho
 you should pass a short ratio. The default is 0.30, corresponding to a 130/30 long-short balance.
 Practically, this means that you would go long $10,000 of some stocks, short $3000 of some other
 stocks, then use the proceeds from the shorts to go long another $3000.
-Thus the total value of the resulting portfolio would be $13,000. 
+Thus the total value of the resulting portfolio would be $13,000.
 
 Documentation reference
 ========================
@@ -120,5 +120,3 @@ Documentation reference
         :private-members:
 
         .. automethod:: __init__
-
-

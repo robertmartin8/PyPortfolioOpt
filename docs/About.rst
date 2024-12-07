@@ -16,6 +16,3 @@ lie in the implementation. At the same time, I realised that existing open-sourc
 for several reasons, and that people 'out there' might benefit from a
 well-documented and intuitive API. This is what motivated the development of
 PyPortfolioOpt.
-
-
-

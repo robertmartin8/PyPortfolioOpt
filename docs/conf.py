@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # package_template documentation build configuration file, created by
 # sphinx-quickstart on Fri May 13 14:31:17 2016.
