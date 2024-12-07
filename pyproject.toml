@@ -1,13 +1,14 @@
-[tool.poetry]
+[project]
 name = "pyportfolioopt"
-version = "1.5.6"
+version = "0.0.0"
 description = "Financial portfolio optimization in python"
 license = "MIT"
-authors = ["Robert Andrew Martin <martin.robertandrew@gmail.com>"]
+authors = [{name="Robert Andrew Martin", email="martin.robertandrew@gmail.com"}]
 readme = "README.md"
 repository = "https://github.com/robertmartin8/PyPortfolioOpt"
 documentation = "https://pyportfolioopt.readthedocs.io/en/latest/"
 keywords= ["finance", "portfolio", "optimization", "quant", "investing"]
+requires-python = ">=3.10"
 classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
@@ -25,43 +26,90 @@ classifiers=[
         "Topic :: Office/Business :: Financial",
         "Topic :: Office/Business :: Financial :: Investment",
     ]
-packages = [ {include = "pypfopt"} ]
+dependencies = [
+        "scipy",
+        "pandas",
+        "cvxpy",
+        "numpy"
+]
 
-[tool.poetry.urls]
-"Issues" = "https://github.com/robertmartin8/PyPortfolioOpt/issues"
-"Personal website" = "https://reasonabledeviations.com"
+#[tool.poetry.urls]
+#"Issues" = "https://github.com/robertmartin8/PyPortfolioOpt/issues"
+#"Personal website" = "https://reasonabledeviations.com"
 
-[tool.poetry.dependencies]
-python = ">=3.9"
-scipy = ">=1.3"
-pandas = ">=0.19"
-cvxpy = ">=1.1.19"
-numpy = ">=1.26.0"
-matplotlib = { version=">=3.2.0", optional=true }
-scikit-learn = { version=">=0.24.1", optional=true }
-ecos = { version="^2.0.14", optional=true }
-plotly = { version="^5.0.0", optional=true }
+[project.optional-dependencies]
+plot = [
+        "matplotlib",
+        "plotly",
+        "scikit-learn",
+        "ecos"
+]
 
-[tool.poetry.dev-dependencies]
-pytest = ">=7.1.2"
-flake8 = ">=4.0.1"
-jupyterlab = ">=3.4.2"
-black = ">=22.3.0"
-ipykernel = ">=6.13.0"
-jedi = ">=0.18.1"
-pytest-cov = ">=3.0.0"
-yfinance = ">=0.1.70"
+[dependency-groups]
+dev = [
+        "pytest-cov>=6.0.0",
+        "pytest>=8.3.3",
+        "pre-commit>=4.0.1",
+        "jedi",
+        "yfinance",
+        "ecos"
+]
 
-[tool.poetry.extras]
-optionals = ["scikit-learn", "matplotlib", "cvxopt"]
+#excel = [
+#  "odfpy>=1.4.1",
+#  "openpyxl>=3.1.0",
+#  "python-calamine>=0.1.7",
+#  "pyxlsb>=1.0.10",
+#  "xlrd>=2.0.1",
+#  "xlsxwriter>=3.0.5"
+#]
+
+#[tool.poetry.dependencies]
+#python = ">=3.9"
+#scipy = ">=1.3"
+#pandas = ">=0.19"
+#cvxpy = ">=1.1.19"
+#numpy = ">=1.26.0"
+#matplotlib = { version=">=3.2.0", optional=true }
+#scikit-learn = { version=">=0.24.1", optional=true }
+#ecos = { version="^2.0.14", optional=true }
+#plotly = { version="^5.0.0", optional=true }
+
+#[tool.poetry.dev-dependencies]
+#pytest = ">=7.1.2"
+#flake8 = ">=4.0.1"
+#jupyterlab = ">=3.4.2"
+#black = ">=22.3.0"
+#ipykernel = ">=6.13.0"
+#jedi = ">=0.18.1"
+#pytest-cov = ">=3.0.0"
+#yfinance = ">=0.1.70"
+
+#[tool.poetry.extras]
+#optionals = ["scikit-learn", "matplotlib", "cvxopt"]
+
+[tool.ruff]
+select = ["E", "F", "I"]
+line-length = 120
+target-version = "py310"
+exclude = [
+    "*__init__.py", "tests/test_imports.py"
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pypfopt"]
+
+#[build-system]
+#requires = ["poetry-core>=1.0.0"]
+#build-backend = "poetry.core.masonry.api"
 
 
-[tool.black]
-line-length = 88
+#[tool.black]
+#line-length = 88
 
-[tool.isort]
-profile = "black"
+#[tool.isort]
+#profile = "black"
