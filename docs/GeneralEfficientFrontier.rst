@@ -6,7 +6,7 @@ General Efficient Frontier
 
 The mean-variance optimization methods described previously can be used whenever you have a vector
 of expected returns and a covariance matrix. The objective and constraints will be some combination
-of the portfolio return and portfolio volatility. 
+of the portfolio return and portfolio volatility.
 
 However, you may want to construct the efficient frontier for an entirely different type of risk model
 (one that doesn't depend on covariance matrices), or optimize an objective unrelated to portfolio
@@ -17,7 +17,7 @@ Efficient Semivariance
 ======================
 
 Instead of penalising volatility, mean-semivariance optimization seeks to only penalise
-downside volatility, since upside volatility may be desirable. 
+downside volatility, since upside volatility may be desirable.
 
 There are two approaches to the mean-semivariance optimization problem. The first is to use a
 heuristic (i.e "quick and dirty") solution: pretending that the semicovariance matrix
@@ -45,11 +45,11 @@ For example, to maximise return for a target semivariance
 
 Here, **B** is the :math:`T \times N` (scaled) matrix of excess returns:
 ``B = (returns - benchmark) / sqrt(T)``. Additional linear equality constraints and
-convex inequality constraints can be added. 
+convex inequality constraints can be added.
 
 PyPortfolioOpt allows users to optimize along the efficient semivariance frontier
 via the :py:class:`EfficientSemivariance` class. :py:class:`EfficientSemivariance` inherits from
-:py:class:`EfficientFrontier`, so it has the same utility methods 
+:py:class:`EfficientFrontier`, so it has the same utility methods
 (e.g :py:func:`add_constraint`, :py:func:`portfolio_performance`), but finds portfolios on the mean-semivariance
 frontier. Note  that some of the parent methods, like :py:func:`max_sharpe` and :py:func:`min_volatility`
 are not applicable to mean-semivariance portfolios, so calling them returns ``NotImplementedError``.
@@ -70,14 +70,14 @@ annual return of 20%::
     es.efficient_return(0.20)
 
     # We can use the same helper methods as before
-    weights = es.clean_weights() 
+    weights = es.clean_weights()
     print(weights)
     es.portfolio_performance(verbose=True)
 
 The ``portfolio_performance`` method outputs the expected portfolio return, semivariance,
 and the Sortino ratio (like the Sharpe ratio, but for downside deviation).
 
-Interested readers should refer to Estrada (2007) [1]_ for more details. I'd like to thank 
+Interested readers should refer to Estrada (2007) [1]_ for more details. I'd like to thank
 `Philipp Schiele <https://github.com/phschiele>`_ for authoring the bulk
 of the efficient semivariance functionality and documentation (all errors are my own). The
 implementation is based on Markowitz et al (2019) [2]_.
@@ -85,8 +85,8 @@ implementation is based on Markowitz et al (2019) [2]_.
 .. caution::
 
     Finding portfolios on the mean-semivariance frontier is computationally harder
-    than standard mean-variance optimization: our implementation uses ``2T + N`` optimization variables, 
-    meaning that for 50 assets and 3 years of data, there are about 1500 variables.  
+    than standard mean-variance optimization: our implementation uses ``2T + N`` optimization variables,
+    meaning that for 50 assets and 3 years of data, there are about 1500 variables.
     While :py:class:`EfficientSemivariance` allows for additional constraints/objectives in principle,
     you are much more likely to run into solver errors. I suggest that you keep :py:class:`EfficientSemivariance`
     problems small and minimally constrained.
@@ -104,11 +104,11 @@ thought of as the average of losses that occur on "very bad days", where "very b
 
 For example, if we calculate the CVaR to be 10% for :math:`\beta = 0.95`, we can be 95% confident that the worst-case
 average daily loss will be 3%. Put differently, the CVaR is the average of all losses so severe that they only occur
-:math:`(1-\beta)\%` of the time. 
+:math:`(1-\beta)\%` of the time.
 
 While CVaR is quite an intuitive concept, a lot of new notation is required to formulate it mathematically (see
 the `wiki page <https://en.wikipedia.org/wiki/Expected_shortfall>`_ for more details). We will adopt the following
-notation: 
+notation:
 
 - *w* for the vector of portfolio weights
 - *r* for a vector of asset returns (daily), with probability distribution :math:`p(r)`.
@@ -123,7 +123,7 @@ The CVaR can then be written as:
 This is a nasty expression to optimize because we are essentially integrating over VaR values. The key insight
 of Rockafellar and Uryasev (2001) [3]_ is that we can can equivalently optimize the following convex function:
 
-.. math:: 
+.. math::
     F_\beta (w, \alpha) = \alpha + \frac{1}{1-\beta} \int [-w^T r - \alpha]^+ p(r) dr,
 
 where :math:`[x]^+ = \max(x, 0)`. The authors prove that minimising :math:`F_\beta(w, \alpha)` over all
@@ -143,7 +143,7 @@ problem reduces to a linear program:
 
 This formulation introduces a new variable for each datapoint (similar to Efficient Semivariance), so
 you may run into performance issues for long returns dataframes. At the same time, you should aim to
-provide a sample of data that is large enough to include tail events. 
+provide a sample of data that is large enough to include tail events.
 
 I am grateful to `Nicolas Knudde <https://github.com/nknudde>`_ for the initial draft (all errors are my own).
 The implementation is based on Rockafellar and Uryasev (2001) [3]_.
@@ -180,7 +180,7 @@ The CDaR can then be written as:
 
 This is a nasty expression to optimise because we are essentially integrating over VaR values. The key insight
 of Chekhlov, Rockafellar and Uryasev (2005) [4]_ is that we can can equivalently optimise a convex function, which can be
-transformed to a linear problem (in the same manner as for CVaR). 
+transformed to a linear problem (in the same manner as for CVaR).
 
 .. autoclass:: pypfopt.efficient_frontier.EfficientCDaR
     :members:
@@ -210,7 +210,7 @@ a mean-variance optimization paradigm, but we can still implement it in PyPortfo
     benchmark_rets = ... # pd.Series of historic benchmark returns (same index as historic)
 
     opt = BaseConvexOptimizer(
-        n_assets=len(historic_returns.columns), 
+        n_assets=len(historic_returns.columns),
         tickers=historic_returns.columns,
         weight_bounds=(0, 1)
     )
@@ -218,12 +218,12 @@ a mean-variance optimization paradigm, but we can still implement it in PyPortfo
         ex_post_tracking_error,
         historic_returns=historic_rets,
         benchmark_returns=benchmark_rets,
-    ) 
+    )
     weights = opt.clean_weights()
 
 The ``EfficientFrontier`` class inherits from ``BaseConvexOptimizer``. It may be more convenient
 to call ``convex_objective`` from an ``EfficientFrontier`` instance than from ``BaseConvexOptimizer``,
-particularly if your objective depends on the mean returns or covariance matrix. 
+particularly if your objective depends on the mean returns or covariance matrix.
 
 You can either optimize some generic ``convex_objective``
 (which *must* be built using ``cvxpy`` atomic functions -- see `here <https://www.cvxpy.org/tutorial/functions/index.html>`_)

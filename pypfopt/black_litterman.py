@@ -135,7 +135,7 @@ class BlackLittermanModel(base_optimizer.BaseOptimizer):
         view_confidences=None,
         tau=0.05,
         risk_aversion=1,
-        **kwargs
+        **kwargs,
     ):
         """
         :param cov_matrix: NxN covariance matrix of returns

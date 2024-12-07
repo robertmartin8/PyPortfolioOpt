@@ -14,7 +14,7 @@ PyPortfolioOpt is now a "mature" package – it is stable and I don't intend to 
 =====
 
 - Major redesign of the backend, thanks to `Philipp Schiele <https://github.com/phschiele>`_
-  - Because we use ``cp.Parameter``, we can efficiently re-run optimisation problems with different constants (e.g risk targets) 
+  - Because we use ``cp.Parameter``, we can efficiently re-run optimisation problems with different constants (e.g risk targets)
   - This leads to a significant improvement in plotting performance as we no longer have to repeatedly re-instantiate ``EfficientFrontier``.
 - Several misc bug fixes (thanks to `Eric Armbruster <https://github.com/armbruer>`_ and `Ayoub Ennassiri <https://github.com/samatix>`_)
 
@@ -31,8 +31,8 @@ Minor bug fixes
 1.5.3
 -----
 
-- Reworked packaging: ``cvxpy`` is no longer a requirement as we default to ``ECOS_BB`` for discrete allocation. 
-- Bumped minimum python version to ``3.8``. I would love to keep as many versions compatible (and I think most of the 
+- Reworked packaging: ``cvxpy`` is no longer a requirement as we default to ``ECOS_BB`` for discrete allocation.
+- Bumped minimum python version to ``3.8``. I would love to keep as many versions compatible (and I think most of the
   functionality *should* still work with ``3.6, 3.7`` but the dependencies have gotten too tricky to manage).
 - Changed to numpy pseudoinverse to allow for "cash" assets
 - Ticker labels for efficient frontier plot
@@ -40,8 +40,8 @@ Minor bug fixes
 1.5.4
 -----
 
-- Fixed ``cvxpy`` deprecating deepcopy. Thanks to Philipp for the fix! 
-- Several other tiny checks and bug fixes. Cheers to everyone for the PRs! 
+- Fixed ``cvxpy`` deprecating deepcopy. Thanks to Philipp for the fix!
+- Several other tiny checks and bug fixes. Cheers to everyone for the PRs!
 
 1.5.5
 -----
@@ -58,10 +58,10 @@ Minor bug fixes
 =====
 
 - Finally implemented CVaR optimization! This has been one of the most requested features. Many thanks
-  to `Nicolas Knudde <https://github.com/nknudde>`_ for the initial draft. 
+  to `Nicolas Knudde <https://github.com/nknudde>`_ for the initial draft.
 - Re-architected plotting so users can pass an ax, allowing for complex plots (see cookbook).
 - Helper method to compute the max-return portfolio (thanks to `Philipp Schiele <https://github.com/phschiele>`_)
-  for the suggestion). 
+  for the suggestion).
 - Several bug fixes and test improvements (thanks to `Carl Peasnell <https://github.com/SeaPea1>`_).
 
 1.4.1
@@ -113,7 +113,7 @@ Fixed critical ordering bug in sector constraints
 1.2.2
 -----
 
-Matplotlib now required dependency; support for pandas 1.0. 
+Matplotlib now required dependency; support for pandas 1.0.
 
 1.2.3
 -----
@@ -126,7 +126,7 @@ Matplotlib now required dependency; support for pandas 1.0.
 -----
 
 - Fixed bug in Ledoit-Wolf shrinkage calculation.
-- Fixed bug in plotting docs that caused them not to render. 
+- Fixed bug in plotting docs that caused them not to render.
 
 1.2.5
 -----
@@ -134,9 +134,9 @@ Matplotlib now required dependency; support for pandas 1.0.
 - Fixed compounding in ``expected_returns`` (thanks to `Aditya Bhutra <https://github.com/bhutraaditya>`_).
 - Improvements in advanced cvxpy API (thanks to `Pat Newell <https://github.com/pmn4>`_).
 - Deprecating James-Stein
-- Exposed ``linkage_method`` in HRP. 
+- Exposed ``linkage_method`` in HRP.
 - Added support for cvxpy 1.1.
-- Added an error check for ``efficient_risk``. 
+- Added an error check for ``efficient_risk``.
 - Small improvements to docs.
 
 1.2.6
@@ -156,7 +156,7 @@ Matplotlib now required dependency; support for pandas 1.0.
 =====
 
 - Multiple additions and improvements to ``risk_models``:
-    
+
   - Introduced a new API, in which the function ``risk_models.risk_matrix(method="...")`` allows
     all the different risk models to be called. This should make testing easier.
   - All methods now accept returns data instead of prices, if you set the flag ``returns_data=True``.
@@ -181,15 +181,15 @@ Matplotlib now required dependency; support for pandas 1.0.
 
   - PyPortfolioOpt is now significantly more robust and numerically stable.
   - These changes will not affect basic users, who can still access features like ``max_sharpe()``.
-  - However, additional objectives and constraints (including L2 regularisation) are now 
+  - However, additional objectives and constraints (including L2 regularisation) are now
     explicitly added before optimising some 'primary' objective.
 
-- Added basic plotting capabilities for the efficient frontier, hierarchical clusters, 
+- Added basic plotting capabilities for the efficient frontier, hierarchical clusters,
   and HRP dendrograms.
 - Added a basic transaction cost objective.
 - Made breaking changes to some modules and classes so that PyPortfolioOpt is easier to extend
   in future:
-  
+
   - Replaced ``BaseScipyOptimizer`` with ``BaseConvexOptimizer``
   - ``hierarchical_risk_parity`` was replaced by ``hierarchical_portfolios`` to leave the door open for other hierarchical methods.
   - Sadly, removed CVaR optimization for the time being until I can properly fix it.
@@ -233,12 +233,12 @@ experience.
 
 - Fixed an optimization bug in ``EfficientFrontier.efficient_risk``. An error is now
   thrown if optimization fails.
-- Added a hidden API to change the scipy optimizer method. 
+- Added a hidden API to change the scipy optimizer method.
 
 0.5.4
 -----
 
-- Improved the Black-Litterman linear algebra to avoid inverting the uncertainty matrix. 
+- Improved the Black-Litterman linear algebra to avoid inverting the uncertainty matrix.
   It is now possible to have 100% confidence in views.
 - Clarified regarding the role of tau.
 - Added a ``pipfile`` for ``pipenv`` users.
@@ -247,7 +247,7 @@ experience.
 0.5.5
 -----
 
-Began migration to cvxpy by changing the discrete allocation backend from PuLP to cvxpy. 
+Began migration to cvxpy by changing the discrete allocation backend from PuLP to cvxpy.
 
 0.4.0
 =====
@@ -294,7 +294,7 @@ Began migration to cvxpy by changing the discrete allocation backend from PuLP t
 0.3.1
 -----
 
-Merged `PR <https://github.com/robertmartin8/PyPortfolioOpt/pull/23>`__ from `TommyBark <https://github.com/TommyBark>`_ 
+Merged `PR <https://github.com/robertmartin8/PyPortfolioOpt/pull/23>`__ from `TommyBark <https://github.com/TommyBark>`_
 fixing a bug in the arguments of a call to ``portfolio_performance``.
 
 0.3.3

@@ -127,9 +127,9 @@ the following shrinkage methods:
 
     - ``constant_variance`` shrinkage, i.e the target is the diagonal matrix with the mean of
       asset variances on the diagonals and zeroes elsewhere. This is the shrinkage offered
-      by ``sklearn.LedoitWolf``. 
+      by ``sklearn.LedoitWolf``.
     - ``single_factor`` shrinkage. Based on Sharpe's single-index model which effectively uses
-      a stock's beta to the market as a risk model. See Ledoit and Wolf 2001 [4]_. 
+      a stock's beta to the market as a risk model. See Ledoit and Wolf 2001 [4]_.
     - ``constant_correlation`` shrinkage, in which all pairwise correlations are set to
       the average correlation (sample variances are unchanged). See Ledoit and Wolf 2003 [3]_
 
@@ -146,7 +146,7 @@ the following shrinkage methods:
 
 My implementations have been translated from the Matlab code on
 `Michael Wolf's webpage <https://www.econ.uzh.ch/en/people/faculty/wolf/publications.html>`_, with
-the help of `xtuanta <https://github.com/robertmartin8/PyPortfolioOpt/issues/20>`_. 
+the help of `xtuanta <https://github.com/robertmartin8/PyPortfolioOpt/issues/20>`_.
 
 
 .. autoclass:: CovarianceShrinkage

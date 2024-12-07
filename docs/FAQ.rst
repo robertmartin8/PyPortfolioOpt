@@ -23,7 +23,7 @@ Constraining the number of assets
 
 Unfortunately, cardinality constraints are not convex, making them difficult to implement.
 
-However, we can treat it as a mixed-integer program and solve (provided you have access to a solver). 
+However, we can treat it as a mixed-integer program and solve (provided you have access to a solver).
 for small problems with less than 1000 variables and constraints, you can use the community version of CPLEX:
 ``pip install cplex``. In the below example, we limit the portfolio to at most 10 assets::
 
@@ -52,5 +52,3 @@ as a constraint. This is an example of adding a tracking error constraint::
     ef.add_constraint(ex_ante_tracking_error, cov_matrix=ef.cov_matrix,
                       benchmark_weights=benchmark_weights)
     ef.min_volatility()
-
-

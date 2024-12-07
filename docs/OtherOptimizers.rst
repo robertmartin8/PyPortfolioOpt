@@ -57,7 +57,7 @@ The Critical Line Algorithm
 ===========================
 
 This is a robust alternative to the quadratic solver used to find mean-variance optimal portfolios,
-that is especially advantageous when we apply linear inequalities. Unlike generic convex optimization routines, 
+that is especially advantageous when we apply linear inequalities. Unlike generic convex optimization routines,
 the CLA is specially designed for portfolio optimization. It is guaranteed to converge after a certain
 number of iterations, and can efficiently derive the entire efficient frontier.
 
@@ -66,7 +66,7 @@ number of iterations, and can efficiently derive the entire efficient frontier.
    :align: center
    :alt: the Efficient Frontier
 
-.. tip:: 
+.. tip::
 
     In general, unless you have specific requirements e.g you would like to efficiently compute the entire
     efficient frontier for plotting, I would go with the standard ``EfficientFrontier`` optimizer.
@@ -117,4 +117,4 @@ References
 ==========
 
 .. [1] López de Prado, M. (2016). `Building Diversified Portfolios that Outperform Out of Sample <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2708678>`_. The Journal of Portfolio Management, 42(4), 59–69.
-.. [2] Bailey and Loópez de Prado (2013). `An Open-Source Implementation of the Critical-Line Algorithm for Portfolio Optimization <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2197616>`_ 
+.. [2] Bailey and Loópez de Prado (2013). `An Open-Source Implementation of the Critical-Line Algorithm for Portfolio Optimization <https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2197616>`_

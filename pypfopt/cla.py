@@ -314,11 +314,11 @@ class CLA(base_optimizer.BaseOptimizer):
                 covarF_inv = np.linalg.inv(covarF)
                 j = 0
                 for i in f:
-                    l, bi = self._compute_lambda(
+                    lamb, bi = self._compute_lambda(
                         covarF_inv, covarFB, meanF, wB, j, [self.lB[i], self.uB[i]]
                     )
-                    if CLA._infnone(l) > CLA._infnone(l_in):
-                        l_in, i_in, bi_in = l, i, bi
+                    if CLA._infnone(lamb) > CLA._infnone(l_in):
+                        l_in, i_in, bi_in = lamb, i, bi
                     j += 1
             # 2) case b): Free one bounded weight
             l_out = None
@@ -327,7 +327,7 @@ class CLA(base_optimizer.BaseOptimizer):
                 for i in b:
                     covarF, covarFB, meanF, wB = self._get_matrices(f + [i])
                     covarF_inv = np.linalg.inv(covarF)
-                    l, bi = self._compute_lambda(
+                    lamb, bi = self._compute_lambda(
                         covarF_inv,
                         covarFB,
                         meanF,
@@ -335,10 +335,10 @@ class CLA(base_optimizer.BaseOptimizer):
                         meanF.shape[0] - 1,
                         self.w[-1][i],
                     )
-                    if (self.ls[-1] is None or l < self.ls[-1]) and l > CLA._infnone(
-                        l_out
-                    ):
-                        l_out, i_out = l, i
+                    if (
+                        self.ls[-1] is None or lamb < self.ls[-1]
+                    ) and lamb > CLA._infnone(l_out):
+                        l_out, i_out = lamb, i
             if (l_in is None or l_in < 0) and (l_out is None or l_out < 0):
                 # 3) compute minimum variance solution
                 self.ls.append(0)
