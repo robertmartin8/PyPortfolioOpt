@@ -82,7 +82,7 @@ class DiscreteAllocation:
         self.latest_prices = latest_prices
         self.total_portfolio_value = total_portfolio_value
         if short_ratio is None:
-            self.short_ratio = sum((-x[1] for x in self.weights if x[1] < 0))
+            self.short_ratio = sum(-x[1] for x in self.weights if x[1] < 0)
         else:
             self.short_ratio = short_ratio
 
