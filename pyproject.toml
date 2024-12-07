@@ -90,11 +90,13 @@ dev = [
 [tool.ruff]
 [lint]
         select = ["E", "F", "I"]
+        exclude = ["*__init__.py", "tests/test_imports.py"]
+
 line-length = 120
 target-version = "py310"
-exclude = [
-    "*__init__.py", "tests/test_imports.py"
-]
+#exclude = [
+#    "*__init__.py", "tests/test_imports.py"
+#]
 
 [build-system]
 requires = ["hatchling"]

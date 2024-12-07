@@ -2,7 +2,7 @@ import re
 
 import setuptools
 
-with open("README.md", "r") as f:
+with open("README.md") as f:
     desc = f.read()
     desc = desc.split("<!-- content -->")[-1]
     desc = re.sub("<[^<]+?>", "", desc)  # Remove html

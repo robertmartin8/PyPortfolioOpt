@@ -1,3 +1,6 @@
+# ruff: noqa
+
+
 def test_import_modules():
     from pypfopt import (
         base_optimizer,
