@@ -17,6 +17,7 @@ classifiers=[
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.10",
@@ -38,12 +39,11 @@ dependencies = [
 #"Personal website" = "https://reasonabledeviations.com"
 
 [project.optional-dependencies]
-plot = [
-        "matplotlib",
-        "plotly",
-        "scikit-learn",
-        "ecos"
-]
+plot = ["matplotlib", "plotly"]
+
+ecos = ["ecos"]
+
+scikit-learn = ["scikit-learn"]
 
 [dependency-groups]
 dev = [
@@ -51,8 +51,7 @@ dev = [
         "pytest>=8.3.3",
         "pre-commit>=4.0.1",
         "jedi",
-        "yfinance",
-        "ecos"
+        "yfinance"
 ]
 
 #excel = [
@@ -103,6 +102,8 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["pypfopt"]
 
+[tool.deptry.per_rule_ignores]
+DEP002 = ["ecos"]
 #[build-system]
 #requires = ["poetry-core>=1.0.0"]
 #build-backend = "poetry.core.masonry.api"

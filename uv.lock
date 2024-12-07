@@ -1003,16 +1003,19 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-plot = [
+ecos = [
     { name = "ecos" },
+]
+plot = [
     { name = "matplotlib" },
     { name = "plotly" },
+]
+scikit-learn = [
     { name = "scikit-learn" },
 ]
 
 [package.dev-dependencies]
 dev = [
-    { name = "ecos" },
     { name = "jedi" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -1023,18 +1026,17 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cvxpy" },
-    { name = "ecos", marker = "extra == 'plot'" },
+    { name = "ecos", marker = "extra == 'ecos'" },
     { name = "matplotlib", marker = "extra == 'plot'" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "plotly", marker = "extra == 'plot'" },
-    { name = "scikit-learn", marker = "extra == 'plot'" },
+    { name = "scikit-learn", marker = "extra == 'scikit-learn'" },
     { name = "scipy" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "ecos" },
     { name = "jedi" },
     { name = "pre-commit", specifier = ">=4.0.1" },
     { name = "pytest", specifier = ">=8.3.3" },
