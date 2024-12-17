@@ -1,0 +1,27 @@
+name: "ci"
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+
+jobs:
+  test:
+    # The type of runner that the job will run on
+    runs-on: ${{ matrix.os }}
+    env:
+      MPLBACKEND: Agg # https://github.com/orgs/community/discussions/26434
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12', '3.13' ]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cvxgrp/.github/actions/uv/test@main
+        with:
+          python-version: ${{ matrix.python-version }}

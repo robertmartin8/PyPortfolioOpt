@@ -17,7 +17,7 @@ superior models and feed them into the optimizer.
     Supplying expected returns can do more harm than good. If
     predicting stock returns were as easy as calculating the mean historical return,
     we'd all be rich! For most use-cases, I would suggest that you focus your efforts
-    on choosing an appropriate risk model (see :ref:`risk-models`). 
+    on choosing an appropriate risk model (see :ref:`risk-models`).
 
     As of v0.5.0, you can use :ref:`black-litterman` to significantly improve the quality of
     your estimate of the expected returns.

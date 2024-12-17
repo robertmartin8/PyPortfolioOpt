@@ -15,7 +15,7 @@ of in several different ways:
 The :py:mod:`plotting` module provides support for all three of these approaches. To produce
 a plot of the efficient frontier, you should instantiate your :py:class:`EfficientFrontier` object
 and add constraints like you normally would, but *before* calling an optimization function (e.g with
-:py:func:`ef.max_sharpe`), you should pass this the instantiated object into :py:func:`plot.plot_efficient_frontier`:: 
+:py:func:`ef.max_sharpe`), you should pass this the instantiated object into :py:func:`plot.plot_efficient_frontier`::
 
     ef = EfficientFrontier(mu, S, weight_bounds=(None, None))
     ef.add_constraint(lambda w: w[0] >= 0.2)
@@ -33,8 +33,8 @@ This produces the following plot:
         :align: center
         :alt: the Efficient Frontier
 
-You can explicitly pass a range of parameters (risk, utility, or returns) to generate a frontier:: 
-    
+You can explicitly pass a range of parameters (risk, utility, or returns) to generate a frontier::
+
     # 100 portfolios with risks between 0.10 and 0.30
     risk_range = np.linspace(0.10, 0.40, 100)
     plotting.plot_efficient_frontier(ef, ef_param="risk", ef_param_range=risk_range,

@@ -189,17 +189,17 @@ def test_save_weights_to_file():
         json.dump(weights, f)
 
     # Test reading
-    with open(test_file_path_txt, "r") as f:
+    with open(test_file_path_txt) as f:
         parsed = json.load(f)
     assert ef.clean_weights() == parsed
 
     ef.save_weights_to_file(test_file_path_json)
-    with open(test_file_path_json, "r") as f:
+    with open(test_file_path_json) as f:
         parsed = json.load(f)
     assert ef.clean_weights() == parsed
 
     ef.save_weights_to_file(test_file_path_csv)
-    with open(test_file_path_csv, "r") as f:
+    with open(test_file_path_csv) as f:
         df = pd.read_csv(
             f,
             header=None,

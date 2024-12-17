@@ -76,8 +76,8 @@ The alternative is to clone/download the project, then in the project directory 
 
     python setup.py install
 
-Thanks to Thomas Schmelzer, PyPortfolioOpt now supports Docker (requires 
-**make**, **docker**, **docker-compose**). Build your first container with 
+Thanks to Thomas Schmelzer, PyPortfolioOpt now supports Docker (requires
+**make**, **docker**, **docker-compose**). Build your first container with
 ``make build``; run tests with ``make test``. For more information, please read
 `this guide <https://docker-curriculum.com/#introduction>`_.
 
@@ -171,7 +171,7 @@ Contents
 .. toctree::
     :maxdepth: 1
     :caption: Other information
-    
+
     FAQ
     Roadmap
     Citing
@@ -221,7 +221,7 @@ of your efforts!
 - Aditya Bhutra
 - Thomas Schmelzer
 - Rich Caputo
-- Nicolas Knudde 
+- Nicolas Knudde
 
 
 Indices and tables

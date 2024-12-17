@@ -1,0 +1,34 @@
+name: pre-commit
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  #pre-commit:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@v4
+  #  - uses: pre-commit/action@v3.0.1
+  #    with:
+  #      extra_args: '--verbose --all-files'
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cvxgrp/.github/actions/uv/coverage@main
+        with:
+          source-folder: 'pypfopt'
+
+
+
+  deptry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cvxgrp/.github/actions/uv/deptry@main
+        with:
+          source-folder: 'pypfopt'

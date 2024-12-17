@@ -9,16 +9,16 @@ Specifically, it combines a **prior** estimate of returns (for example, the mark
 returns) with **views** on certain assets, to produce a **posterior** estimate of expected
 returns. The advantages of this are:
 
-- You can provide views on only a subset of assets and BL will meaningfully propagate it, 
+- You can provide views on only a subset of assets and BL will meaningfully propagate it,
   taking into account the covariance with other assets.
 - You can provide *confidence* in your views.
 - Using Black-Litterman posterior returns results in much more stable portfolios than
-  using mean-historical return. 
+  using mean-historical return.
 
 Essentially, Black-Litterman treats the vector of expected returns itself as a quantity to
 be estimated. The Black-Litterman formula is given below:
 
-.. math:: 
+.. math::
 
     E(R) = [(\tau \Sigma)^{-1} + P^T \Omega^{-1} P]^{-1}[(\tau \Sigma)^{-1} \Pi + P^T \Omega^{-1} Q]
 
@@ -26,14 +26,14 @@ be estimated. The Black-Litterman formula is given below:
 - :math:`Q` is a Kx1 vector of views.
 - :math:`P` is the KxN **picking matrix** which maps views to the universe of assets.
   Essentially, it tells the model which view corresponds to which asset(s).
-- :math:`\Omega` is the KxK **uncertainty matrix** of views. 
-- :math:`\Pi` is the Nx1 vector of prior expected returns. 
+- :math:`\Omega` is the KxK **uncertainty matrix** of views.
+- :math:`\Pi` is the Nx1 vector of prior expected returns.
 - :math:`\Sigma` is the NxN covariance matrix of asset returns (as always)
-- :math:`\tau` is a scalar tuning constant. 
+- :math:`\tau` is a scalar tuning constant.
 
 Though the formula appears to be quite unwieldy, it turns out that the formula simply represents
 a weighted average between the prior estimate of returns and the views, where the weighting
-is determined by the confidence in the views and the parameter :math:`\tau`. 
+is determined by the confidence in the views and the parameter :math:`\tau`.
 
 Similarly, we can calculate a posterior estimate of the covariance matrix:
 
@@ -52,7 +52,7 @@ I'd like to thank  `Felipe Schneider <https://github.com/schneiderfelipe>`_ for 
 contributions to the Black-Litterman implementation. A full example of its usage, including the acquisition
 of market cap data for free, please refer to the `cookbook recipe <https://github.com/robertmartin8/PyPortfolioOpt/blob/master/cookbook/4-Black-Litterman-Allocation.ipynb>`_.
 
-.. tip:: 
+.. tip::
 
     Thomas Kirschenmann has built a neat interactive `Black-Litterman tool <https://github.com/thk3421-models/cardiel>`_
     on top of PyPortfolioOpt, which allows you to visualise BL outputs and compare optimization objectives.
@@ -60,16 +60,16 @@ of market cap data for free, please refer to the `cookbook recipe <https://githu
 Priors
 ======
 
-You can think of the prior as the "default" estimate, in the absence of any information. 
+You can think of the prior as the "default" estimate, in the absence of any information.
 Black and Litterman (1991) [2]_ provide the insight that a natural choice for this prior
 is the market's estimate of the return, which is embedded into the market capitalisation
-of the asset. 
+of the asset.
 
 Every asset in the market portfolio contributes a certain amount of risk to the portfolio.
 Standard theory suggests that investors must be compensated for the risk that they take, so
 we can attribute to each asset an expected compensation (i.e prior estimate of returns). This
 is quantified by the market-implied risk premium, which is the market's excess return divided
-by its variance: 
+by its variance:
 
 .. math::
 
@@ -99,9 +99,9 @@ this as follows::
 
 
 There is nothing stopping you from using any prior you see fit (but it must have the same dimensionality as the universe).
-If you think that the mean historical returns are a good prior, 
+If you think that the mean historical returns are a good prior,
 you could go with that. But a significant body of research shows that mean historical returns are a completely uninformative
-prior. 
+prior.
 
 .. note::
 
@@ -146,13 +146,13 @@ confidences in expectations) into the model::
 A brief explanation of the above:
 
 - Each view has a corresponding row in the picking matrix (the order matters)
-- Absolute views have a single 1 in the column corresponding to the ticker's order in the universe. 
+- Absolute views have a single 1 in the column corresponding to the ticker's order in the universe.
 - Relative views have a positive number in the nominally outperforming asset columns and a negative number
   in the nominally underperforming asset columns. The numbers in each row should sum up to 0.
 
 
-PyPortfolioOpt provides a helper method for inputting absolute views as either a ``dict`` or ``pd.Series`` – 
-if you have relative views, you must build your picking matrix manually:: 
+PyPortfolioOpt provides a helper method for inputting absolute views as either a ``dict`` or ``pd.Series`` –
+if you have relative views, you must build your picking matrix manually::
 
     from pypfopt.black_litterman import BlackLittermanModel
 
@@ -194,7 +194,7 @@ Output of the BL model
 The BL model outputs posterior estimates of the returns and covariance matrix. The default suggestion in the literature is to
 then input these into an optimizer (see :ref:`efficient-frontier`). A quick alternative, which is quite useful for debugging, is
 to calculate the weights implied by the returns vector [4]_. It is actually the reverse of the procedure we used to calculate the
-returns implied by the market weights. 
+returns implied by the market weights.
 
 .. math::
 
@@ -234,12 +234,12 @@ Documentation reference
         .. caution::
 
             You **must** specify the covariance matrix and either absolute views or *both* Q and P, except in the special case
-            where you provide exactly one view per asset, in which case P is inferred. 
+            where you provide exactly one view per asset, in which case P is inferred.
 
 References
 ==========
 
-.. [1] Idzorek T. A step-by-step guide to the Black-Litterman model: Incorporating user-specified confidence levels. In: Forecasting Expected Returns in the Financial Markets. Elsevier Ltd; 2007. p. 17–38. 
+.. [1] Idzorek T. A step-by-step guide to the Black-Litterman model: Incorporating user-specified confidence levels. In: Forecasting Expected Returns in the Financial Markets. Elsevier Ltd; 2007. p. 17–38.
 .. [2] Black, F; Litterman, R. Combining investor views with market equilibrium. The Journal of Fixed Income, 1991.
 .. [3] Walters, Jay, The Factor Tau in the Black-Litterman Model (October 9, 2013). Available at SSRN: https://ssrn.com/abstract=1701467 or http://dx.doi.org/10.2139/ssrn.1701467
-.. [4] Walters J. The Black-Litterman Model in Detail (2014). SSRN Electron J.;(February 2007):1–65. 
+.. [4] Walters J. The Black-Litterman Model in Detail (2014). SSRN Electron J.;(February 2007):1–65.
