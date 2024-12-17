@@ -52,3 +52,9 @@ help:  ## Display this help screen
 deptry: install ## run deptry
 	@uv pip install deptry
 	@uv run deptry -vv pypfopt
+
+
+.PHONY: jupyter
+jupyter: install ## Run jupyter lab in the cookbook folder
+	@uv pip install jupyterlab nodejs
+	@uv run jupyter lab
