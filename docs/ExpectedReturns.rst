@@ -54,18 +54,18 @@ superior models and feed them into the optimizer.
     
     .. autofunction:: ff_return
 
-        Estimates expected returns using the Fama-French factor models.
+        Estimates expected returns using OLS-estimated factor loadings and
+        historical mean factor premia. The fitted regression intercept is not
+        included as an expected abnormal return.
 
-        Set ``model="ff3"`` to use the three-factor specification with
-        market (Mkt-RF), size (SMB), and value (HML) factors.
+        Set ``model="ff3"`` to use market (Mkt-RF), size (SMB), and value
+        (HML), or ``model="ff5"`` to additionally use profitability (RMW)
+        and investment (CMA).
 
-        Set ``model="ff5"`` to use the five-factor specification, which
-        additionally includes profitability (RMW) and investment (CMA)
-        factors.
-
-        Factor data must be supplied via the ``factor_data`` argument and
-        contain the required factor return columns indexed by date.
-
+        ``factor_data`` must contain the required factor and risk-free returns,
+        indexed by date and expressed as decimals. Data downloaded from
+        Kenneth French's data library is expressed in percentage points and
+        must therefore be divided by 100.
 
 .. References
 .. ==========

@@ -331,7 +331,7 @@ def _make_ff_test_data(model="ff3", n_periods=120, n_assets=4, seed=42):
     returns = excess_returns + factors["RF"].to_numpy()[:, None]
 
     returns_df = pd.DataFrame(
-        returns, index=dates, columns=[f"Asset {i+1}" for i in range(n_assets)]
+        returns, index=dates, columns=[f"Asset {i + 1}" for i in range(n_assets)]
     )
     prices = expected_returns.prices_from_returns(returns_df)
     prices.columns = returns_df.columns
@@ -385,7 +385,9 @@ def test_ff_return_no_overlap():
 def test_return_model_ff3_return():
     prices, _, factors = _make_ff_test_data(model="ff3")
 
-    mu1 = expected_returns.return_model(prices, method="ff3_return", factor_data=factors)
+    mu1 = expected_returns.return_model(
+        prices, method="ff3_return", factor_data=factors
+    )
     mu2 = expected_returns.ff_return(prices, factors)
 
     pd.testing.assert_series_equal(mu1, mu2)
@@ -394,8 +396,10 @@ def test_return_model_ff3_return():
 def test_return_model_ff5_return():
     prices, _, factors = _make_ff_test_data(model="ff5")
 
-    mu1 = expected_returns.return_model(prices, method="ff5_return", factor_data=factors)
-    mu2 = expected_returns.ff_return(prices, factors)
+    mu1 = expected_returns.return_model(
+        prices, method="ff5_return", factor_data=factors
+    )
+    mu2 = expected_returns.ff_return(prices, factors, model="ff5")
 
     pd.testing.assert_series_equal(mu1, mu2)
 
@@ -461,7 +465,7 @@ def test_ff_return_no_valid_rows_after_dropna():
 
 
 def test_ff3_return_recovers_known_linear_model():
-    returns_df, factors, alphas, betas, factor_cols = _make_ff_known_data(model="ff3")
+    returns_df, factors, _, betas, factor_cols = _make_ff_known_data(model="ff3")
 
     mu = expected_returns.ff_return(
         returns_df,
@@ -472,18 +476,16 @@ def test_ff3_return_recovers_known_linear_model():
         frequency=1,
     )
 
-    expected = (
-        factors["RF"].mean()
-        + alphas
-        + betas @ factors[factor_cols].mean().to_numpy()
-    )
+    expected = factors["RF"].mean() + betas @ factors[factor_cols].mean().to_numpy()
     expected = pd.Series(expected, index=returns_df.columns, dtype="float64")
 
-    pd.testing.assert_series_equal(mu, expected, check_exact=False, rtol=1e-10, atol=1e-12)
+    pd.testing.assert_series_equal(
+        mu, expected, check_exact=False, rtol=1e-10, atol=1e-12
+    )
 
 
 def test_ff5_return_recovers_known_linear_model():
-    returns_df, factors, alphas, betas, factor_cols = _make_ff_known_data(model="ff5")
+    returns_df, factors, _, betas, factor_cols = _make_ff_known_data(model="ff5")
 
     mu = expected_returns.ff_return(
         returns_df,
@@ -494,11 +496,7 @@ def test_ff5_return_recovers_known_linear_model():
         frequency=1,
     )
 
-    expected = (
-        factors["RF"].mean()
-        + alphas
-        + betas @ factors[factor_cols].mean().to_numpy()
-    )
+    expected = factors["RF"].mean() + betas @ factors[factor_cols].mean().to_numpy()
 
     expected = pd.Series(
         expected,
@@ -537,7 +535,7 @@ def test_ff_return_returns_data():
 
 
 def test_ff_return_compounding_branch():
-    returns_df, factors, alphas, betas, factor_cols = _make_ff_known_data(model="ff3")
+    returns_df, factors, _, betas, factor_cols = _make_ff_known_data(model="ff3")
 
     mu = expected_returns.ff_return(
         returns_df,
@@ -549,9 +547,7 @@ def test_ff_return_compounding_branch():
     )
 
     expected_period_return = (
-        factors["RF"].mean()
-        + alphas
-        + betas @ factors[factor_cols].mean().to_numpy()
+        factors["RF"].mean() + betas @ factors[factor_cols].mean().to_numpy()
     )
     expected = pd.Series(
         (1 + expected_period_return) ** 252 - 1,
@@ -559,7 +555,9 @@ def test_ff_return_compounding_branch():
         dtype="float64",
     )
 
-    pd.testing.assert_series_equal(mu, expected, check_exact=False, rtol=1e-10, atol=1e-12)
+    pd.testing.assert_series_equal(
+        mu, expected, check_exact=False, rtol=1e-10, atol=1e-12
+    )
 
 
 def test_ff_return_ignores_extra_factor_columns():
@@ -573,3 +571,36 @@ def test_ff_return_ignores_extra_factor_columns():
     )
 
     pd.testing.assert_series_equal(mu_with_extra, mu_without_extra)
+
+
+def test_ff_return_handles_missing_asset_data_independently():
+    returns_df, factors, _, _, _ = _make_ff_known_data(model="ff3")
+    incomplete = returns_df.copy()
+    incomplete.loc[incomplete.index[:20], "Asset 2"] = np.nan
+
+    mu = expected_returns.ff_return(
+        incomplete,
+        factors,
+        returns_data=True,
+        model="ff3",
+        compounding=False,
+        frequency=1,
+    )
+    asset_1_mu = expected_returns.ff_return(
+        returns_df[["Asset 1"]],
+        factors,
+        returns_data=True,
+        model="ff3",
+        compounding=False,
+        frequency=1,
+    )
+
+    assert mu.notnull().all()
+    assert mu["Asset 1"] == pytest.approx(asset_1_mu["Asset 1"])
+
+
+def test_ff_return_rejects_log_returns():
+    prices, _, factors = _make_ff_test_data(model="ff3")
+
+    with pytest.raises(ValueError, match="log_returns=True is not supported"):
+        expected_returns.ff_return(prices, factors, log_returns=True)

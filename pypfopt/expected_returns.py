@@ -339,7 +339,8 @@ def ff_return(
     prices : pd.DataFrame
         adjusted closing prices of the assets.
     factor_data : pd.DataFrame
-        factor returns indexed by date.
+        Factor and risk-free returns indexed by date. Values must be simple returns
+        expressed as decimals (for example, 0.01 for 1 percent).
 
         Required columns for ff3:
         - RF
@@ -360,7 +361,8 @@ def ff_return(
     frequency : int, optional
         periods per year.
     log_returns : bool, optional
-        whether to compute log returns.
+        whether to compute log returns. Fama-French factors are simple returns, so
+        ``True`` is not supported. Defaults to False.
 
     Returns
     -------
@@ -379,10 +381,13 @@ def ff_return(
     if model not in {"ff3", "ff5"}:
         raise ValueError("model must be either 'ff3' or 'ff5'")
 
+    if log_returns:
+        raise ValueError("log_returns=True is not supported for Fama-French models")
+
     if returns_data:
         returns = prices.copy()
     else:
-        returns = returns_from_prices(prices, log_returns)
+        returns = returns_from_prices(prices)
 
     _check_returns(returns)
 
@@ -390,7 +395,7 @@ def ff_return(
     if model == "ff5":
         required.extend(["RMW", "CMA"])
 
-    missing = [c for c in required if c not in factor_data.columns]
+    missing = [column for column in required if column not in factor_data.columns]
     if missing:
         raise ValueError(f"factor_data missing required columns: {missing}")
 
@@ -401,32 +406,43 @@ def ff_return(
     returns = returns.loc[common_index]
     factors = factor_data.loc[common_index, required].copy()
 
-    data = returns.join(factors, how="inner").dropna()
-    if data.empty:
+    if factors.dropna().empty:
         raise ValueError("No valid rows after aligning returns and factor data")
-
-    returns = data[returns.columns]
-    factors = data[required]
-
-    excess_returns = returns.sub(factors["RF"], axis=0)
 
     factor_cols = ["Mkt-RF", "SMB", "HML"]
     if model == "ff5":
         factor_cols.extend(["RMW", "CMA"])
 
-    X = np.column_stack([np.ones(len(factors)), factors[factor_cols].to_numpy()])
-    factor_means = factors[factor_cols].mean().to_numpy()
-
     expected_returns = {}
-    rf_mean = factors["RF"].mean()
 
-    for asset in excess_returns.columns:
-        y = excess_returns[asset].to_numpy()
-        beta = np.linalg.lstsq(X, y, rcond=None)[0]
-        alpha = beta[0]
-        factor_loadings = beta[1:]
+    for asset in returns.columns:
+        valid = returns[asset].notna() & factors.notna().all(axis=1)
 
-        expected_period_return = rf_mean + alpha + factor_loadings @ factor_means
+        if not valid.any():
+            expected_returns[asset] = np.nan
+            continue
+
+        asset_factors = factors.loc[valid]
+        excess_return = returns.loc[valid, asset] - asset_factors["RF"]
+
+        X = np.column_stack(
+            [
+                np.ones(len(asset_factors)),
+                asset_factors[factor_cols].to_numpy(),
+            ]
+        )
+
+        coefficients = np.linalg.lstsq(
+            X,
+            excess_return.to_numpy(),
+            rcond=None,
+        )[0]
+        factor_loadings = coefficients[1:]
+
+        expected_period_return = (
+            asset_factors["RF"].mean()
+            + factor_loadings @ asset_factors[factor_cols].mean().to_numpy()
+        )
 
         if compounding:
             expected_return = (1 + expected_period_return) ** frequency - 1
