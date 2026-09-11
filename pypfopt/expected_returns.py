@@ -16,6 +16,7 @@ Currently implemented:
     - mean historical return
     - exponentially weighted mean historical return
     - CAPM estimate of returns
+    - Fama-French 3-factor and 5-factor estimates of returns
 
 Additionally, we provide utility functions to convert from returns to prices and vice-versa.
 """
@@ -105,6 +106,8 @@ def return_model(prices, method="mean_historical_return", **kwargs):
         - ``mean_historical_return``
         - ``ema_historical_return``
         - ``capm_return``
+        - ``ff3_return``
+        - ``ff5_return``
 
     Raises
     ------
@@ -114,7 +117,7 @@ def return_model(prices, method="mean_historical_return", **kwargs):
     Returns
     -------
     pd.DataFrame
-        annualised sample covariance matrix
+        annualised expected return estimate for each asset
     """
     if method == "mean_historical_return":
         return mean_historical_return(prices, **kwargs)
@@ -122,6 +125,10 @@ def return_model(prices, method="mean_historical_return", **kwargs):
         return ema_historical_return(prices, **kwargs)
     elif method == "capm_return":
         return capm_return(prices, **kwargs)
+    elif method == "ff3_return":
+        return ff_return(prices, model="ff3", **kwargs)
+    elif method == "ff5_return":
+        return ff_return(prices, model="ff5", **kwargs)
     else:
         raise NotImplementedError("Return model {} not implemented".format(method))
 
@@ -313,3 +320,151 @@ def capm_return(
 
     # CAPM formula
     return risk_free_rate + betas * (mkt_mean_ret - risk_free_rate)
+
+
+def ff_return(
+    prices,
+    factor_data,
+    returns_data=False,
+    model="ff3",
+    compounding=True,
+    frequency=252,
+    log_returns=False,
+):
+    """
+    Compute a return estimate using the Fama-French factor model.
+
+    Parameters
+    ----------
+    prices : pd.DataFrame
+        adjusted closing prices of the assets.
+    factor_data : pd.DataFrame
+        Factor and risk-free returns indexed by date. Values must be simple returns
+        expressed as decimals (for example, 0.01 for 1 percent).
+
+        Required columns for ff3:
+        - RF
+        - Mkt-RF
+        - SMB
+        - HML
+
+        Additional required columns for ff5:
+        - RMW
+        - CMA
+
+    returns_data : bool, optional
+        if true, prices is interpreted as returns.
+    model : str, optional
+        one of {"ff3", "ff5"}.
+    compounding : bool, optional
+        use geometric annualisation if True.
+    frequency : int, optional
+        periods per year.
+    log_returns : bool, optional
+        whether to compute log returns. Fama-French factors are simple returns, so
+        ``True`` is not supported. Defaults to False.
+
+    Returns
+    -------
+    pd.Series
+        annualised expected returns. Assets whose factor loadings cannot be
+        identified from the available observations are returned as ``np.nan``.
+    """
+
+    if not isinstance(prices, pd.DataFrame):
+        warnings.warn("prices are not in a dataframe", RuntimeWarning)
+        prices = pd.DataFrame(prices)
+
+    if not isinstance(factor_data, pd.DataFrame):
+        warnings.warn("factor_data is not in a dataframe", RuntimeWarning)
+        factor_data = pd.DataFrame(factor_data)
+
+    if model not in {"ff3", "ff5"}:
+        raise ValueError("model must be either 'ff3' or 'ff5'")
+
+    if log_returns:
+        raise ValueError("log_returns=True is not supported for Fama-French models")
+
+    if returns_data:
+        returns = prices.copy()
+    else:
+        returns = returns_from_prices(prices)
+
+    _check_returns(returns)
+
+    required = ["RF", "Mkt-RF", "SMB", "HML"]
+    if model == "ff5":
+        required.extend(["RMW", "CMA"])
+
+    missing = [column for column in required if column not in factor_data.columns]
+    if missing:
+        raise ValueError(f"factor_data missing required columns: {missing}")
+
+    common_index = returns.index.intersection(factor_data.index)
+    if len(common_index) == 0:
+        raise ValueError("No overlapping dates between asset returns and factor data")
+
+    returns = returns.loc[common_index]
+    factors = factor_data.loc[common_index, required].copy()
+
+    if factors.dropna().empty:
+        raise ValueError("No valid rows after aligning returns and factor data")
+
+    factor_cols = ["Mkt-RF", "SMB", "HML"]
+    if model == "ff5":
+        factor_cols.extend(["RMW", "CMA"])
+
+    expected_returns = {}
+
+    for asset in returns.columns:
+        valid = returns[asset].notna() & factors.notna().all(axis=1)
+
+        if not valid.any():
+            expected_returns[asset] = np.nan
+            continue
+
+        asset_factors = factors.loc[valid]
+        asset_returns = returns.loc[valid, asset].to_numpy(dtype=float)
+        factor_values = asset_factors[factor_cols].to_numpy(dtype=float)
+        rf_values = asset_factors["RF"].to_numpy(dtype=float)
+
+        finite = (
+            np.isfinite(asset_returns)
+            & np.isfinite(rf_values)
+            & np.isfinite(factor_values).all(axis=1)
+        )
+        asset_returns = asset_returns[finite]
+        factor_values = factor_values[finite]
+        rf_values = rf_values[finite]
+
+        if len(asset_returns) == 0:
+            expected_returns[asset] = np.nan
+            continue
+
+        excess_values = asset_returns - rf_values
+        X = np.column_stack([np.ones(len(asset_returns)), factor_values])
+
+        coefficients, _, rank, _ = np.linalg.lstsq(
+            X,
+            excess_values,
+            rcond=None,
+        )
+
+        if rank < X.shape[1]:
+            expected_returns[asset] = np.nan
+            continue
+
+        factor_loadings = coefficients[1:]
+
+        expected_period_return = (
+            rf_values.mean() + factor_loadings @ factor_values.mean(axis=0)
+        )
+
+        if compounding:
+            expected_return = (1 + expected_period_return) ** frequency - 1
+        else:
+            expected_return = expected_period_return * frequency
+
+        expected_returns[asset] = expected_return
+
+    return pd.Series(expected_returns, dtype="float64")

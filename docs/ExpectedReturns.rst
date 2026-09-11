@@ -6,7 +6,7 @@ Expected Returns
 
 Mean-variance optimization requires knowledge of the expected returns. In practice,
 these are rather difficult to know with any certainty. Thus the best we can do is to
-come up with estimates, for example by extrapolating historical data, This is the
+come up with estimates, for example by extrapolating historical data or factor models. This is the
 main flaw in mean-variance optimization – the optimization procedure is sound, and provides
 strong mathematical guarantees, *given the correct inputs*. This is one of the reasons
 why I have emphasised modularity: users should be able to come up with their own
@@ -51,7 +51,22 @@ superior models and feed them into the optimizer.
     .. autofunction:: returns_from_prices
 
     .. autofunction:: prices_from_returns
+    
+    .. autofunction:: ff_return
 
+        Estimates expected returns using OLS-estimated factor loadings and
+        historical mean factor premia. The fitted regression intercept is not
+        included as an expected abnormal return.
+
+        Set ``model="ff3"`` to use market (Mkt-RF), size (SMB), and value
+        (HML), or ``model="ff5"`` to additionally use profitability (RMW)
+        and investment (CMA).
+
+        ``factor_data`` must contain the required factor and risk-free returns,
+        indexed by date and expressed as decimals. Data downloaded from
+        Kenneth French's data library is expressed in percentage points and
+        must therefore be divided by 100. Asset returns and factor returns must
+        use the same observation frequency, and ``frequency`` must match it.
 
 .. References
 .. ==========
