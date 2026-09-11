@@ -595,8 +595,82 @@ def test_ff_return_handles_missing_asset_data_independently():
         frequency=1,
     )
 
+    asset_2_mu = expected_returns.ff_return(
+        incomplete[["Asset 2"]],
+        factors,
+        returns_data=True,
+        model="ff3",
+        compounding=False,
+        frequency=1,
+    )
+
     assert mu.notnull().all()
     assert mu["Asset 1"] == pytest.approx(asset_1_mu["Asset 1"])
+    assert mu["Asset 2"] == pytest.approx(asset_2_mu["Asset 2"])
+
+
+def test_ff_return_rank_deficient_data_returns_nan():
+    returns_df, factors, _, _, _ = _make_ff_known_data(model="ff3")
+    factors = factors.copy()
+    factors["SMB"] = 2 * factors["Mkt-RF"]
+    factors["HML"] = 3 * factors["Mkt-RF"]
+
+    mu = expected_returns.ff_return(
+        returns_df,
+        factors,
+        returns_data=True,
+        model="ff3",
+    )
+
+    assert mu.isna().all()
+
+
+def test_ff_return_supports_nullable_float_data():
+    returns_df, factors, _, _, _ = _make_ff_known_data(model="ff3")
+
+    expected = expected_returns.ff_return(
+        returns_df,
+        factors,
+        returns_data=True,
+        model="ff3",
+        compounding=False,
+        frequency=1,
+    )
+    actual = expected_returns.ff_return(
+        returns_df.astype("Float64"),
+        factors.astype("Float64"),
+        returns_data=True,
+        model="ff3",
+        compounding=False,
+        frequency=1,
+    )
+
+    pd.testing.assert_series_equal(actual, expected)
+
+
+def test_ff_return_ignores_nonfinite_rows():
+    returns_df, factors, _, _, _ = _make_ff_known_data(model="ff3")
+    factors = factors.copy()
+    factors.loc[factors.index[0], "SMB"] = np.inf
+
+    actual = expected_returns.ff_return(
+        returns_df,
+        factors,
+        returns_data=True,
+        model="ff3",
+        compounding=False,
+        frequency=1,
+    )
+    expected = expected_returns.ff_return(
+        returns_df.iloc[1:],
+        factors.iloc[1:],
+        returns_data=True,
+        model="ff3",
+        compounding=False,
+        frequency=1,
+    )
+
+    pd.testing.assert_series_equal(actual, expected)
 
 
 def test_ff_return_rejects_log_returns():

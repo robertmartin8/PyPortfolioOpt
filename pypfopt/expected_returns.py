@@ -367,7 +367,8 @@ def ff_return(
     Returns
     -------
     pd.Series
-        annualised expected returns.
+        annualised expected returns. Assets whose factor loadings cannot be
+        identified from the available observations are returned as ``np.nan``.
     """
 
     if not isinstance(prices, pd.DataFrame):
@@ -423,25 +424,40 @@ def ff_return(
             continue
 
         asset_factors = factors.loc[valid]
-        excess_return = returns.loc[valid, asset] - asset_factors["RF"]
+        asset_returns = returns.loc[valid, asset].to_numpy(dtype=float)
+        factor_values = asset_factors[factor_cols].to_numpy(dtype=float)
+        rf_values = asset_factors["RF"].to_numpy(dtype=float)
 
-        X = np.column_stack(
-            [
-                np.ones(len(asset_factors)),
-                asset_factors[factor_cols].to_numpy(),
-            ]
+        finite = (
+            np.isfinite(asset_returns)
+            & np.isfinite(rf_values)
+            & np.isfinite(factor_values).all(axis=1)
+        )
+        asset_returns = asset_returns[finite]
+        factor_values = factor_values[finite]
+        rf_values = rf_values[finite]
+
+        if len(asset_returns) == 0:
+            expected_returns[asset] = np.nan
+            continue
+
+        excess_values = asset_returns - rf_values
+        X = np.column_stack([np.ones(len(asset_returns)), factor_values])
+
+        coefficients, _, rank, _ = np.linalg.lstsq(
+            X,
+            excess_values,
+            rcond=None,
         )
 
-        coefficients = np.linalg.lstsq(
-            X,
-            excess_return.to_numpy(),
-            rcond=None,
-        )[0]
+        if rank < X.shape[1]:
+            expected_returns[asset] = np.nan
+            continue
+
         factor_loadings = coefficients[1:]
 
         expected_period_return = (
-            asset_factors["RF"].mean()
-            + factor_loadings @ asset_factors[factor_cols].mean().to_numpy()
+            rf_values.mean() + factor_loadings @ factor_values.mean(axis=0)
         )
 
         if compounding:

@@ -65,7 +65,8 @@ superior models and feed them into the optimizer.
         ``factor_data`` must contain the required factor and risk-free returns,
         indexed by date and expressed as decimals. Data downloaded from
         Kenneth French's data library is expressed in percentage points and
-        must therefore be divided by 100.
+        must therefore be divided by 100. Asset returns and factor returns must
+        use the same observation frequency, and ``frequency`` must match it.
 
 .. References
 .. ==========
